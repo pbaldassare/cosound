@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client'
 import { BrowserRouter, Link, Route, Routes } from 'react-router-dom'
 import './index.css'
 import { AuthProvider, RequireAuth } from './lib/auth'
+import { I18nProvider, useT } from './i18n'
 import Layout, { btnPrimary } from './components/Layout'
 import { DownloadSection, PricingSection } from './components/Sections'
 import Home from './pages/Home'
@@ -11,12 +12,13 @@ import Dashboard from './pages/account/Dashboard'
 import Admin from './pages/admin/Admin'
 
 function NotFound() {
+  const { t } = useT()
   return (
     <div className="grid min-h-[60vh] place-items-center px-4 text-center">
       <div>
         <p className="font-mono text-sm text-sky">404</p>
-        <h1 className="mt-2 font-display text-3xl font-bold">This page is off the grid</h1>
-        <Link to="/" className={`${btnPrimary} mt-8`}>Back to home</Link>
+        <h1 className="mt-2 font-display text-3xl font-bold">{t.notFound.title}</h1>
+        <Link to="/" className={`${btnPrimary} mt-8`}>{t.notFound.back}</Link>
       </div>
     </div>
   )
@@ -25,6 +27,7 @@ function NotFound() {
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <BrowserRouter>
+      <I18nProvider>
       <AuthProvider>
         <Routes>
           <Route element={<Layout />}>
@@ -41,6 +44,7 @@ createRoot(document.getElementById('root')!).render(
           </Route>
         </Routes>
       </AuthProvider>
+      </I18nProvider>
     </BrowserRouter>
   </StrictMode>,
 )

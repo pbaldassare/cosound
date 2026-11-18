@@ -11,6 +11,7 @@ export type Plan = {
   name: string
   tagline: string
   features: string[]
+  features_it: string[]
   price_monthly_cents: number | null
   price_yearly_cents: number | null
   currency: string
@@ -24,6 +25,7 @@ export type Daw = {
   name: string
   vendor: string
   description: string
+  description_it: string
   status: 'available' | 'in_development' | 'planned'
   sort: number
 }
@@ -56,5 +58,5 @@ export type Device = {
 
 export type Announcement = { id: string; title: string; body: string; published: boolean; created_at: string }
 
-export const formatPrice = (cents: number | null, currency: string) =>
-  cents == null ? null : new Intl.NumberFormat('en-IE', { style: 'currency', currency }).format(cents / 100)
+export const formatPrice = (cents: number | null, currency: string, locale: string) =>
+  cents == null ? null : new Intl.NumberFormat(locale, { style: 'currency', currency }).format(cents / 100)

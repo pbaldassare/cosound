@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from '
 import { Navigate, useLocation } from 'react-router-dom'
 import type { Session } from '@supabase/supabase-js'
 import { supabase } from './supabase'
+import { useT } from '../i18n'
 
 type AuthState = { session: Session | null; isAdmin: boolean; loading: boolean }
 
@@ -32,7 +33,8 @@ export const useAuth = () => useContext(AuthContext)
 export function RequireAuth({ children, admin = false }: { children: ReactNode; admin?: boolean }) {
   const { session, isAdmin, loading } = useAuth()
   const location = useLocation()
-  if (loading) return <div className="min-h-[60vh] grid place-items-center text-muted">Loading…</div>
+  const { t } = useT()
+  if (loading) return <div className="min-h-[60vh] grid place-items-center text-muted">{t.common.loading}</div>
   if (!session) return <Navigate to="/login" replace state={{ from: location.pathname }} />
   if (admin && !isAdmin) return <Navigate to="/account" replace />
   return children

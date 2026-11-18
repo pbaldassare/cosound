@@ -5,6 +5,11 @@
 - **Backend**: Supabase project `dhfdqmlbjmitpqpohgno` (Auth, Postgres with RLS, private Storage).
 - **supabase/migrations/**: the database schema, already applied.
 
+## Languages (IT / EN)
+- UI strings: `web/src/i18n/en.ts` and `it.ts`. `it.ts` is typed against `en.ts`, so a missing translation fails the build.
+- Toggle IT/EN in the header; first visit follows the browser language, choice saved in the browser.
+- DB content has Italian columns: `plans.features_it`, `daws.description_it` (editable in Admin). Announcements are single-language.
+
 ## Run locally
     cd web && cp .env.example .env && npm install && npm run dev
 
@@ -31,4 +36,4 @@ Installers download only via a 60-second signed URL, for admins or users with an
 5. **Stripe** (once prices are decided): create products/prices, put price IDs in Admin → Plans, then add a checkout Edge Function + webhook that writes `subscriptions` with the service role.
 6. **Hosting**: deploy `web/` (Vercel/Netlify) with SPA fallback to `index.html` and the two `VITE_` env vars.
 7. **Legal**: privacy policy, terms and cookie notice are required (GDPR) before public sign-ups.
-8. **Test data**: delete users `e2e-test@cosound.test` and `cosound.e2e.*@gmail.com` (Auth → Users) if still present.
+8. **Test data**: delete users `e2e-test@cosound.test` and `cosound.e2e.*@gmail.com` (Auth → Users): they are still present.

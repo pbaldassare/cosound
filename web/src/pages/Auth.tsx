@@ -3,6 +3,8 @@ import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../lib/auth'
 import { btnPrimary } from '../components/Layout'
+import { useT } from '../i18n'
+import type { Dict } from '../i18n/en'
 
 const MIN_PASSWORD = 8
 
@@ -38,6 +40,7 @@ function Message({ kind, children }: { kind: 'error' | 'ok'; children: ReactNode
 }
 
 function useForm() {
+  const { t } = useT()
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [done, setDone] = useState<string | null>(null)
@@ -48,7 +51,7 @@ function useForm() {
       const msg = await fn(new FormData(e.currentTarget))
       if (msg) setDone(msg)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Something went wrong. Please try again.')
+      setError(err instanceof Error ? t.auth.errors[err.message] ?? err.message : t.common.error)
     } finally {
       setBusy(false)
     }
@@ -58,15 +61,21 @@ function useForm() {
 
 const str = (d: FormData, k: string) => String(d.get(k) ?? '').trim()
 
+function checkPassword(d: FormData, t: Dict) {
+  const password = String(d.get('password'))
+  if (password.length < MIN_PASSWORD) throw new Error(t.auth.pwTooShort(MIN_PASSWORD))
+  if (password !== String(d.get('confirm'))) throw new Error(t.auth.pwMismatch)
+  return password
+}
+
 export function Signup() {
   const { session } = useAuth()
+  const { t } = useT()
   const { busy, error, done, submit } = useForm()
   if (session) return <Navigate to="/account" replace />
 
   const onSubmit = submit(async (d) => {
-    const password = String(d.get('password'))
-    if (password.length < MIN_PASSWORD) throw new Error(`Password must be at least ${MIN_PASSWORD} characters.`)
-    if (password !== String(d.get('confirm'))) throw new Error('Passwords do not match.')
+    const password = checkPassword(d, t)
     const { data, error } = await supabase.auth.signUp({
       email: str(d, 'email'),
       password,
@@ -76,22 +85,22 @@ export function Signup() {
       },
     })
     if (error) throw error
-    if (!data.session) return 'Check your inbox: we sent you a link to verify your email address.'
+    if (!data.session) return t.auth.checkInbox
   })
 
   return (
-    <AuthCard title="Create your account" subtitle={<>Already have one? <Link to="/login" className="text-sky hover:underline">Sign in</Link></>}>
+    <AuthCard title={t.auth.signupTitle} subtitle={<>{t.auth.haveAccount} <Link to="/login" className="text-sky hover:underline">{t.auth.signIn}</Link></>}>
       {done ? <Message kind="ok">{done}</Message> : (
         <form onSubmit={onSubmit} className="space-y-4">
           <div className="grid gap-4 sm:grid-cols-2">
-            <Field label="First name" name="first_name" autoComplete="given-name" maxLength={80} />
-            <Field label="Last name" name="last_name" autoComplete="family-name" maxLength={80} />
+            <Field label={t.auth.firstName} name="first_name" autoComplete="given-name" maxLength={80} />
+            <Field label={t.auth.lastName} name="last_name" autoComplete="family-name" maxLength={80} />
           </div>
-          <Field label="Email" name="email" type="email" autoComplete="email" />
-          <Field label="Password" name="password" type="password" autoComplete="new-password" minLength={MIN_PASSWORD} />
-          <Field label="Confirm password" name="confirm" type="password" autoComplete="new-password" minLength={MIN_PASSWORD} />
+          <Field label={t.auth.email} name="email" type="email" autoComplete="email" />
+          <Field label={t.auth.password} name="password" type="password" autoComplete="new-password" minLength={MIN_PASSWORD} />
+          <Field label={t.auth.confirm} name="confirm" type="password" autoComplete="new-password" minLength={MIN_PASSWORD} />
           {error && <Message kind="error">{error}</Message>}
-          <button className={`${btnPrimary} w-full`} disabled={busy}>{busy ? 'Creating account…' : 'Create account'}</button>
+          <button className={`${btnPrimary} w-full`} disabled={busy}>{busy ? t.auth.creating : t.auth.create}</button>
         </form>
       )}
     </AuthCard>
@@ -101,6 +110,7 @@ export function Signup() {
 export function Login() {
   const { session } = useAuth()
   const navigate = useNavigate()
+  const { t } = useT()
   const from = (useLocation().state as { from?: string } | null)?.from ?? '/account'
   const { busy, error, submit } = useForm()
   if (session) return <Navigate to={from} replace />
@@ -112,33 +122,34 @@ export function Login() {
   })
 
   return (
-    <AuthCard title="Sign in" subtitle={<>New to COSOUND? <Link to="/signup" className="text-sky hover:underline">Create an account</Link></>}>
+    <AuthCard title={t.auth.loginTitle} subtitle={<>{t.auth.newHere} <Link to="/signup" className="text-sky hover:underline">{t.auth.createLink}</Link></>}>
       <form onSubmit={onSubmit} className="space-y-4">
-        <Field label="Email" name="email" type="email" autoComplete="email" />
-        <Field label="Password" name="password" type="password" autoComplete="current-password" />
-        <div className="text-right text-sm"><Link to="/forgot-password" className="text-muted hover:text-white">Forgot password?</Link></div>
+        <Field label={t.auth.email} name="email" type="email" autoComplete="email" />
+        <Field label={t.auth.password} name="password" type="password" autoComplete="current-password" />
+        <div className="text-right text-sm"><Link to="/forgot-password" className="text-muted hover:text-white">{t.auth.forgot}</Link></div>
         {error && <Message kind="error">{error}</Message>}
-        <button className={`${btnPrimary} w-full`} disabled={busy}>{busy ? 'Signing in…' : 'Sign in'}</button>
+        <button className={`${btnPrimary} w-full`} disabled={busy}>{busy ? t.auth.signingIn : t.auth.signIn}</button>
       </form>
     </AuthCard>
   )
 }
 
 export function ForgotPassword() {
+  const { t } = useT()
   const { busy, error, done, submit } = useForm()
   const onSubmit = submit(async (d) => {
     const { error } = await supabase.auth.resetPasswordForEmail(str(d, 'email'), { redirectTo: `${window.location.origin}/reset-password` })
     if (error) throw error
     // Same message whether or not the address exists, to avoid account enumeration.
-    return 'If an account exists for this email, you will receive a reset link shortly.'
+    return t.auth.resetSent
   })
   return (
-    <AuthCard title="Reset your password" subtitle="We'll email you a secure link to choose a new password.">
+    <AuthCard title={t.auth.forgotTitle} subtitle={t.auth.forgotText}>
       {done ? <Message kind="ok">{done}</Message> : (
         <form onSubmit={onSubmit} className="space-y-4">
-          <Field label="Email" name="email" type="email" autoComplete="email" />
+          <Field label={t.auth.email} name="email" type="email" autoComplete="email" />
           {error && <Message kind="error">{error}</Message>}
-          <button className={`${btnPrimary} w-full`} disabled={busy}>{busy ? 'Sending…' : 'Send reset link'}</button>
+          <button className={`${btnPrimary} w-full`} disabled={busy}>{busy ? t.auth.sending : t.auth.sendLink}</button>
         </form>
       )}
     </AuthCard>
@@ -147,6 +158,7 @@ export function ForgotPassword() {
 
 export function ResetPassword() {
   const { session, loading } = useAuth()
+  const { t } = useT()
   const navigate = useNavigate()
   const { busy, error, submit } = useForm()
   const [linkError, setLinkError] = useState<string | null>(null)
@@ -156,28 +168,26 @@ export function ResetPassword() {
   }, [])
 
   const onSubmit = submit(async (d) => {
-    const password = String(d.get('password'))
-    if (password.length < MIN_PASSWORD) throw new Error(`Password must be at least ${MIN_PASSWORD} characters.`)
-    if (password !== String(d.get('confirm'))) throw new Error('Passwords do not match.')
+    const password = checkPassword(d, t)
     const { error } = await supabase.auth.updateUser({ password })
     if (error) throw error
     navigate('/account', { replace: true })
   })
 
-  if (loading) return <AuthCard title="Choose a new password"><p className="text-muted">Loading…</p></AuthCard>
+  if (loading) return <AuthCard title={t.auth.newPwTitle}><p className="text-muted">{t.common.loading}</p></AuthCard>
   if (!session) return (
-    <AuthCard title="Link not valid">
-      <Message kind="error">{linkError ?? 'This reset link is invalid or has expired.'}</Message>
-      <Link to="/forgot-password" className={`${btnPrimary} mt-6 w-full`}>Request a new link</Link>
+    <AuthCard title={t.auth.invalidTitle}>
+      <Message kind="error">{linkError ?? t.auth.invalidText}</Message>
+      <Link to="/forgot-password" className={`${btnPrimary} mt-6 w-full`}>{t.auth.requestNew}</Link>
     </AuthCard>
   )
   return (
-    <AuthCard title="Choose a new password">
+    <AuthCard title={t.auth.newPwTitle}>
       <form onSubmit={onSubmit} className="space-y-4">
-        <Field label="New password" name="password" type="password" autoComplete="new-password" minLength={MIN_PASSWORD} />
-        <Field label="Confirm new password" name="confirm" type="password" autoComplete="new-password" minLength={MIN_PASSWORD} />
+        <Field label={t.auth.newPw} name="password" type="password" autoComplete="new-password" minLength={MIN_PASSWORD} />
+        <Field label={t.auth.confirmNewPw} name="confirm" type="password" autoComplete="new-password" minLength={MIN_PASSWORD} />
         {error && <Message kind="error">{error}</Message>}
-        <button className={`${btnPrimary} w-full`} disabled={busy}>{busy ? 'Saving…' : 'Save new password'}</button>
+        <button className={`${btnPrimary} w-full`} disabled={busy}>{busy ? t.common.saving : t.auth.saveNewPw}</button>
       </form>
     </AuthCard>
   )

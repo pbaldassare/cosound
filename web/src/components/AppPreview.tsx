@@ -1,4 +1,5 @@
 import { Mic, Send } from 'lucide-react'
+import { useT } from '../i18n'
 
 // Concept mock-up of the future desktop interface: static markup, no real functionality.
 const tracks = [
@@ -11,8 +12,9 @@ const tracks = [
 const bars = [0.5, 0.9, 0.35, 0.7, 1, 0.45, 0.8, 0.6, 0.95, 0.4, 0.75, 0.55]
 
 export default function AppPreview() {
+  const { t } = useT()
   return (
-    <figure className="relative" aria-label="Concept preview of the COSOUND desktop interface">
+    <figure className="relative" aria-label={t.preview.label}>
       <div className="glow absolute -inset-6 -z-10 rounded-[2rem] bg-gradient-to-r from-violet/30 via-electric/20 to-sky/30 blur-3xl" />
       <div className="card overflow-hidden shadow-2xl">
         <div className="flex items-center gap-2 border-b border-line bg-panel-2 px-4 py-2.5">
@@ -26,17 +28,17 @@ export default function AppPreview() {
           {/* Chat */}
           <div className="flex flex-col gap-3 border-b border-line p-4 text-[13px] md:border-r md:border-b-0">
             <div className="ml-auto max-w-[90%] rounded-2xl rounded-br-sm bg-violet/20 px-3 py-2">
-              Techno at 140 BPM, punchy kick, dark aggressive bass, industrial percussion and a hypnotic synth.
+              {t.preview.user}
             </div>
             <div className="max-w-[95%] rounded-2xl rounded-bl-sm border border-line bg-panel-2 px-3 py-2 text-muted">
-              <span className="font-semibold text-white">Proposal ready.</span> I picked 4 sources from your studio. Kick and bass overlap around 60 Hz: I'll sidechain the bass and high-pass it at 35 Hz.
+              <span className="font-semibold text-white">{t.preview.ready}</span> {t.preview.reply}
               <div className="mt-2 flex gap-2">
-                <span className="rounded-full bg-sky/15 px-2 py-0.5 text-[11px] text-sky">Approve</span>
-                <span className="rounded-full bg-white/5 px-2 py-0.5 text-[11px]">Change kick</span>
+                <span className="rounded-full bg-sky/15 px-2 py-0.5 text-[11px] text-sky">{t.preview.approve}</span>
+                <span className="rounded-full bg-white/5 px-2 py-0.5 text-[11px]">{t.preview.changeKick}</span>
               </div>
             </div>
             <div className="mt-auto flex items-center gap-2 rounded-xl border border-line bg-ink px-3 py-2 text-muted">
-              <span className="flex-1 truncate">Make the bass deeper…</span>
+              <span className="flex-1 truncate">{t.preview.input}</span>
               <Mic size={15} className="text-sky" />
               <Send size={15} />
             </div>
@@ -79,7 +81,7 @@ export default function AppPreview() {
           </div>
         </div>
       </div>
-      <figcaption className="mt-3 text-center font-mono text-[11px] text-muted">Concept preview — interface in development</figcaption>
+      <figcaption className="mt-3 text-center font-mono text-[11px] text-muted">{t.preview.caption}</figcaption>
     </figure>
   )
 }

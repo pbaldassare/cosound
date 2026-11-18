@@ -3,6 +3,7 @@ import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-do
 import { Menu, X } from 'lucide-react'
 import { useAuth } from '../lib/auth'
 import { supabase } from '../lib/supabase'
+import { LanguageToggle, useT } from '../i18n'
 
 export const btnPrimary =
   'inline-flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-violet via-electric to-sky px-6 py-3 text-sm font-semibold tracking-wide text-white shadow-[0_0_30px_-6px_rgb(168_85_247/0.7)] transition hover:brightness-110 disabled:opacity-50 disabled:cursor-not-allowed'
@@ -28,15 +29,20 @@ export function SectionHeading({ eyebrow, title, children }: { eyebrow: string; 
   )
 }
 
-const navLinks = [
-  { to: '/#features', label: 'Features' },
-  { to: '/#daws', label: 'DAWs' },
-  { to: '/pricing', label: 'Pricing' },
-  { to: '/download', label: 'Download' },
-]
+const useNavLinks = () => {
+  const { t } = useT()
+  return [
+    { to: '/#features', label: t.nav.features },
+    { to: '/#daws', label: t.nav.daws },
+    { to: '/pricing', label: t.nav.pricing },
+    { to: '/download', label: t.nav.download },
+  ]
+}
 
 function Navbar() {
   const { session, isAdmin } = useAuth()
+  const { t } = useT()
+  const navLinks = useNavLinks()
   const [open, setOpen] = useState(false)
   const navigate = useNavigate()
   const location = useLocation()
@@ -58,14 +64,14 @@ function Navbar() {
   )
   const actions = session ? (
     <>
-      {isAdmin && <Link to="/admin" className="text-sm text-muted hover:text-white">Admin</Link>}
-      <Link to="/account" className={btnGhost + ' !px-4 !py-2'}>My account</Link>
-      <button onClick={signOut} className="text-sm text-muted hover:text-white">Sign out</button>
+      {isAdmin && <Link to="/admin" className="text-sm text-muted hover:text-white">{t.nav.admin}</Link>}
+      <Link to="/account" className={btnGhost + ' !px-4 !py-2'}>{t.nav.myAccount}</Link>
+      <button onClick={signOut} className="text-sm text-muted hover:text-white">{t.nav.signOut}</button>
     </>
   ) : (
     <>
-      <Link to="/login" className="text-sm text-muted hover:text-white">Sign in</Link>
-      <Link to="/signup" className={btnPrimary + ' !px-4 !py-2'}>Create account</Link>
+      <Link to="/login" className="text-sm text-muted hover:text-white">{t.nav.signIn}</Link>
+      <Link to="/signup" className={btnPrimary + ' !px-4 !py-2'}>{t.nav.createAccount}</Link>
     </>
   )
 
@@ -74,10 +80,13 @@ function Navbar() {
       <nav className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6">
         <Logo />
         <div className="hidden items-center gap-8 md:flex">{links}</div>
-        <div className="hidden items-center gap-4 md:flex">{actions}</div>
-        <button className="md:hidden" onClick={() => setOpen(!open)} aria-label="Toggle menu" aria-expanded={open}>
-          {open ? <X /> : <Menu />}
-        </button>
+        <div className="hidden items-center gap-4 md:flex"><LanguageToggle />{actions}</div>
+        <div className="flex items-center gap-3 md:hidden">
+          <LanguageToggle />
+          <button onClick={() => setOpen(!open)} aria-label={t.nav.menu} aria-expanded={open}>
+            {open ? <X /> : <Menu />}
+          </button>
+        </div>
       </nav>
       {open && (
         <div className="flex flex-col gap-4 border-t border-line px-4 py-5 md:hidden">
@@ -90,24 +99,25 @@ function Navbar() {
 }
 
 function Footer() {
+  const { t } = useT()
+  const navLinks = useNavLinks()
   return (
     <footer className="border-t border-line bg-panel">
       <div className="mx-auto grid max-w-7xl gap-10 px-4 py-12 sm:px-6 md:grid-cols-3">
         <div>
           <Logo />
-          <p className="mt-4 max-w-xs text-sm text-muted">The AI music production engineer that works inside your studio, with your own sounds.</p>
+          <p className="mt-4 max-w-xs text-sm text-muted">{t.footer.tagline}</p>
         </div>
         <div className="grid grid-cols-2 gap-2 text-sm text-muted">
           {navLinks.map((l) => <Link key={l.to} to={l.to} className="hover:text-white">{l.label}</Link>)}
-          <Link to="/signup" className="hover:text-white">Create account</Link>
-          <Link to="/login" className="hover:text-white">Sign in</Link>
+          <Link to="/signup" className="hover:text-white">{t.nav.createAccount}</Link>
+          <Link to="/login" className="hover:text-white">{t.nav.signIn}</Link>
         </div>
         <p className="text-xs leading-relaxed text-muted/80">
-          Logic Pro, Ableton Live, FL Studio, Pro Tools and other product names are trademarks of their respective owners.
-          COSOUND is an independent product and is not affiliated with, endorsed or sponsored by them.
+          {t.footer.trademarks}
         </p>
       </div>
-      <p className="border-t border-line py-5 text-center text-xs text-muted/70">© {new Date().getFullYear()} COSOUND. All rights reserved.</p>
+      <p className="border-t border-line py-5 text-center text-xs text-muted/70">© {new Date().getFullYear()} COSOUND. {t.footer.rights}</p>
     </footer>
   )
 }
