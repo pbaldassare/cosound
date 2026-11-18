@@ -1,0 +1,62 @@
+@import "tailwindcss";
+
+@theme {
+  --color-ink: #07070b;
+  --color-panel: #0e0e15;
+  --color-panel-2: #15151f;
+  --color-line: #23232f;
+  --color-muted: #9a9ab0;
+  --color-violet: #a855f7;
+  --color-electric: #3b82f6;
+  --color-sky: #22d3ee;
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Space Grotesk", "Inter", ui-sans-serif, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+}
+
+html { background: var(--color-ink); color: #ececf3; scroll-behavior: smooth; }
+body { min-height: 100vh; font-family: var(--font-sans); -webkit-font-smoothing: antialiased; }
+:focus-visible { outline: 2px solid var(--color-sky); outline-offset: 2px; }
+
+@utility text-gradient {
+  background: linear-gradient(90deg, #c084fc, #60a5fa 50%, #22d3ee);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+@utility grid-bg {
+  background-image:
+    linear-gradient(to right, rgb(255 255 255 / 0.035) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(255 255 255 / 0.035) 1px, transparent 1px);
+  background-size: 48px 48px;
+}
+
+@utility card {
+  border: 1px solid var(--color-line);
+  background: linear-gradient(180deg, rgb(21 21 31 / 0.9), rgb(14 14 21 / 0.9));
+  border-radius: 1rem;
+}
+
+@utility field {
+  width: 100%;
+  border-radius: 0.6rem;
+  border: 1px solid var(--color-line);
+  background: var(--color-ink);
+  padding: 0.65rem 0.85rem;
+  font-size: 0.95rem;
+  &:focus { outline: none; border-color: var(--color-violet); box-shadow: 0 0 0 3px rgb(168 85 247 / 0.2); }
+}
+
+@keyframes eq { 0%, 100% { transform: scaleY(0.25); } 50% { transform: scaleY(1); } }
+@keyframes playhead { from { left: 0%; } to { left: 100%; } }
+@keyframes glow { 0%, 100% { opacity: 0.55; } 50% { opacity: 0.9; } }
+
+.eq-bar { transform-origin: bottom; animation: eq 1.4s ease-in-out infinite; }
+.playhead { animation: playhead 8s linear infinite; }
+.glow { animation: glow 6s ease-in-out infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  .eq-bar, .playhead, .glow { animation: none; }
+  html { scroll-behavior: auto; }
+}
