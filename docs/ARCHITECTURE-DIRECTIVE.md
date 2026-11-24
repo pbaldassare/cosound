@@ -49,3 +49,15 @@ Nessuna operazione potenzialmente distruttiva senza consenso dell'utente. Previs
 - 2026-11-24: l'Agent centrale **è in sviluppo** da parte del socio e non esiste ancora. Verrà consegnato appena pronto.
 - Nel frattempo si costruisce tutto il resto (knowledge base, sotto-agenti, tool, connettori DAW) in modo **indipendente dall'implementazione dell'Agent centrale**: ogni sotto-agente espone un contratto documentato (input/output strutturati, permessi, errori) che l'Agent centrale potrà chiamare. Nessun orchestratore centrale viene costruito da noi; per i test si usa al massimo un harness minimo dichiarato come tale, da eliminare all'arrivo dell'Agent.
 - All'arrivo del codice: analisi tecnica, verifica di compatibilità dei contratti, adattamento lato sotto-agenti (non lato Agent).
+
+---
+
+# Direttiva di sviluppo parallelo (2026-11-24, permanente)
+
+Lo sviluppo **non si ferma** in attesa dell'Agent centrale.
+
+1. **Agent Integration Layer** (nome provvisorio): modulo unico tra COSOUND e l'Agent centrale. Gestisce invio richieste, ricezione risposte, operazioni, comunicazione con i sotto-agenti, errori, autenticazione/autorizzazioni, contesto di sessione, stato delle operazioni. Interfacce documentate e adattabili al sistema reale; nessuna caratteristica dell'Agent inventata.
+2. **Connettore temporaneo** di test: chiaramente marcato come temporaneo, mai presentato come l'Agent, nessuna funzione simulata spacciata per reale, sostituibile senza toccare il resto dell'app.
+3. **Sviluppo indipendente** di: app desktop, interfaccia grafica, database, Smart Library, riconoscimento dispositivi esterni, Audio Analysis, Stem Analysis, Voice-to-Music, Music Theory Engine, MIDI Generation, Plugin Intelligence, DAW Integration Layer, account e abbonamenti, gestione progetti musicali.
+4. **All'arrivo dell'Agent**: analisi del codice → verifica compatibilità con l'Integration Layer → adattamento del connettore → integrazione senza duplicati → test comunicazione → verifica coordinamento sotto-agenti → documentazione. Mai modificare il codice dell'Agent senza autorizzazione.
+5. **Regola**: ogni componente è modulare e collegabile dopo. Le decisioni che dipendono dall'Agent si documentano e si prosegue sul resto. `COSOUND_PROJECT_STATUS.md` distingue componenti completati / provvisori / in attesa di integrazione.

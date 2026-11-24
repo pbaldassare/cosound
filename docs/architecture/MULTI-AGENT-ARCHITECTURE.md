@@ -1,6 +1,8 @@
-# COSOUND – Multi-agent architecture (proposal, v0.1)
+# COSOUND – Multi-agent architecture (proposal, v0.2)
 
 Status: **PROPOSAL** (2026-11-24). Written under `docs/ARCHITECTURE-DIRECTIVE.md`.
+Part of the Prompt 03 architecture: overview in `ARCHITECTURE.md`, contract and adapter in
+`AGENT-INTEGRATION-LAYER.md` (which supersedes §5 details where they differ, e.g. `basis` field).
 The central Agent is being built by the project partner and has **not been analyzed yet**: every
 point marked ⏳ depends on its real code and will be revised when it arrives. Nothing here
 describes or assumes how the central Agent works internally.
