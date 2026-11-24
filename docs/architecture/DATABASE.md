@@ -122,6 +122,11 @@ Duplicates are found by `full_hash` (no separate table).
 
 `assistant_name` is a memory fact (category `assistant`) mirrored in `settings` for the UI.
 
+### 2.6 Implemented in the desktop app (Prompt 04, `desktop/src-tauri/migrations/001_init.sql`)
+`settings`, `volumes`, `library_roots`, `files`, `projects`, `project_roots` (libraries used by a project), `imports` (imported material of any kind: path, kind, role, provenance, size, sha256; the analysis tables `audio_assets`/`analyses` come with the Audio Analysis engine), `op_log` (reduced: op, risk, params, inverse for undo). Other tables in this file are created when their module is built.
+
+Cloud (applied 2026-11-24, migration `20261124120000_desktop_app.sql`): `profiles.assistant_name`, `app_settings` with `trial_days` (3 or 7, default 7).
+
 ## 3. Rules
 - Paths stored **relative to volume + root**, so a drive that changes letter/mount point is re-matched by volume ID.
 - Every analyzed value carries a `*_basis` or `analyzer_version`: COSOUND never shows estimates as measurements.

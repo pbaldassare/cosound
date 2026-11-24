@@ -91,11 +91,17 @@ cannot skip them.
 |---|---|---|
 | `AGENT_UNAVAILABLE` | adapter cannot reach the Agent | UI banner; local features still work |
 | `CAPABILITY_UNKNOWN` / `SCHEMA_INVALID` | bad call from the Agent | returned to Agent, logged |
+| `NOT_IMPLEMENTED` | capability is in the catalog as `planned`, engine not built yet | returned to Agent; never simulated |
 | `NOT_ENTITLED` | plan doesn't include the feature | returned to Agent + upgrade hint in UI |
 | `PERMISSION_REQUIRED` | OS permission missing (mic, Accessibility…) | UI asks just-in-time, task resumes or fails |
 | `SUBAGENT_FAILED` | tool/engine error, with cause | returned to Agent (retry/alternative/ask user) |
 | `OP_REJECTED` / `OP_FAILED` | user/agent declined or DAW op failed | op card in UI, exact DAW message |
 | `TIMEOUT` / `CANCELLED` | long job exceeded limit or user stopped | job manager |
+
+## 6b. Implementation status (Prompt 04, 2026-11-24)
+- Implemented in `desktop/src-tauri/src/ail/`: `AgentPort` trait (synchronous `send` returning events; streaming = D-6), `NoAgent` port (release default, returns `AGENT_UNAVAILABLE`), Capability Bus `dispatch`, task list shown in the Agents panel.
+- Catalog: `packages/agents/registry.json` (one JSON file for the 12 sub-agents instead of one `agent.yaml` each, until packs carry instructions/schemas). A test fails if a capability marked `available` is not wired on the Bus.
+- Not yet: Safety Gate confirmations and backups (no agent-proposed DAW operation exists yet), `op_decision` / `ask_user` events.
 
 ## 7. Temporary test connector (directive §2)
 `ail/adapters/temp_test_connector` – **TEMPORARY, to be removed when the real Agent is integrated.**
