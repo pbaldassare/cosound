@@ -1,10 +1,11 @@
 //! COSOUND desktop core. Each module is independent and tested on its own; this file only exposes
-//! them to the UI as Tauri commands. Engines still to come (MIDI, audio analysis, voice, reference,
+//! them to the UI as Tauri commands. Engines still to come (audio analysis, voice, reference,
 //! DAW connectors) plug in as new modules + capabilities in packages/agents/registry.json.
 mod ail;
 mod daw;
 mod db;
 mod library;
+mod music;
 mod plugins;
 mod projects;
 
@@ -209,6 +210,36 @@ async fn plugins_scan() -> Vec<plugins::Plugin> {
     plugins::scan()
 }
 
+// ---------- music engine (M2) ----------
+
+/// Chords, bass, melody and drums for the preview page. Deterministic: same input, same notes.
+#[tauri::command]
+async fn music_sketch(input: Value) -> R<Value> {
+    music::caps::sketch(&input)
+}
+
+#[tauri::command]
+fn music_options() -> Value {
+    music::caps::options()
+}
+
+/// Writes the sketch as a Standard MIDI File into the app data folder and registers it in
+/// "Imported material" (current project, provenance "own"). Nothing outside COSOUND's folder is touched.
+#[tauri::command]
+fn music_export_midi(app: State<App>, input: Value) -> R<Value> {
+    let (bytes, title) = music::caps::export(&input)?;
+    let dir = app.data_dir.join("generated");
+    std::fs::create_dir_all(&dir).map_err(e)?;
+    let slug: String = title.chars().map(|c| if c.is_ascii_alphanumeric() { c.to_ascii_lowercase() } else { '-' }).collect();
+    let slug = slug.split('-').filter(|s| !s.is_empty()).collect::<Vec<_>>().join("-");
+    let path = dir.join(format!("{slug}-{}.mid", &db::new_id()[..8]));
+    std::fs::write(&path, &bytes).map_err(e)?;
+    let c = app.db.lock().unwrap();
+    let project = db::setting(&c, "current_project").map_err(e)?.filter(|p| !p.is_empty());
+    let ids = projects::import(&c, project.as_deref(), &[path.to_string_lossy().to_string()], "own", Some("midi"))?;
+    Ok(json!({ "path": path, "bytes": bytes.len(), "import_id": ids.first() }))
+}
+
 // ---------- Agent Integration Layer ----------
 
 #[tauri::command]
@@ -271,6 +302,9 @@ pub fn run() {
             voice_save_take,
             daw_detect,
             plugins_scan,
+            music_options,
+            music_sketch,
+            music_export_midi,
             ail_status,
             ail_send,
             ail_tasks,

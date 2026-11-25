@@ -35,8 +35,9 @@ mod tests {
         let mut ail = Ail { port: Box::new(super::TempTestConnector), tasks: vec![] };
         assert!(matches!(&ail.send(&db, "hello")[0], AgentEvent::AssistantText { text } if text == "TEMP_CONNECTOR_EXPLICIT_ONLY"));
         assert!(matches!(&ail.send(&db, "/call smart_library.stats")[0], AgentEvent::CapabilityResult { ok: true, .. }));
-        assert!(matches!(&ail.send(&db, "/call music_theory.generate_bassline {}")[0], AgentEvent::CapabilityResult { ok: false, .. }));
+        assert!(matches!(&ail.send(&db, "/call voice_to_music.transcribe {}")[0], AgentEvent::CapabilityResult { ok: false, .. }));
+        assert!(matches!(&ail.send(&db, "/call music_theory.generate_bassline {\"genre\":\"techno\"}")[0], AgentEvent::CapabilityResult { ok: true, .. }));
         assert!(matches!(&ail.send(&db, "/call smart_library.search {bad")[0], AgentEvent::Error { .. }));
-        assert_eq!(ail.tasks.len(), 2);
+        assert_eq!(ail.tasks.len(), 3);
     }
 }

@@ -6,6 +6,7 @@ import { Shell } from './components/Shell'
 import Onboarding from './pages/Onboarding'
 import Chat from './pages/Chat'
 import Production from './pages/Production'
+import Sketch from './pages/Sketch'
 import Library from './pages/Library'
 import Imports from './pages/Imports'
 import Plugins from './pages/Plugins'
@@ -14,7 +15,7 @@ import Agents from './pages/Agents'
 import SettingsPage from './pages/Settings'
 import Account from './pages/Account'
 
-const pages = { chat: Chat, production: Production, library: Library, imports: Imports, plugins: Plugins, daws: Daws, agents: Agents, settings: SettingsPage, account: Account }
+const pages = { chat: Chat, production: Production, sketch: Sketch, library: Library, imports: Imports, plugins: Plugins, daws: Daws, agents: Agents, settings: SettingsPage, account: Account }
 
 function App() {
   const { settings, page } = useStore()

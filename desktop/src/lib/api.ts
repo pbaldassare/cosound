@@ -32,6 +32,21 @@ export type DawId = 'logic' | 'ableton' | 'fl' | 'protools' | 'cubase' | 'reaper
 export type DawFound = { id: DawId; supported_on_this_os: boolean; detected: boolean; path: string | null; version: string | null; connected: boolean }
 export type Plugin = { name: string; format: 'VST3' | 'AU' | 'CLAP' | 'VST2'; kind: 'instrument' | 'effect' | 'unknown'; vendor: string | null; version: string | null; scope: 'system' | 'user'; path: string }
 
+export type MidiNote = { pitch: number; start: number; dur: number; vel: number }
+export type PartId = 'chords' | 'bass' | 'melody' | 'drums'
+export type Part = { id: PartId; name: string; channel: number; program: number; notes: MidiNote[] }
+export type ChordView = { symbol: string; roman: string; root: string; quality: string; notes: string[]; pitch_classes: number[]; degree: number; function: 'tonic' | 'predominant' | 'dominant' | 'borrowed'; tension: number }
+export type KeyView = { name: string; tonic: string; mode: string; scale: string[]; intervals: string[]; pitch_classes: number[]; signature: { count: number; accidental: 'sharps' | 'flats' | 'none' }; relative: string | null; parallel: string | null }
+export type Sketch = {
+  engine: string; genre: string | null; key: KeyView; bpm: number; bars: number; ppq: number; length_ticks: number; seed: number; swing: number
+  styles: { chords: string; bass: string; drums: string; fill: boolean }
+  progression: { chords: ChordView[]; final_cadence: string; loop_cadence: string; tension_curve: number[] }
+  parts: Part[]; checks: Record<string, Record<string, boolean>>; all_checks_passed: boolean
+}
+export type GenreOption = { id: string; label: string; bpm: number; key: string; progression: string; bass_style: string; drum_style: string; chord_rhythm: string; swing: number }
+export type MusicOptions = { genres: GenreOption[]; modes: { id: string; default_progression: string }[]; bass_styles: string[]; drum_styles: string[]; chord_rhythms: string[] }
+export type SketchInput = Record<string, unknown>
+
 export type PortHealth = { port_id: string; is_temporary: boolean; connected: boolean }
 export type AilError = { code: string; message: string }
 export type AgentEvent =
@@ -72,6 +87,10 @@ export const api = {
 
   daws: () => invoke<DawFound[]>('daw_detect'),
   plugins: () => invoke<Plugin[]>('plugins_scan'),
+
+  musicOptions: () => invoke<MusicOptions>('music_options'),
+  musicSketch: (input: SketchInput) => invoke<Sketch>('music_sketch', { input }),
+  musicExport: (input: SketchInput) => invoke<{ path: string; bytes: number; import_id: string | null }>('music_export_midi', { input }),
 
   ailStatus: () => invoke<PortHealth>('ail_status'),
   ailSend: (text: string) => invoke<AgentEvent[]>('ail_send', { text }),

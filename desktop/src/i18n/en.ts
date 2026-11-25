@@ -1,6 +1,6 @@
 const en = {
   nav: {
-    chat: 'Chat', production: 'Production', library: 'Smart Library', imports: 'Imported material', plugins: 'Plugins',
+    chat: 'Chat', production: 'Production', sketch: 'Music sketch', library: 'Smart Library', imports: 'Imported material', plugins: 'Plugins',
     daws: 'DAWs', agents: 'Agents', settings: 'Settings', account: 'Account', language: 'Language',
   },
   common: {
@@ -121,6 +121,33 @@ const en = {
     micSkip: 'Not now', micAllow: 'Allow microphone',
     prefsBody: 'A few preferences to start. Everything can be changed later.', genres: 'Favourite genres', mainDaw: 'Main DAW', tempo: 'Usual tempo (BPM)',
     done: 'All set', doneBody: 'Your studio is ready.',
+  },
+  sketch: {
+    title: 'Music sketch',
+    intro: 'Deterministic music engine, no AI: chords, bass, melody and drums built from music theory. The same settings and seed always give the same result. The central Agent will use this same engine through the Capability Bus.',
+    genre: 'Genre', custom: 'Custom', tonic: 'Key', mode: 'Mode', bpm: 'BPM', bars: 'Bars', progression: 'Progression',
+    progressionHelp: 'Roman numerals: upper case = major, lower case = minor. Examples: i-VI-III-VII · ii7-V7-Imaj7 · I-bVII-IV',
+    seed: 'Variation', newSeed: 'New variation', swing: 'Swing', sevenths: 'Seventh chords', fill: 'Drum fill in the last bar',
+    chordRhythm: 'Chord rhythm', bassStyle: 'Bass style', drumStyle: 'Drum style',
+    play: 'Play', stop: 'Stop', export: 'Export MIDI', exporting: 'Exporting…',
+    exported: 'MIDI file saved and added to Imported material.',
+    previewNote: 'The preview uses simple built-in sounds. In your DAW the MIDI file plays with your own instruments and plug-ins.',
+    keyCard: 'Key', scale: 'Scale', signature: 'Key signature', sharps: '{n} sharps', flats: '{n} flats', noAccidentals: 'no sharps or flats',
+    relative: 'Relative', parallel: 'Parallel', chordsCard: 'Chords', loopCadence: 'Loop back to the first chord', finalCadence: 'Ending',
+    checksCard: 'Musical checks', checksOk: 'All checks passed on the generated notes', checksFail: 'Some checks failed: the sketch cannot be exported',
+    pianoRoll: 'Piano roll', notes: '{n} notes', bar: 'Bar',
+    parts: { chords: 'Chords', bass: 'Bass', melody: 'Melody', drums: 'Drums' } as Record<string, string>,
+    functions: { tonic: 'tonic', predominant: 'predominant', dominant: 'dominant', borrowed: 'borrowed' } as Record<string, string>,
+    cadences: { authentic: 'authentic cadence (V → I)', leading_tone: 'leading-tone cadence (vii° → I)', subtonic: 'subtonic cadence (VII → i)', plagal: 'plagal cadence (IV → I)', deceptive: 'deceptive cadence (V → vi)', half: 'half cadence (ends on V)', to_tonic: 'returns to the tonic', open: 'open, no cadence', single_chord: 'single chord' } as Record<string, string>,
+    modes: { major: 'major', natural_minor: 'minor', harmonic_minor: 'harmonic minor', melodic_minor: 'melodic minor', dorian: 'dorian', phrygian: 'phrygian', lydian: 'lydian', mixolydian: 'mixolydian', locrian: 'locrian', major_pentatonic: 'major pentatonic', minor_pentatonic: 'minor pentatonic', blues: 'blues' } as Record<string, string>,
+    styles: { sustain: 'sustained', stabs: 'off-beat stabs', pulse: 'eighth-note pulse', offbeat: 'off-beat', rolling: 'rolling 16ths', syncopated: 'syncopated', techno: 'Techno', melodic_techno: 'Melodic Techno', progressive_house: 'Progressive House', house: 'House', edm: 'EDM' } as Record<string, string>,
+    checks: {
+      has_notes: 'has notes', within_length: 'stays within the sketch length', no_same_pitch_overlaps: 'no overlapping notes', notes_are_chord_tones: 'only chord tones',
+      every_bar_has_full_chord: 'full chord in every bar', monophonic: 'one note at a time', notes_in_key_or_chord: 'notes in key (or in the chord)',
+      strong_beats_on_chord_tones: 'chord tones on the beats', leaps_within_octave: 'singable leaps (max one octave)', in_range_c4_c6: 'range C4–C6',
+      kick_on_every_beat: 'kick on every beat', general_midi_channel_10: 'drums on MIDI channel 10',
+    } as Record<string, string>,
+    drums: { 36: 'Kick', 37: 'Rim', 38: 'Snare', 39: 'Clap', 42: 'Closed hat', 46: 'Open hat', 49: 'Crash', 51: 'Ride', 70: 'Shaker' } as Record<number, string>,
   },
   ops: {
     'project.create': 'Project created “{name}”', 'project.rename': 'Renamed “{from}” → “{to}”', 'project.archive': 'Project archived', 'project.unarchive': 'Project restored',

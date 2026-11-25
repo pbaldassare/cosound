@@ -80,7 +80,8 @@ fn capability_status(name: &str) -> Option<String> {
     reg["agents"].as_array()?.iter().flat_map(|a| a["capabilities"].as_array().cloned().unwrap_or_default()).find(|c| c["name"] == name).map(|c| c["status"].as_str().unwrap_or("").to_string())
 }
 
-/// Capability Bus: executes an available capability. Only deterministic, read-only tools exist today.
+/// Capability Bus: executes an available capability. Only deterministic, read-only tools exist today
+/// (library, plugins, DAW detection, music theory and MIDI generation: nothing is written to disk).
 pub fn dispatch(db: &Db, cap: &str, input: &Value) -> Result<Value, AilError> {
     let err = |code, m: String| AilError { code, message: m };
     match capability_status(cap).as_deref() {
@@ -98,6 +99,13 @@ pub fn dispatch(db: &Db, cap: &str, input: &Value) -> Result<Value, AilError> {
         "smart_library.stats" => crate::library::stats(&db.lock().unwrap()).map_err(|e| fail(e.to_string())),
         "plugin_intelligence.scan" => Ok(json!(crate::plugins::scan())),
         "daw_controller.detect" => Ok(json!(crate::daw::detect())),
+        // Music engine M2 (deterministic theory + MIDI). Invalid musical input is the caller's error.
+        "music_theory.key_info" => crate::music::caps::key_info(input).map_err(|e| err("SCHEMA_INVALID", e)),
+        "music_theory.progression" => crate::music::caps::progression(input).map_err(|e| err("SCHEMA_INVALID", e)),
+        "music_theory.generate_chords" => crate::music::caps::generate(input, "chords").map_err(|e| err("SCHEMA_INVALID", e)),
+        "music_theory.generate_bassline" => crate::music::caps::generate(input, "bass").map_err(|e| err("SCHEMA_INVALID", e)),
+        "music_theory.generate_melody" => crate::music::caps::generate(input, "melody").map_err(|e| err("SCHEMA_INVALID", e)),
+        "rhythm_engineer.generate_drums" => crate::music::caps::generate(input, "drums").map_err(|e| err("SCHEMA_INVALID", e)),
         _ => Err(err("CAPABILITY_UNKNOWN", format!("{cap} marked available but not wired on the bus"))),
     }
 }
@@ -157,6 +165,10 @@ mod tests {
         }
         assert_eq!(dispatch(&db, "nope.x", &json!({})).unwrap_err().code, "CAPABILITY_UNKNOWN");
         assert_eq!(dispatch(&db, "smart_library.search", &json!({})).unwrap_err().code, "SCHEMA_INVALID");
+        assert_eq!(dispatch(&db, "music_theory.generate_melody", &json!({"key": "H major"})).unwrap_err().code, "SCHEMA_INVALID");
+        let bass = dispatch(&db, "music_theory.generate_bassline", &json!({"genre": "techno", "bars": 4})).unwrap();
+        assert_eq!(bass["all_checks_passed"], true);
+        assert_eq!(bass["part"]["notes"].as_array().unwrap().len(), 16); // 4 off-beats x 4 bars
     }
 
     #[test]

@@ -2,7 +2,7 @@ import type { Dict } from './en'
 
 const it: Dict = {
   nav: {
-    chat: 'Chat', production: 'Produzione', library: 'Smart Library', imports: 'Materiale importato', plugins: 'Plug-in',
+    chat: 'Chat', production: 'Produzione', sketch: 'Bozza musicale', library: 'Smart Library', imports: 'Materiale importato', plugins: 'Plug-in',
     daws: 'DAW', agents: 'Agenti', settings: 'Impostazioni', account: 'Account', language: 'Lingua',
   },
   common: {
@@ -123,6 +123,33 @@ const it: Dict = {
     micSkip: 'Non ora', micAllow: 'Consenti microfono',
     prefsBody: 'Qualche preferenza per iniziare. Tutto si può cambiare dopo.', genres: 'Generi preferiti', mainDaw: 'DAW principale', tempo: 'Tempo abituale (BPM)',
     done: 'Tutto pronto', doneBody: 'Il tuo studio è pronto.',
+  },
+  sketch: {
+    title: 'Bozza musicale',
+    intro: 'Motore musicale deterministico, senza AI: accordi, basso, melodia e batteria costruiti con la teoria musicale. Le stesse impostazioni e la stessa variazione danno sempre lo stesso risultato. L\'Agent centrale userà questo stesso motore tramite il Capability Bus.',
+    genre: 'Genere', custom: 'Personalizzato', tonic: 'Tonalità', mode: 'Modo', bpm: 'BPM', bars: 'Battute', progression: 'Progressione',
+    progressionHelp: 'Numeri romani: maiuscolo = maggiore, minuscolo = minore. Esempi: i-VI-III-VII · ii7-V7-Imaj7 · I-bVII-IV',
+    seed: 'Variazione', newSeed: 'Nuova variazione', swing: 'Swing', sevenths: 'Accordi di settima', fill: 'Fill di batteria nell\'ultima battuta',
+    chordRhythm: 'Ritmo degli accordi', bassStyle: 'Stile del basso', drumStyle: 'Stile della batteria',
+    play: 'Ascolta', stop: 'Ferma', export: 'Esporta MIDI', exporting: 'Esportazione…',
+    exported: 'File MIDI salvato e aggiunto al Materiale importato.',
+    previewNote: 'L\'anteprima usa suoni semplici integrati. Nella DAW il file MIDI suona con i tuoi strumenti e plug-in.',
+    keyCard: 'Tonalità', scale: 'Scala', signature: 'Armatura', sharps: '{n} diesis', flats: '{n} bemolli', noAccidentals: 'nessun diesis o bemolle',
+    relative: 'Relativa', parallel: 'Parallela', chordsCard: 'Accordi', loopCadence: 'Ritorno al primo accordo', finalCadence: 'Chiusura',
+    checksCard: 'Controlli musicali', checksOk: 'Tutti i controlli superati sulle note generate', checksFail: 'Alcuni controlli non superati: la bozza non può essere esportata',
+    pianoRoll: 'Piano roll', notes: '{n} note', bar: 'Battuta',
+    parts: { chords: 'Accordi', bass: 'Basso', melody: 'Melodia', drums: 'Batteria' } as Record<string, string>,
+    functions: { tonic: 'tonica', predominant: 'predominante', dominant: 'dominante', borrowed: 'in prestito' } as Record<string, string>,
+    cadences: { authentic: 'cadenza perfetta (V → I)', leading_tone: 'cadenza con sensibile (vii° → I)', subtonic: 'cadenza di sottotonica (VII → i)', plagal: 'cadenza plagale (IV → I)', deceptive: 'cadenza d\'inganno (V → vi)', half: 'semicadenza (finisce sul V)', to_tonic: 'torna alla tonica', open: 'aperta, nessuna cadenza', single_chord: 'accordo singolo' } as Record<string, string>,
+    modes: { major: 'maggiore', natural_minor: 'minore', harmonic_minor: 'minore armonica', melodic_minor: 'minore melodica', dorian: 'dorico', phrygian: 'frigio', lydian: 'lidio', mixolydian: 'misolidio', locrian: 'locrio', major_pentatonic: 'pentatonica maggiore', minor_pentatonic: 'pentatonica minore', blues: 'blues' } as Record<string, string>,
+    styles: { sustain: 'tenuti', stabs: 'stab in levare', pulse: 'pulsazione in ottavi', offbeat: 'in levare', rolling: 'sedicesimi rolling', syncopated: 'sincopato', techno: 'Techno', melodic_techno: 'Melodic Techno', progressive_house: 'Progressive House', house: 'House', edm: 'EDM' } as Record<string, string>,
+    checks: {
+      has_notes: 'contiene note', within_length: 'resta nella durata della bozza', no_same_pitch_overlaps: 'nessuna nota sovrapposta', notes_are_chord_tones: 'solo note dell\'accordo',
+      every_bar_has_full_chord: 'accordo completo in ogni battuta', monophonic: 'una nota alla volta', notes_in_key_or_chord: 'note nella tonalità (o nell\'accordo)',
+      strong_beats_on_chord_tones: 'note dell\'accordo sui tempi forti', leaps_within_octave: 'salti cantabili (massimo un\'ottava)', in_range_c4_c6: 'estensione Do4–Do6',
+      kick_on_every_beat: 'cassa su ogni tempo', general_midi_channel_10: 'batteria sul canale MIDI 10',
+    } as Record<string, string>,
+    drums: { 36: 'Cassa', 37: 'Rim', 38: 'Rullante', 39: 'Clap', 42: 'Hi-hat chiuso', 46: 'Hi-hat aperto', 49: 'Crash', 51: 'Ride', 70: 'Shaker' } as Record<number, string>,
   },
   ops: {
     'project.create': 'Progetto creato “{name}”', 'project.rename': 'Rinominato “{from}” → “{to}”', 'project.archive': 'Progetto archiviato', 'project.unarchive': 'Progetto ripristinato',

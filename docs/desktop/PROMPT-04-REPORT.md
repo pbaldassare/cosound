@@ -88,7 +88,7 @@ Aggiornamento del 2026-11-25: verifica su **macOS reale** (MacBook Air Apple Sil
 | Importazione file | ✅ | 2 file "Suno / Stem" importati; SHA-256 identico a `sha256sum`; nessuna copia creata |
 | Visualizzazione DAW | ✅ | 6 DAW mostrate; REAPER simulato "Rilevata"; tutte "Non collegata". macOS (2026-11-25): rilevamento in `/Applications` verificato con un bundle `REAPER.app` simulato (versione letta da `Info.plist`), le altre 5 correttamente "non rilevate"; inventario plug-in verificato in `~/Library/Audio/Plug-Ins/VST3` con un VST3 simulato (`moduleinfo.json` letto: nome, produttore, versione, tipo strumento). Su questo Mac non sono installati DAW né plug-in reali. |
 | Gestione progetti | ✅ | Creazione, libreria collegata, cronologia (E2E); rinomina, archivia, annulla, duplica (test Rust) |
-| Compatibilità macOS e Windows | ✅ macOS · ⏳ Windows | macOS (2026-11-25): `cargo test` 8/8, `tsc` ok, app avviata, installer `.app` + `.dmg` (aarch64) generati e avviati, non firmati. Windows: solo tramite CI. La CI è ora in `.github/workflows/desktop.yml` e parte a ogni push che tocca `desktop/`. |
+| Compatibilità macOS e Windows | ✅ macOS · ⏳ Windows | macOS (2026-11-25): `cargo test` 8/8, `tsc` ok, app avviata, installer `.app` + `.dmg` (aarch64) generati e avviati, non firmati. Windows: solo tramite CI. La CI è pronta in `.github/workflows/desktop.yml`, non ancora pubblicata su GitHub: il login usato per il push non ha il permesso `workflow`; una volta pubblicata parte a ogni push che tocca `desktop/`. |
 
 Test automatici: `cargo test --features temp-connector` → **8 test superati, 0 falliti** (library, projects ×2, daw, plugins, ail ×2, temp connector). `tsc` senza errori.
 

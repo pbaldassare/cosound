@@ -18,6 +18,7 @@ Status: **Accepted** (can be implemented), **Proposed** (needs confirmation), **
 - **Choice**: separate Python process bundled with the app, started/stopped by Core, JSON-RPC over stdio. Inference via ONNX Runtime / Core ML where models allow, PyTorch only where unavoidable.
 - **Alternatives**: rewrite in Rust (huge cost, no equivalents for most models); cloud processing (violates local-first, privacy, cost per minute of audio).
 - **Consequences**: installer size → heavy models (Demucs/RoFormer, Whisper large) as **optional downloads** on first use; crash isolation (engine restart doesn't kill the app); Python version pinned (basic-pitch stops at 3.11 → verify or use its ONNX model directly).
+- **Amendment 2026-11-25 (Prompt 05, M2)**: music theory and MIDI generation run **inside the Rust core** (`desktop/src-tauri/src/music/`), not in the Python sidecar. They need none of the Python libraries above (deterministic rules + a small SMF writer), and keeping them in Rust means the installed app works with no Python on the user's machine and the code is covered by the same `cargo test` and CI. The sidecar stays the plan for audio analysis, stems, voice transcription and reference analysis (M5, M6, M8, M9), where the Python models are needed. The capability contract does not change: the central Agent calls the same capability names whichever process serves them.
 
 ### ADR-003 Local database: SQLite + FTS5 + sqlite-vec — Accepted
 - **Choice**: one SQLite file, single writer (Core). FTS5 for text search, sqlite-vec for audio-similarity.

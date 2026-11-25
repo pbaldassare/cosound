@@ -41,16 +41,16 @@ The resulting installers are **unsigned**:
 - On macOS, Gatekeeper blocks them until they are signed with a Developer ID and notarized.
 - On Windows, SmartScreen warns until they are signed (Authenticode).
 
-They are not for distribution. CI (`.github/workflows/desktop.yml`) builds them on macOS, Windows and Linux runners as test artifacts on every push that touches `desktop/`.
+They are not for distribution. CI (`.github/workflows/desktop.yml`) builds them on macOS, Windows and Linux runners as test artifacts on every push that touches `desktop/`. Publishing that workflow file to GitHub needs a login with the `workflow` permission.
 
 ## Structure
 ```
 desktop/
   src/                       UI (React). Talks to the core only through src/lib/api.ts
-    pages/                   Chat, Production, Library, Imports, Plugins, Daws, Agents, Settings, Account, Onboarding
+    pages/                   Chat, Production, Sketch (music sketch + piano roll), Library, Imports, Plugins, Daws, Agents, Settings, Account, Onboarding
     components/              Shell (sidebar/topbar), Voice (mic + takes), OpList (history/undo), ui
     i18n/                    it.ts / en.ts (every string bilingual)
-    lib/                     api.ts (commands), store.tsx (app state), supabase.ts (account)
+    lib/                     api.ts (commands), store.tsx (app state), supabase.ts (account), preview.ts (Web Audio preview of a sketch)
   src-tauri/
     src/lib.rs               Tauri commands only (thin layer)
     src/db.rs                local SQLite, settings, operation register, undo
@@ -58,11 +58,12 @@ desktop/
     src/projects.rs          projects, imported material (references + SHA-256)
     src/daw.rs               DAW detection (no connection)
     src/plugins.rs           plugin inventory (files + metadata, plugins never loaded)
+    src/music/               music engine M2: theory.rs, generate.rs (chords, bass, melody, drums + checks), smf.rs (MIDI files), caps.rs (bus capabilities)
     src/ail/                 Agent Integration Layer + temporary_test_connector (dev only)
     migrations/              local DB schema
 packages/agents/registry.json  capability catalog of the 12 sub-agents (available / planned)
 ```
-Every engine is its own Rust module with its own tests and no dependency on the UI. Future engines plug in the same way: MIDI, audio analysis, voice, reference, DAW connectors.
+Every engine is its own Rust module with its own tests and no dependency on the UI. Future engines plug in the same way: audio analysis, voice, reference, DAW connectors.
 1. Add a module.
 2. Add its commands.
 3. Mark its capabilities `available` in `registry.json`.
@@ -70,7 +71,7 @@ Every engine is its own Rust module with its own tests and no dependency on the 
 A test fails if the registry and the Capability Bus disagree.
 
 ## Local data
-The SQLite file `cosound.db` and the `takes/` folder (voice recordings) live in the app data folder:
+The SQLite file `cosound.db`, the `takes/` folder (voice recordings) and the `generated/` folder (exported MIDI sketches) live in the app data folder:
 - macOS: `~/Library/Application Support/com.cosound.desktop/`
 - Windows: `%APPDATA%\com.cosound.desktop\`
 
