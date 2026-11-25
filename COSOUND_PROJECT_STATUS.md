@@ -8,7 +8,7 @@
 | – | Architettura multi-agent | 📝 Proposta v0.1, da rivedere sull'Agent centrale | `docs/architecture/MULTI-AGENT-ARCHITECTURE.md` |
 | – | Direttiva di sviluppo parallelo (Agent Integration Layer, connettore temporaneo) | 📌 Requisito permanente | `docs/ARCHITECTURE-DIRECTIVE.md` |
 | 03 | Architettura software (15 consegne) | 🟡 **Provvisoria** – completa tranne le parti che dipendono dall'Agent centrale (decisioni D-1…D-6) | `docs/architecture/README.md` |
-| 04 | App desktop macOS/Windows (Tauri 2) | 🟡 **Funzionante nella misura implementata, testata su Linux; macOS/Windows da verificare (CI pronta); non distribuibile** | `desktop/`, rapporto `docs/desktop/PROMPT-04-REPORT.md` |
+| 04 | App desktop macOS/Windows (Tauri 2) | 🟡 **Funzionante nella misura implementata, testata su Linux e macOS (2026-11-25); Windows da verificare (CI attiva); non distribuibile** | `desktop/`, rapporto `docs/desktop/PROMPT-04-REPORT.md` |
 
 ## Verifica del Prompt 02 (eseguita il 2026-11-24)
 - 20 sezioni della knowledge base, ciascuna con `README.md` e registro fonti; tutte le 14 sezioni richieste sono coperte (mappa in `docs/knowledge/README.md`).
@@ -44,11 +44,11 @@
 | Smart Library v1 (volumi, cartelle autorizzate, indicizzazione, ricerca, dischi scollegati/ricollegati) | ✅ completato e testato |
 | Progetti e importazione materiale (anche Suno/Udio, solo riferimenti + SHA-256) | ✅ completato e testato |
 | DAW Manager (solo rilevamento) e Plugin Manager (solo inventario) | ✅ completato e testato · nessuna DAW collegata |
-| Account in-app (accesso, piano, prova 3/7 giorni configurabile) | 🟡 implementato; accesso con utente reale non ancora provato |
-| Microfono e registrazioni vocali | 🟡 implementato; da provare su macOS/Windows (il server non ha microfono) |
+| Account in-app (accesso, piano, prova 3/7 giorni configurabile) | 🟡 implementato; Supabase raggiungibile da macOS; accesso con utente reale da provare a mano |
+| Microfono e registrazioni vocali | 🟡 implementato; su macOS permessi e bundle corretti, registrazione reale da provare a mano (finestra di autorizzazione) |
 | Agent Integration Layer (interfaccia, porta "non collegato", Capability Bus con 4 capability reali) | 🟡 provvisorio – adattatore in attesa dell'Agent |
 | Connettore di test temporaneo | ⚠️ **provvisorio**, solo build di sviluppo, da eliminare all'arrivo dell'Agent |
-| Compatibilità macOS/Windows, installer | ⏳ CI pronta (`docs/desktop/ci-desktop.yml`, da attivare in `.github/workflows/`), non ancora eseguita; installer non firmati, nessun download pubblicato |
+| Compatibilità macOS/Windows, installer | 🟡 macOS verificato il 2026-11-25 (build, test, avvio, installer .app/.dmg aarch64 generati, non firmati); Windows solo via CI (`.github/workflows/desktop.yml`, attiva); installer non firmati, nessun download pubblicato |
 | Motore musicale (MIDI, Audio Analysis, Voice-to-Music, Reference, Mix/Master), connettori DAW, Plugin Intelligence | 📝 progettati, non implementati (roadmap M2, M4–M9) |
 | Integrazione con l'Agent centrale | ⏳ in attesa del codice dell'Agent |
 | Pagamenti | ⏸️ non attivi (gestione abbonamento disattivata nell'app) |
@@ -58,4 +58,5 @@
 - **Provvisorio**: connettore di test (feature `temp-connector`), impronta dei volumi, indicizzazione completa a ogni scansione, catalogo agenti in un solo JSON.
 - **In attesa di integrazione**: Agent centrale (D-1…D-6), conferme del Safety Gate (servono quando gli agenti proporranno operazioni DAW).
 - **Database cloud**: migrazione `20261124120000_desktop_app.sql` applicata (solo aggiunte: `profiles.assistant_name`, `app_settings.trial_days = 7`).
-- **Da verificare su hardware reale**: avvio e installer su macOS e Windows, microfono, dischi USB, DAW installate, accesso con account reale.
+- **Verificato su macOS reale (2026-11-25)**: avvio, test, disco esterno (scollega/ricollega), rilevamento DAW e plug-in nei percorsi reali, Supabase. Vedi `PROMPT-04-REPORT.md` §10.
+- **Ancora da fare a mano**: microfono e accesso con account reale su macOS (richiedono l'utente); tutto su Windows (CI).

@@ -41,7 +41,7 @@ The resulting installers are **unsigned**:
 - On macOS, Gatekeeper blocks them until they are signed with a Developer ID and notarized.
 - On Windows, SmartScreen warns until they are signed (Authenticode).
 
-They are not for distribution. CI (`docs/desktop/ci-desktop.yml`, to be moved to `.github/workflows/`) builds them on macOS, Windows and Linux runners as test artifacts.
+They are not for distribution. CI (`.github/workflows/desktop.yml`) builds them on macOS, Windows and Linux runners as test artifacts on every push that touches `desktop/`.
 
 ## Structure
 ```

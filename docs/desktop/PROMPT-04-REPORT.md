@@ -74,19 +74,21 @@ Un test controlla che il registro e il Capability Bus siano allineati.
 ## 6. Rapporto dei test
 Ambiente: server Linux (Ubuntu 26.04). L'app gira dentro uno schermo virtuale Xvfb ed è stata comandata con clic reali (xdotool), con gli screenshot verificati a ogni passo. Come dati di prova sono stati usati una libreria campione, un plug-in VST3 e un'installazione REAPER simulata.
 
+Aggiornamento del 2026-11-25: verifica su **macOS reale** (MacBook Air Apple Silicon, macOS 15.8.1, Rust 1.100, Node 26). Dettagli in §10.
+
 | Verifica (Prompt 04 §16) | Risultato | Come |
 |---|---|---|
-| Avvio dell'applicazione | ✅ Linux · ⏳ macOS/Windows | Build di release avviata; vedi riga "Compatibilità" |
+| Avvio dell'applicazione | ✅ Linux · ✅ macOS · ⏳ Windows | Linux: build di release avviata. macOS (2026-11-25): `npm run app:dev` compila e apre la finestra, nessun errore nel log; vedi §10 |
 | Navigazione | ✅ | Tutte le 9 sezioni aperte e controllate |
 | Salvataggio impostazioni | ✅ | Nome "Orion", lingua IT e progetto aperto mantenuti dopo il riavvio; valori controllati nel DB |
-| Gestione account | 🟡 | Connessione a Supabase e messaggio d'errore verificati. Accesso con un account reale non provato: servirebbe creare un utente nel database di produzione. |
+| Gestione account | 🟡 | Connessione a Supabase e messaggio d'errore verificati. Da macOS (2026-11-25): endpoint Auth raggiungibile (GoTrue v2.198), `app_settings.trial_days = 7` letto con la chiave pubblica, credenziali errate rifiutate con 400. Accesso con un account reale ancora da fare a mano dall'utente (richiede le sue credenziali). |
 | Accesso autorizzato ai file | ✅ | Cartella scelta dal dialogo di sistema; indicizzati 8 file su 9 (il `.txt` escluso, come previsto); file non modificati |
-| Riconoscimento dispositivi esterni | 🟡 | Test Rust: scollegamento, file "offline", ricollegamento su altro mount → ritrovati. Su Linux c'è un solo disco: test con un vero disco USB da fare su Mac/PC. |
-| Gestione microfono | 🟡 | Interfaccia e permessi verificati. Il server non ha microfono e WebKitGTK nega l'accesso: registrazione reale da provare su macOS/Windows. |
+| Riconoscimento dispositivi esterni | ✅ macOS · ⏳ Windows | Test Rust: scollegamento, file "offline", ricollegamento su altro mount → ritrovati. macOS (2026-11-25): volume ExFAT in `/Volumes` riconosciuto come "external"; cartella autorizzata, 3 file indicizzati (i file `._*` AppleDouble di ExFAT esclusi); scollegato → volume offline, record conservati, percorsi nascosti, scansione rifiutata; ricollegato → riconosciuto dall'impronta, percorsi ripristinati, nuova scansione ok; file originali intatti. Vedi §10. |
+| Gestione microfono | 🟡 | Interfaccia e permessi verificati. Il server non ha microfono e WebKitGTK nega l'accesso. macOS (2026-11-25): `Info.plist` con `NSMicrophoneUsageDescription` ed entitlement `audio-input` presenti nel bundle; microfono interno rilevato dal sistema. La registrazione reale va fatta a mano perché richiede la finestra di autorizzazione di macOS (procedura in §10). |
 | Importazione file | ✅ | 2 file "Suno / Stem" importati; SHA-256 identico a `sha256sum`; nessuna copia creata |
-| Visualizzazione DAW | ✅ | 6 DAW mostrate; REAPER simulato "Rilevata"; tutte "Non collegata" |
+| Visualizzazione DAW | ✅ | 6 DAW mostrate; REAPER simulato "Rilevata"; tutte "Non collegata". macOS (2026-11-25): rilevamento in `/Applications` verificato con un bundle `REAPER.app` simulato (versione letta da `Info.plist`), le altre 5 correttamente "non rilevate"; inventario plug-in verificato in `~/Library/Audio/Plug-Ins/VST3` con un VST3 simulato (`moduleinfo.json` letto: nome, produttore, versione, tipo strumento). Su questo Mac non sono installati DAW né plug-in reali. |
 | Gestione progetti | ✅ | Creazione, libreria collegata, cronologia (E2E); rinomina, archivia, annulla, duplica (test Rust) |
-| Compatibilità macOS e Windows | ⏳ **Non ancora verificata** | La CI (file pronto in `docs/desktop/ci-desktop.yml`, da spostare in `.github/workflows/` con un token con permesso `workflow`) compila, testa e crea gli installer (non firmati) su macOS e Windows. Parte al prossimo push su GitHub. |
+| Compatibilità macOS e Windows | ✅ macOS · ⏳ Windows | macOS (2026-11-25): `cargo test` 8/8, `tsc` ok, app avviata, installer `.app` + `.dmg` (aarch64) generati e avviati, non firmati. Windows: solo tramite CI. La CI è ora in `.github/workflows/desktop.yml` e parte a ogni push che tocca `desktop/`. |
 
 Test automatici: `cargo test --features temp-connector` → **8 test superati, 0 falliti** (library, projects ×2, daw, plugins, ail ×2, temp connector). `tsc` senza errori.
 
@@ -95,6 +97,25 @@ Problemi trovati durante i test E2E e corretti:
 2. Percorsi lunghi allargavano il pannello progetto.
 3. Le etichette dei menu nell'importazione erano disallineate.
 4. L'errore di login di Supabase era solo in inglese.
+
+## 10. Verifica su macOS reale (2026-11-25)
+Macchina: MacBook Air Apple Silicon, macOS 15.8.1, Xcode Command Line Tools, Rust 1.100 stable, Node 26 (nvm). Nessuna DAW e nessun plug-in installati; nessun disco USB fisico disponibile.
+
+| Verifica | Esito | Come |
+|---|---|---|
+| Compilazione core Rust | ✅ | `cargo build --features temp-connector` (45 s la prima volta) |
+| Test Rust | ✅ 8/8 | Un test (`library::scan_search_unplug_replug`) falliva solo su macOS perché la cartella temporanea `/var/…` è un link simbolico a `/private/var/…` e `add_root` canonicalizza i percorsi: corretto il test, non il codice dell'app (commit `0cf9e5d`) |
+| Type check UI | ✅ | `npx tsc -p .` |
+| Avvio in sviluppo | ✅ | `npm run app:dev`: Vite su 1420, finestra aperta, processo stabile, nessun errore |
+| Installer macOS | ✅ | `npx tauri build` (1 min 16 s): `COSOUND.app` (13,3 MiB) e `COSOUND_0.1.0_aarch64.dmg` (4,3 MiB) in `src-tauri/target/release/bundle/`; `Info.plist` del bundle contiene `NSMicrophoneUsageDescription`, `LSMinimumSystemVersion 12.0`, id `com.cosound.desktop`; firma solo ad hoc (non Developer ID, non notarizzato: Gatekeeper lo bloccherà su altri Mac); binario release avviato e chiuso senza errori |
+| Disco esterno | ✅ | Immagine disco ExFAT da 64 MB montata in `/Volumes/COSOUND-USB` (macOS la tratta come volume rimovibile). Sequenza: cartella autorizzata → scansione (3 file: 2 audio, 1 MIDI; `readme.txt` e file `._*` esclusi) → ricerca → `hdiutil detach` → volume offline, record conservati, `path = null`, scansione rifiutata con "folder offline" → `hdiutil attach` → volume riconosciuto dall'impronta (`exfat:66977792:COSOUND-USB`), percorsi ripristinati, nuova scansione ok → cartella revocata, file intatti |
+| Rilevamento DAW | ✅ | `daw::detect()` sui percorsi reali di macOS con `REAPER.app` simulato in `/Applications` (poi rimosso): rilevato con versione; le altre 5 "non rilevate" |
+| Inventario plug-in | ✅ | `plugins::scan()` sui percorsi reali con un `.vst3` simulato in `~/Library/Audio/Plug-Ins/VST3` (poi rimosso): nome, produttore, versione, tipo e scope "user" letti |
+| Supabase da macOS | ✅ | Auth health 200 (GoTrue v2.198), `app_settings` letto con la chiave pubblica, login errato → 400 |
+| Microfono | 🟡 a mano | Hardware presente (microfono interno), `Info.plist` ed entitlement corretti. Da fare dall'utente: aprire l'app, Onboarding › Microfono › "Consenti microfono", accettare la finestra di macOS, poi in Voce premere Registra e riascoltare la registrazione |
+| Accesso con account reale | 🟡 a mano | Da fare dall'utente con le proprie credenziali nella sezione Account |
+
+Le verifiche di disco, DAW e plug-in sono state eseguite chiamando direttamente le funzioni del core Rust con una sonda temporanea (non inclusa nel repository), così da poter smontare e rimontare il volume tra una fase e l'altra.
 
 ## 7. Avvio e installazione
 Vedi `desktop/README.md`.
