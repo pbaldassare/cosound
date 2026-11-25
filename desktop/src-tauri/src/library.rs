@@ -395,7 +395,9 @@ mod tests {
     #[test]
     fn scan_search_unplug_replug() {
         let tmp = tempfile::tempdir().unwrap();
-        let mount_a = tmp.path().join("mountA");
+        // canonicalize: on macOS the temp dir lives under /var, a symlink to /private/var, and add_root canonicalizes paths
+        let base = tmp.path().canonicalize().unwrap();
+        let mount_a = base.join("mountA");
         let lib = mount_a.join("Samples");
         fs::create_dir_all(lib.join("Drums/.hidden")).unwrap();
         fs::create_dir_all(lib.join("Song.logicx/Alternatives")).unwrap();
@@ -425,7 +427,7 @@ mod tests {
         assert!(!roots(&db.lock().unwrap()).unwrap()[0].online);
 
         // Replug at a different mount point: recognized by fingerprint, paths remapped.
-        let mount_b = tmp.path().join("mountB");
+        let mount_b = base.join("mountB");
         fs::rename(&mount_a, &mount_b).unwrap();
         let disks_b = vec![disk("SSD-EXT", &mount_b)];
         refresh_volumes(&db.lock().unwrap(), &disks_b).unwrap();
