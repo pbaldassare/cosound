@@ -266,7 +266,10 @@ fn errors_are_typed() {
     assert!(planned.limitations[0].contains("M5"), "the missing component is named");
     assert_eq!(code(e.run("sound_designer", "suggest_sounds", json!({}))), (Status::Failed, "SCHEMA_INVALID".into()));
     assert_eq!(code(e.run("music_theory", "key_info", json!({ "key": "H major" }))), (Status::Failed, "SCHEMA_INVALID".into()));
-    assert_eq!(code(e.run("audio_analysis", "analyze_file", json!({ "path": "/etc/hosts" }))).1, "PERMISSION_DENIED");
+    let elsewhere = tempfile::tempdir().unwrap();
+    let outside = elsewhere.path().join("outside.wav");
+    std::fs::write(&outside, "x").unwrap();
+    assert_eq!(code(e.run("audio_analysis", "analyze_file", json!({ "path": outside }))).1, "PERMISSION_DENIED");
     let txt = e.dir.join("notes.txt");
     std::fs::write(&txt, "x").unwrap();
     assert_eq!(code(e.run("audio_analysis", "analyze_file", json!({ "path": txt }))).1, "UNSUPPORTED_FORMAT");
@@ -511,7 +514,7 @@ fn daw_controller_uses_library_paths() {
     assert_eq!(plan.status, Status::Completed, "{:?}", plan.errors);
     let imports: Vec<&Value> = plan.proposed_daw_ops.iter().filter(|o| o["op"] == "import_audio").collect();
     assert_eq!(imports.len(), 2);
-    assert!(imports[0]["args"]["file"].as_str().unwrap().ends_with("Drive/Lib/Drum Loop.wav"));
+    assert!(std::path::Path::new(imports[0]["args"]["file"].as_str().unwrap()).ends_with(std::path::Path::new("Drive").join("Lib").join("Drum Loop.wav")));
     assert!(plan.files.is_empty(), "library files are referenced in place, never copied");
     // drive unplugged: the plan refuses instead of inventing a path
     crate::library::refresh_volumes(&e.db.lock().unwrap(), &[]).unwrap();

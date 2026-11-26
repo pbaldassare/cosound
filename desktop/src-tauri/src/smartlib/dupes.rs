@@ -41,7 +41,7 @@ pub fn brief(c: &Connection, ids: &[i64]) -> Vec<Value> {
                 Ok(json!({
                     "id": r.get::<_, i64>(0)?, "name": r.get::<_, String>(1)?, "rel_path": rel, "size": r.get::<_, i64>(3)?, "kind": r.get::<_, String>(4)?,
                     "status": r.get::<_, String>(5)?, "device": r.get::<_, String>(9)?, "device_online": online,
-                    "path": mount.filter(|_| online).map(|m| Path::new(&m).join(&root_rel).join(&rel).to_string_lossy().to_string()),
+                    "path": mount.filter(|_| online).map(|m| crate::library::join_rel(&crate::library::join_rel(Path::new(&m), &root_rel), &rel).to_string_lossy().to_string()),
                     "duration_s": r.get::<_, Option<f64>>(10)?, "category": r.get::<_, Option<String>>(11)?,
                 }))
             })
@@ -68,7 +68,7 @@ pub fn find(db: &Db, cancel: &AtomicBool, include_similar: bool, threshold: f64)
                    and f.size in (select size from files where status != 'missing' and kind != 'project' group by size having count(*) > 1)",
             )
             .unwrap();
-        st.query_map([], |r| Ok((r.get(0)?, Path::new(&r.get::<_, String>(1)?).join(r.get::<_, String>(2)?).join(r.get::<_, String>(3)?))))
+        st.query_map([], |r| Ok((r.get(0)?, crate::library::join_rel(&crate::library::join_rel(Path::new(&r.get::<_, String>(1)?), &r.get::<_, String>(2)?), &r.get::<_, String>(3)?))))
             .map(|m| m.filter_map(Result::ok).collect())
             .unwrap_or_default()
     };

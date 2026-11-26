@@ -140,8 +140,19 @@ pub fn volumes(c: &Connection, disks: &[Disk]) -> rusqlite::Result<Vec<VolumeVie
     rows.collect()
 }
 
+/// Relative path stored in the index: components joined with "/" on every OS, so an index is the same on macOS
+/// and Windows and searches/exclusions compare the same text.
+pub fn rel_string(p: &Path) -> String {
+    p.components().map(|c| c.as_os_str().to_string_lossy().to_string()).collect::<Vec<_>>().join("/")
+}
+
+/// A stored relative path ("a/b/c.wav") under a base folder, with the OS's own separators.
+pub fn join_rel(base: &Path, rel: &str) -> PathBuf {
+    rel.split(['/', '\\']).filter(|c| !c.is_empty()).fold(base.to_path_buf(), |p, c| p.join(c))
+}
+
 /// Strip the Windows verbatim prefix that `canonicalize` adds (`\\?\C:\…`).
-fn plain(p: PathBuf) -> PathBuf {
+pub fn plain(p: PathBuf) -> PathBuf {
     let s = p.to_string_lossy();
     match s.strip_prefix(r"\\?\") {
         Some(rest) if !rest.starts_with("UNC") => PathBuf::from(rest),
@@ -156,13 +167,15 @@ pub fn add_root(c: &Connection, disks: &[Disk], path: &str) -> Result<String, St
         return Err(format!("{path}: not a folder"));
     }
     refresh_volumes(c, disks).map_err(|e| e.to_string())?;
-    let disk = disks.iter().filter(|d| p.starts_with(&d.mount)).max_by_key(|d| d.mount.as_os_str().len());
+    // mount points compared in their canonical form too (Windows short names such as RUNNER~1)
+    let canon = |m: &Path| plain(std::fs::canonicalize(m).unwrap_or_else(|_| m.to_path_buf()));
+    let disk = disks.iter().filter_map(|d| [d.mount.clone(), canon(&d.mount)].into_iter().find(|m| p.starts_with(m)).map(|m| (d, m))).max_by_key(|(_, m)| m.as_os_str().len());
     let (volume_id, rel) = match disk {
-        Some(d) => {
+        Some((d, m)) => {
             let vid: String = c
                 .query_row("select id from volumes where fingerprint = ?1", [fingerprint(d)], |r| r.get(0))
                 .map_err(|e| e.to_string())?;
-            (vid, p.strip_prefix(&d.mount).unwrap().to_string_lossy().to_string())
+            (vid, rel_string(p.strip_prefix(&m).unwrap()))
         }
         None => {
             let fp = format!("path:{}", p.to_string_lossy());
@@ -204,7 +217,7 @@ pub fn root_path(c: &Connection, id: &str) -> rusqlite::Result<Option<PathBuf>> 
         )
         .optional()?;
     Ok(row.and_then(|(mount, online, rel)| {
-        let p = Path::new(&mount?).join(rel);
+        let p = join_rel(Path::new(&mount?), &rel);
         (online && p.exists()).then_some(p)
     }))
 }
@@ -237,7 +250,7 @@ pub fn roots(c: &Connection) -> rusqlite::Result<Vec<RootView>> {
                 volume_id: r.get(1)?,
                 volume_label: r.get(2)?,
                 volume_kind: r.get(3)?,
-                path: Path::new(&mount.unwrap_or_default()).join(rel).to_string_lossy().to_string(),
+                path: join_rel(Path::new(&mount.unwrap_or_default()), &rel).to_string_lossy().to_string(),
                 online: false,
                 scan_state: r.get(6)?,
                 file_count: r.get(7)?,
@@ -314,7 +327,7 @@ fn hit_row(r: &rusqlite::Row) -> rusqlite::Result<FileHit> {
         name: r.get(2)?,
         kind: r.get(4)?,
         size: r.get(5)?,
-        path: mount.filter(|_| online).map(|m| Path::new(&m).join(&root_rel).join(&rel).to_string_lossy().to_string()),
+        path: mount.filter(|_| online).map(|m| join_rel(&join_rel(Path::new(&m), &root_rel), &rel).to_string_lossy().to_string()),
         rel_path: rel,
         volume_label: r.get(9)?,
     })
@@ -391,7 +404,7 @@ mod tests {
     fn scan_search_unplug_replug() {
         let tmp = tempfile::tempdir().unwrap();
         // canonicalize: on macOS the temp dir lives under /var, a symlink to /private/var, and add_root canonicalizes paths
-        let base = tmp.path().canonicalize().unwrap();
+        let base = crate::library::plain(tmp.path().canonicalize().unwrap());
         let mount_a = base.join("mountA");
         let lib = mount_a.join("Samples");
         fs::create_dir_all(lib.join("Drums/.hidden")).unwrap();

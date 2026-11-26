@@ -214,7 +214,7 @@ pub fn pending(c: &Connection, limit: usize) -> Vec<Pending> {
     st.query_map([limit as i64], |r| {
         let (mount, root_rel, rel): (String, String, String) = (r.get(1)?, r.get(2)?, r.get(3)?);
         let folders = Path::new(&rel).parent().map(|p| p.iter().map(|x| x.to_string_lossy().to_string()).collect()).unwrap_or_default();
-        Ok(Pending { id: r.get(0)?, path: Path::new(&mount).join(root_rel).join(&rel), kind: r.get(4)?, name: r.get(5)?, folders })
+        Ok(Pending { id: r.get(0)?, path: crate::library::join_rel(&crate::library::join_rel(Path::new(&mount), &root_rel), &rel), kind: r.get(4)?, name: r.get(5)?, folders })
     })
     .map(|m| m.filter_map(Result::ok).collect())
     .unwrap_or_default()

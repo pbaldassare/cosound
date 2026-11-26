@@ -49,7 +49,7 @@ fn row(r: &rusqlite::Row) -> rusqlite::Result<Row> {
     Ok(Row {
         id: r.get(0)?,
         name: r.get(1)?,
-        path: mount.filter(|_| online).map(|m| Path::new(&m).join(&root_rel).join(&rel).to_string_lossy().to_string()),
+        path: mount.filter(|_| online).map(|m| crate::library::join_rel(&crate::library::join_rel(Path::new(&m), &root_rel), &rel).to_string_lossy().to_string()),
         rel,
         kind: r.get(3)?,
         ext: r.get(4)?,

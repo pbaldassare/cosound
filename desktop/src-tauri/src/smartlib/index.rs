@@ -77,7 +77,8 @@ pub fn correct(c: &Connection, id: i64, field: &str, value: &str) -> Result<(), 
 }
 
 pub fn set_exclusion(c: &Connection, root_id: &str, rel_path: &str, excluded: bool) -> Result<(), String> {
-    let rel = rel_path.trim_matches('/');
+    let norm = rel_path.replace('\\', "/");
+    let rel = norm.trim_matches('/');
     if rel.is_empty() || rel.contains("..") {
         return Err("give a folder inside the authorized folder".into());
     }

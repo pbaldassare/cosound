@@ -55,7 +55,7 @@ pub fn root_state(c: &Connection, root_id: &str) -> Result<RootState, String> {
         return Ok(RootState::Excluded(label));
     }
     let Some(mount) = mount.filter(|_| online) else { return Ok(RootState::Offline(label)) };
-    let p = Path::new(&mount).join(rel);
+    let p = crate::library::join_rel(Path::new(&mount), &rel);
     Ok(if p.is_dir() { RootState::Online(p) } else { RootState::Unavailable(p) })
 }
 
@@ -160,7 +160,7 @@ pub fn scan_root(db: &Db, root_id: &str, cancel: &AtomicBool, progress: &dyn Fn(
         if e.depth() == 0 {
             continue;
         }
-        let rel = e.path().strip_prefix(&base).map(|r| r.to_string_lossy().to_string()).unwrap_or_default();
+        let rel = e.path().strip_prefix(&base).map(crate::library::rel_string).unwrap_or_default();
         if e.file_name().to_string_lossy().starts_with('.') || exclusions.iter().any(|x| rel == *x || rel.starts_with(&format!("{x}/"))) {
             if e.file_type().is_dir() {
                 it.skip_current_dir();

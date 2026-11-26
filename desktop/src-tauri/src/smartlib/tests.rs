@@ -38,7 +38,7 @@ fn mid(p: &Path, part: Part, bpm: f64, key: &str) {
 /// The sample library. Returns it scanned and analyzed.
 pub fn lib() -> Lib {
     let tmp = tempfile::tempdir().unwrap();
-    let base = tmp.path().canonicalize().unwrap();
+    let base = crate::library::plain(tmp.path().canonicalize().unwrap());
     let mount = base.join("TEST-SSD");
     let root = mount.join("Samples");
     let k = kick(44100);
@@ -344,7 +344,7 @@ fn interrupted_scan_is_resumed() {
 #[ignore]
 fn large_library() {
     let tmp = tempfile::tempdir().unwrap();
-    let mount = tmp.path().canonicalize().unwrap().join("BIG");
+    let mount = crate::library::plain(tmp.path().canonicalize().unwrap()).join("BIG");
     let root = mount.join("Lib");
     let n = std::env::var("COSOUND_LIB_FILES").ok().and_then(|v| v.parse().ok()).unwrap_or(20_000usize);
     let cats = ["Kick", "Snare", "Hat", "Bass", "Pad", "Lead", "Perc", "FX", "Vocal", "Arp"];
