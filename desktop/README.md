@@ -29,7 +29,7 @@ npx tauri dev             # same, without the test connector (as a release build
 
 ## Tests
 ```bash
-cd src-tauri && cargo test --features temp-connector   # Rust core: Smart Library, projects, imports, DAW, plugins, music, agents, AIL
+cd src-tauri && cargo test --features temp-connector   # Rust core: Smart Library, projects, imports, DAW, plugins, music, prompt, agents, AIL
 cd .. && npx tsc -p .                                    # UI type check
 ```
 
@@ -69,6 +69,8 @@ desktop/
     src/audio/wav.rs         WAV meter: BS.1770 loudness, true peak, RMS, correlation, bands
     src/sound.rs             sound recipes and synth catalog (from docs/knowledge)
     src/memory.rs            Music Memory (memory_facts)
+    src/prompt/              Prompt Engine (Prompt 10): IT/EN understanding → versioned interpretation for the Central Agent:
+                             intents, parameters, context, constraints, safety, instructions, profile, model adapter (docs/prompt-engine/)
     src/agents/              Multi-Agent System: protocol, registry, runtime (Agent API), 13 agents, tests (docs/agents/)
     src/ail/                 Agent Integration Layer + MOCK central-agent connector (dev only)
     migrations/              local DB schema
@@ -76,7 +78,8 @@ packages/agents/*.json         agent manifests (13), tools.json, permissions.jso
 packages/agents/render_docs.py regenerates docs/agents/AGENTS.md and REGISTRIES.md from the manifests
 packages/plugin-knowledge/     official plug-in documentation as JSON (Apple AU parameters from the SDK header)
 packages/music-styles/         style profiles (11 genres) with sources, overridable from the app data folder
-packages/contracts/*.json      JSON Schemas of the Agent Protocol
+packages/contracts/*.json      JSON Schemas of the Agent Protocol and of the Prompt Engine interpretation
+packages/prompt-templates/     versioned prompt templates for language models (Prompt Engine)
 ```
 Every engine is its own Rust module with its own tests and no dependency on the UI. Future engines plug in as level-3 tools:
 1. Add the tool module and list it in `packages/agents/tools.json`.

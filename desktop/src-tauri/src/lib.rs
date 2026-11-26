@@ -11,6 +11,7 @@ mod memory;
 mod music;
 mod plugins;
 mod projects;
+mod prompt;
 mod smartlib;
 mod sound;
 
@@ -522,6 +523,62 @@ async fn ail_send(app: State<'_, App>, text: String) -> R<Vec<ail::AgentEvent>> 
     Ok(app.ail.lock().unwrap().send(&app.agents, &text))
 }
 
+// ---------- Prompt Engine (Prompt 10) ----------
+
+/// Interpret a request without sending it anywhere (preview, voice transcripts, tests).
+#[tauri::command]
+async fn prompt_interpret(app: State<'_, App>, input: Value) -> R<Value> {
+    let mut input = input;
+    if input["session_id"].is_null() {
+        input["session_id"] = json!(app.ail.lock().unwrap().session.clone());
+    }
+    // a configured model is used through its adapter; none is connected yet, so the rules answer (fallback recorded)
+    prompt::api::interpret(&app.db.lock().unwrap(), &input, Some(&prompt::model::NotConnected))
+}
+
+#[tauri::command]
+fn prompt_reset_session(app: State<App>, session_id: Option<String>) -> R<usize> {
+    let s = session_id.unwrap_or_else(|| app.ail.lock().unwrap().session.clone());
+    prompt::api::reset(&app.db.lock().unwrap(), &s)
+}
+
+#[tauri::command]
+fn prompt_history(app: State<App>, session_id: Option<String>, limit: Option<i64>) -> Value {
+    let s = session_id.unwrap_or_else(|| app.ail.lock().unwrap().session.clone());
+    json!(prompt::api::history(&app.db.lock().unwrap(), &s, limit.unwrap_or(50)))
+}
+
+#[tauri::command]
+fn prompt_new_session(app: State<App>) -> String {
+    app.ail.lock().unwrap().new_session()
+}
+
+#[tauri::command]
+fn prompt_schema() -> Value {
+    prompt::api::schema().clone()
+}
+
+#[tauri::command]
+fn assistant_profile(app: State<App>) -> prompt::profile::Profile {
+    prompt::profile::load(&app.db.lock().unwrap())
+}
+
+#[tauri::command]
+fn assistant_profile_set(app: State<App>, field: String, value: String) -> R<prompt::profile::Profile> {
+    prompt::profile::set(&app.db.lock().unwrap(), &field, &value)
+}
+
+#[tauri::command]
+fn prompt_model_config(app: State<App>) -> Value {
+    let c = app.db.lock().unwrap();
+    json!({ "config": prompt::model::load_config(&c), "usage": prompt::model::load_usage(&c), "adapters": ["rules-1.0"], "connected_model": null })
+}
+
+#[tauri::command]
+fn prompt_model_config_set(app: State<App>, config: prompt::model::ModelConfig) -> R<()> {
+    prompt::model::save_config(&app.db.lock().unwrap(), &config)
+}
+
 // ---------- Multi-Agent System (Prompt 06) ----------
 
 #[tauri::command]
@@ -675,6 +732,15 @@ pub fn run() {
             music_sketch,
             music_export_midi,
             ail_status,
+            prompt_interpret,
+            prompt_history,
+            prompt_new_session,
+            prompt_reset_session,
+            prompt_schema,
+            assistant_profile,
+            assistant_profile_set,
+            prompt_model_config,
+            prompt_model_config_set,
             ail_send,
             agents_registry,
             agents_tasks,

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, type ChangeEvent } from 'react'
 import { FolderOpen, Trash2 } from 'lucide-react'
 import { openPath } from '@tauri-apps/plugin-opener'
 import { api, errText } from '../lib/api'
@@ -20,6 +20,40 @@ export async function saveAssistantName(name: string, setSetting: (k: string, v:
       if (error) throw error
     }
   }
+}
+
+/** Style, detail, interaction mode and reply language of the assistant (Prompt Engine profile). */
+function AssistantStyle() {
+  const { t } = useT()
+  const prof = useLoad(() => api.assistantProfile(), [])
+  const model = useLoad(() => api.promptModelConfig(), [])
+  const [error, setError] = useState<string | null>(null)
+  const set = (field: string) => (e: ChangeEvent<HTMLSelectElement>) =>
+    api.assistantProfileSet(field, e.target.value).then(prof.reload, (x) => setError(errText(x)))
+  const p = prof.data
+  if (!p) return null
+  const sel = (label: string, field: string, value: string, opts: Record<string, string>) => (
+    <label className="block text-sm font-medium">{label}
+      <select className="field mt-1" value={value} onChange={set(field)}>{Object.entries(opts).map(([k, v]) => <option key={k} value={k}>{v}</option>)}</select>
+    </label>
+  )
+  return (
+    <div className="mt-3 space-y-3">
+      <div className="grid gap-3 sm:grid-cols-2">
+        {sel(t.settings.tone, 'style', p.style, t.settings.tones)}
+        {sel(t.settings.detail, 'detail', p.detail, t.settings.details)}
+        {sel(t.settings.mode, 'mode', p.mode, t.settings.modes)}
+        {sel(t.settings.replyLanguage, 'language', p.language, t.settings.replyLanguages)}
+      </div>
+      <p className="text-xs text-muted">{t.settings.toneHelp}</p>
+      <ErrorLine error={error} />
+      <div className="rounded-lg border border-line p-3 text-xs">
+        <div className="mb-1 font-medium text-white">{t.settings.model}</div>
+        <p className="text-muted">{t.settings.modelNone}</p>
+        {model.data && model.data.config.provider !== 'none' && <p className="mt-1 text-muted">{model.data.config.provider} · {model.data.config.model} · {model.data.usage.requests}/{model.data.config.max_requests_per_day}</p>}
+      </div>
+    </div>
+  )
 }
 
 export default function SettingsPage() {
@@ -53,10 +87,7 @@ export default function SettingsPage() {
         {msg && <p className="mt-1 text-xs text-emerald-300">{msg}</p>}
         <ErrorLine error={error} />
         <Toggle label={t.settings.syncName} checked={sync} onChange={setFlag('cloud_sync_assistant_name')} disabled={!supabase} />
-        <label className="mt-2 block text-sm font-medium">{t.settings.tone}
-          <select className="field mt-1" disabled aria-describedby="tone-soon"><option>{t.settings.tones.default}</option></select>
-        </label>
-        <p id="tone-soon" className="mt-1 text-xs text-muted">{t.settings.toneSoon}</p>
+        <AssistantStyle />
       </Card>
 
       <Card title={t.settings.language}><LanguageToggle /></Card>

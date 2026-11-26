@@ -115,6 +115,31 @@ export type AgentEvent =
   | { kind: 'assistant_text'; text: string }
   | { kind: 'task_result'; result: TaskResult }
   | { kind: 'error'; error: AilError }
+  | { kind: 'interpretation'; interpretation: Interpretation }
+/** Prompt Engine output (packages/contracts/prompt-interpretation.schema.json, version 1.0). */
+export type IParam = { group: string; name: string; value: unknown; unit: string | null; evidence: string | null; source: string; confidence: number }
+export type Interpretation = {
+  schema_version: string; request_id: string; session_id: string
+  input: { text: string; source: 'text' | 'voice'; language: string; external_content?: { label: string; treated_as: 'data'; warnings: string[] }[] }
+  conversation: { act: string; refers_to: string | null; turn: number }
+  intents: { id: string; confidence: number; evidence?: string[] }[]; primary_intent: string | null
+  goal: { id: string; interpretation: string }
+  targets: { element: string; kind: string; track_id: string | null; track_name: string | null; resolved_by: string; confidence: number }[]
+  parameters: { explicit: IParam[]; inferred: IParam[] }
+  constraints: { kind: string; subject: string; text: string; scope: string; source: string }[]
+  expected_output: { kind: string; description: string }
+  instructions: { component: string; agent: string; purpose: string; suggested_operation: string | null; operation_available: boolean; requires_approval: boolean; destructive: boolean; constraints: string[] }[]
+  enhancement: { user_words: string[]; semantic: string; suggested_technical: { aspect: string; direction: string; why?: string }[]; authorized_operations: string[] }
+  approval: { required: boolean; reasons: string[]; destructive_operations: { kind: string; subject: string; reversible: boolean }[] }
+  ambiguities: { kind: string; about: string; severity: string; options?: string[] }[]
+  clarification: { needed: boolean; question: string | null; options: string[] }
+  issues: { code: string; severity: 'error' | 'warning' | 'info'; message: string; suggestion: string | null }[]
+  defaults_used: { name: string; value: unknown; why: string }[]
+  confidence: number
+  interpreter: { adapter: string; template: string | null; fallback: boolean; error?: string }
+  reply: { language: string; text: string }
+}
+export type AssistantProfile = { name: string; brand: 'COSOUND'; language: string; style: string; detail: string; mode: string; preferences: Record<string, unknown> }
 type Bi = { it: string; en: string }
 type BiList = { it: string[]; en: string[] }
 export type OpSpec = { name: string; status: 'available' | 'planned'; risk: 'read' | 'low' | 'medium' | 'high'; requires_approval: boolean; summary: Bi; output: string; tools: string[]; permissions: string[]; basis?: string; requires?: string }
@@ -206,6 +231,12 @@ export const api = {
 
   ailStatus: () => invoke<PortHealth>('ail_status'),
   ailSend: (text: string) => invoke<AgentEvent[]>('ail_send', { text }),
+  promptInterpret: (input: { text: string; source?: 'text' | 'voice'; transcript_confidence?: number; context?: unknown }) => invoke<Interpretation>('prompt_interpret', { input }),
+  promptNewSession: () => invoke<string>('prompt_new_session'),
+  promptHistory: (limit?: number) => invoke<Interpretation[]>('prompt_history', { limit }),
+  assistantProfile: () => invoke<AssistantProfile>('assistant_profile'),
+  assistantProfileSet: (field: string, value: string) => invoke<AssistantProfile>('assistant_profile_set', { field, value }),
+  promptModelConfig: () => invoke<{ config: { provider: string; model: string; template: string; max_requests_per_day: number }; usage: { requests: number; tokens: number }; adapters: string[]; connected_model: string | null }>('prompt_model_config'),
   registry: () => invoke<Registry>('agents_registry'),
   agentTasks: (limit?: number) => invoke<TaskResult[]>('agents_tasks', { limit }),
   approve: (approvalId: string, approve: boolean) => invoke<TaskResult>('agents_approval_respond', { approvalId, approve }),

@@ -1,0 +1,186 @@
+{
+  "ambiguities": [],
+  "approval": {
+    "destructive_operations": [],
+    "reasons": [],
+    "required": false
+  },
+  "clarification": {
+    "needed": false,
+    "options": [],
+    "question": null
+  },
+  "confidence": 0.6,
+  "constraints": [
+    {
+      "kind": "preserve",
+      "scope": "request",
+      "source": "user",
+      "subject": "melody",
+      "text": "non toccare la melodia"
+    }
+  ],
+  "context": {
+    "daw": "Logic Pro",
+    "files": 0,
+    "library_files": null,
+    "plugins_available": null,
+    "project": null,
+    "recent_operations": 0,
+    "section": null,
+    "selected_track_id": null,
+    "tracks": 5
+  },
+  "conversation": {
+    "act": "modification",
+    "refers_to": "29a5baec-f866-4f57-ad16-768b4df8bd5e",
+    "turn": 2
+  },
+  "created_at": "2026-11-26T23:54:55Z",
+  "defaults_used": [],
+  "enhancement": {
+    "authorized_operations": [
+      "modify_sound:t2"
+    ],
+    "semantic": "Individuare Sub Bass e proporre una configurazione con più aggressività, mantenendo la compatibilità con il contesto musicale.",
+    "suggested_technical": [
+      {
+        "aspect": "drive / saturation",
+        "direction": "more",
+        "why": "adds harmonics and edge"
+      },
+      {
+        "aspect": "filter resonance",
+        "direction": "slightly more",
+        "why": "a sharper, more present tone"
+      },
+      {
+        "aspect": "attack",
+        "direction": "faster",
+        "why": "a harder front"
+      }
+    ],
+    "user_words": [
+      "aggressive"
+    ]
+  },
+  "expected_output": {
+    "description": "il suono modificato, da ascoltare prima di applicarlo",
+    "kind": "modified_sound"
+  },
+  "goal": {
+    "id": "increase_aggressiveness",
+    "interpretation": "Modifico il suono di Sub Bass: più aggressività."
+  },
+  "input": {
+    "external_content": [],
+    "language": "it",
+    "source": "text",
+    "text": "Rendilo più aggressivo, ma non toccare la melodia",
+    "transcript_confidence": null
+  },
+  "instructions": [
+    {
+      "agent": "sound_designer",
+      "component": "sound_design",
+      "constraints": [
+        "preserve:melody"
+      ],
+      "destructive": false,
+      "inputs": {
+        "qualities": [
+          {
+            "confidence": 0.85,
+            "evidence": "aggressive",
+            "group": "sound",
+            "name": "aggressive",
+            "source": "explicit",
+            "unit": null,
+            "value": {
+              "amount": "normal",
+              "direction": "increase"
+            }
+          }
+        ],
+        "request": "Rendilo più aggressivo, ma non toccare la melodia",
+        "target": {
+          "element": "bass",
+          "track_id": "t2",
+          "track_name": "Sub Bass"
+        }
+      },
+      "operation_available": true,
+      "purpose": "change the sound as described, keeping what the user asked to keep",
+      "requires_approval": false,
+      "suggested_operation": "modify_sound"
+    }
+  ],
+  "intents": [
+    {
+      "confidence": 0.6,
+      "evidence": [
+        "aggressivo"
+      ],
+      "id": "sound_design"
+    }
+  ],
+  "interpreter": {
+    "adapter": "rules-1.0",
+    "fallback": false,
+    "template": null
+  },
+  "issues": [],
+  "parameters": {
+    "explicit": [
+      {
+        "confidence": 0.85,
+        "evidence": "aggressive",
+        "group": "sound",
+        "name": "aggressive",
+        "source": "explicit",
+        "unit": null,
+        "value": {
+          "amount": "normal",
+          "direction": "increase"
+        }
+      }
+    ],
+    "inferred": []
+  },
+  "primary_intent": "sound_design",
+  "project": null,
+  "reply": {
+    "language": "it",
+    "text": "Ok! Modifico il suono di Sub Bass: più aggressività. Vincoli: non tocco la melodia."
+  },
+  "request_id": "9df269a1-959f-4827-8ba8-6a615255db1f",
+  "resources": [
+    {
+      "available": false,
+      "detail": "0 installed plug-ins known",
+      "kind": "plugin"
+    },
+    {
+      "available": true,
+      "detail": "Logic Pro",
+      "kind": "daw"
+    }
+  ],
+  "schema": "cosound.prompt-interpretation",
+  "schema_version": "1.0",
+  "session_id": "doc",
+  "targets": [
+    {
+      "confidence": 0.85,
+      "element": "bass",
+      "kind": "track",
+      "resolved_by": "conversation",
+      "track_id": "t2",
+      "track_name": "Sub Bass"
+    }
+  ],
+  "user": {
+    "id": "local",
+    "language": "it"
+  }
+}

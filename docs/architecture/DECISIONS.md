@@ -72,5 +72,11 @@ Status: **Accepted** (can be implemented), **Proposed** (needs confirmation), **
 - A future AI model (melody suggestion, audio transcription) may only feed this engine and stays behind the same checks (Prompt 09 §21).
 - Musical preferences are read from the shared memory with the user's permission and only fill gaps; the engine keeps no memory of its own.
 
+### ADR-015 Prompt Engine: rules first, any model behind them, no orchestration — Accepted (2026-11-27, Prompt 10)
+- Every user turn is turned into a `PromptInterpretation` (`packages/contracts/prompt-interpretation.schema.json`, v1.0) by deterministic IT/EN rules in `desktop/src-tauri/src/prompt/`. It describes the goal and constraints; it never plans, orders or executes. The partner's Central Agent receives it through `AgentPort::send_interpreted` or asks for it with `prompt.interpret`.
+- A language model (local or cloud) can be added through `ModelAdapter` with versioned templates. Its output must validate against the schema, and only the goal wording, inferred parameters (checked), semantic enhancement and ambiguities are taken from it. Constraints, approvals, destructive flags, issues and instructions always come from the rules. Any failure falls back to the rules.
+- When an essential element is unclear, the interpretation asks one question and carries no instructions. Destructive operations are flagged for the user's approval (Safety Gate, ADR-010).
+- No second memory: preferences are read from `memory_facts` with permission; only the engine's own turns are stored (`prompt_turns`).
+
 ### ADR-012 Commercial gating by entitlements — Accepted
 - Feature keys per plan in `plan_features`; trial length in `app_settings`; auto-conversion only with a recorded `consents` row. Payments postponed (Stripe planned).

@@ -14,6 +14,7 @@
 | 07 | Smart Library System: scansione multidrive incrementale, analisi audio, MIDI e preset, classificazione, ricerca IT/EN, somiglianza, loop, duplicati | ✅ **Completato (2026-11-26)** su macOS; 17 dei 18 test richiesti verificati, USB fisica e NAS da provare a mano; licenza Symphonia (MPL-2.0) da confermare (ADR-011a) | `desktop/src-tauri/src/smartlib/`, `docs/smart-library/`, rapporto `docs/smart-library/PROMPT-07-REPORT.md` |
 | 08 | Plugin Intelligence System: riconoscimento AU/AUv3/VST3/VST2/CLAP/AAX, catalogo, documentazione, parametri reali, preset, progettazione del suono con ascolto prima/dopo, catene di effetti, adattatore DAW | ✅ **Completato (2026-11-26)** su macOS con le Audio Unit di sistema; 13 dei 16 test verificati per intero, 3 in parte (formati di terze parti, Logic Pro, controllo dentro la DAW) | `desktop/src-tauri/src/plugins/`, `docs/plugin-intelligence/`, rapporto `docs/plugin-intelligence/PROMPT-08-REPORT.md` |
 | 09 | Music Intelligence Engine: teoria (note, intervalli, 33 scale, tonalità), accordi e armonia, progressioni, melodie, bassi, arpeggi, ritmo, stili, composizione da richieste a parole IT/EN, modifica MIDI a parole con versioni, analisi MIDI, verifica musicale, ponti Voice-to-Music e Reference Track | ✅ **Completato (2026-11-27)**; 17 dei 19 test verificati per intero, 2 in parte (intonazione dalla voce M5, DAW pilotata M4) | `desktop/src-tauri/src/music/`, `docs/music-intelligence/`, rapporto `docs/music-intelligence/PROMPT-09-REPORT.md` |
+| 10 | Prompt Engine: comprensione delle richieste in italiano e inglese, intenti, parametri, contesto e riferimenti, continuità della conversazione, vincoli, ambiguità, operazioni distruttive, istruzioni strutturate per il Central Agent (schema JSON 1.0), personalizzazione dell'assistente, architettura indipendente dal modello | ✅ **Completato (2026-11-27)**; 19 dei 20 test verificati per intero, 1 in parte (lingue oltre IT/EN e voce solo come trascrizione); nessun modello AI collegato (regole deterministiche) | `desktop/src-tauri/src/prompt/`, `docs/prompt-engine/`, rapporto `docs/prompt-engine/PROMPT-10-REPORT.md` |
 
 ## Verifica del Prompt 02 (eseguita il 2026-11-24)
 - 20 sezioni della knowledge base, ciascuna con `README.md` e registro fonti; tutte le 14 sezioni richieste sono coperte (mappa in `docs/knowledge/README.md`).
@@ -60,6 +61,7 @@
 | Compatibilità macOS/Windows, installer | 🟡 macOS verificato il 2026-11-25 (build, test, avvio, installer .app/.dmg aarch64 generati, non firmati); Windows e Linux verificati dalla CI (`.github/workflows/desktop.yml`, attiva dal 2026-11-26: test Rust, `tsc`, build Tauri su tre sistemi); app non ancora provata a mano su Windows; installer non firmati, nessun download pubblicato |
 | Motore musicale M2: teoria musicale, generazione MIDI di accordi, basso, melodia e batteria, export Standard MIDI File, pagina "Bozza musicale" con piano-roll e ascolto | ✅ completato e testato (24 test Rust, 2.980 parti generate e verificate, file letti da `file` e `mido`) |
 | Music Intelligence Engine (Prompt 09): teoria, scale e tonalità, accordi, armonia, melodie, bassi, arpeggi, ritmo, 11 stili, composizione a parole, modifica MIDI con versioni, analisi MIDI, verifica musicale, pagina Compositore | ✅ completato e testato (34 test nuovi, 44 composizioni complete verificate in ogni esecuzione) · intonazione dalla voce (M5) e accordi dall'audio (M6) da completare |
+| Prompt Engine (Prompt 10): ogni messaggio della chat viene interpretato (intenti, elementi, parametri detti e dedotti, vincoli, conferme, domande di chiarimento) e consegnato al Central Agent come JSON validato; personalizzazione dell'assistente nelle Impostazioni | ✅ completato e testato (34 test nuovi) · modello linguistico, voce e lingue oltre IT/EN da sviluppare |
 | Audio Analysis, Voice-to-Music, Reference, Mix/Master, connettori DAW, Plugin Intelligence | 📝 progettati, non implementati (roadmap M4–M9) |
 | Integrazione con l'Agent centrale | ⏳ in attesa del codice dell'Agent |
 | Pagamenti | ⏸️ non attivi (gestione abbonamento disattivata nell'app) |
@@ -110,3 +112,17 @@
 - **Da completare**: intonazione dalla voce (M5), accordi dall'audio (M6), note scritte direttamente nella DAW (M4).
 - **Database locale**: migrazione `005_music.sql`. Permesso nuovo: "Preferenze musicali" (spento all'inizio).
 - **Da fare a mano**: ascoltare alcune composizioni nella DAW; provare la pagina Compositore su Windows.
+
+## Prompt 10 – riepilogo (2026-11-27)
+- **Completato**: Prompt Engine in `desktop/src-tauri/src/prompt/` (12 moduli). Ogni richiesta, in italiano o in
+  inglese, diventa un'interpretazione JSON versionata (schema 1.0) con intenti, elementi, parametri, vincoli,
+  ambiguità, conferme necessarie e istruzioni per i componenti. Non pianifica e non esegue: lo fa il Central Agent.
+  Chat con "Cosa ho capito"; scheda Assistente nelle Impostazioni (stile, dettaglio, modalità, lingua). Test: 154
+  superati.
+- **Simulato**: il Central Agent resta il MOCK, che ora riceve l'interpretazione ed esegue solo operazioni sicure
+  (*in attesa dell'Agent*).
+- **Da sviluppare**: collegamento a un modello linguistico (l'interfaccia è pronta), trascrizione vocale (M5), lingue
+  oltre italiano e inglese, tracce lette direttamente dalla DAW (M4).
+- **Database locale**: migrazione `006_prompt.sql`. Contratto nuovo: `prompt-interpretation.schema.json`.
+- **Da fare a mano**: provare in chat le tue frasi abituali; con il socio, scegliere come il suo Agent usa
+  l'interpretazione e quale modello collegare.

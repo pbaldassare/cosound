@@ -21,6 +21,9 @@ Every message may carry `"contract_version": "1"`; any other value is refused wi
 | `approval.list` | – | TaskResult[] waiting for approval |
 | `approval.respond` | `approval_id`, `decision`: `reject` | TaskResult (`CANCELLED`). `approve` is refused: see §5 |
 | `events.poll` | `since` (sequence number) | Event[] after `since` |
+| `prompt.interpret` | `input`: `{ text, source?, transcript_confidence?, session_id?, user_id?, context?, external_content? }` | PromptInterpretation (`packages/contracts/prompt-interpretation.schema.json`, Prompt 10) |
+| `prompt.history` | `session_id`, `limit` | PromptInterpretation[] of the session (newest first) |
+| `prompt.schema` | – | the PromptInterpretation JSON Schema (version 1.0) |
 
 Answer envelope: `{ "contract_version": "1", "type": <same>, "ok": true, "data": … }` or
 `{ …, "ok": false, "error": { "code", "message", "retryable" } }`. Unknown `type` → `MESSAGE_UNKNOWN`.

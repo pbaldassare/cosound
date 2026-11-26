@@ -26,7 +26,10 @@
             "task.cancel",
             "approval.respond",
             "approval.list",
-            "events.poll"
+            "events.poll",
+            "prompt.interpret",
+            "prompt.history",
+            "prompt.schema"
           ]
         },
         "request": {
@@ -51,6 +54,13 @@
         },
         "since": {
           "type": "integer"
+        },
+        "input": {
+          "type": "object",
+          "description": "prompt.interpret: {text, source?: text|voice, transcript_confidence?, session_id?, user_id?, context?, external_content?: [{label, content}]}. The answer follows prompt-interpretation.schema.json"
+        },
+        "session_id": {
+          "type": "string"
         }
       }
     },

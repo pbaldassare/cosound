@@ -84,6 +84,11 @@ impl Runtime {
     }
 
     /// Agent Registry + Tool Registry + permissions, with live state (enabled, granted).
+    /// The local database (used by the Agent Integration Layer for the Prompt Engine).
+    pub fn db(&self) -> Arc<Db> {
+        self.inner.db.clone()
+    }
+
     pub fn registry_view(&self) -> Value {
         let reg = &self.inner.registry;
         let granted = self.granted();
@@ -497,6 +502,16 @@ impl Runtime {
             }
             "approval.list" => ok(json!(self.pending_approvals())),
             "events.poll" => ok(json!(self.events_since(msg["since"].as_u64().unwrap_or(0)))),
+            // Prompt Engine (Prompt 10): the Central Agent can have any user turn (text or voice transcript) interpreted
+            "prompt.interpret" => {
+                let c = self.inner.db.lock().unwrap();
+                crate::prompt::api::interpret(&c, &msg["input"], None).map_or_else(|e| fail(err("SCHEMA_INVALID", e)), ok)
+            }
+            "prompt.history" => {
+                let c = self.inner.db.lock().unwrap();
+                ok(json!(crate::prompt::api::history(&c, msg["session_id"].as_str().unwrap_or("default"), msg["limit"].as_i64().unwrap_or(20).clamp(1, 200))))
+            }
+            "prompt.schema" => ok(crate::prompt::api::schema().clone()),
             _ => fail(err("MESSAGE_UNKNOWN", format!("unknown message type {kind:?}"))),
         }
     }

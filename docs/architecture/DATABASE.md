@@ -125,6 +125,13 @@ Details: `docs/plugin-intelligence/ARCHITECTURE.md` §4.
 
 Details: `docs/music-intelligence/ARCHITECTURE.md` §4.
 
+### 2.3c Prompt Engine – owner `docs/prompt-engine/ARCHITECTURE.md`
+**Implemented (Prompt 10, migration `006_prompt.sql`)**:
+- `prompt_turns`: one row per interpreted user turn (request id, session, turn number, source text/voice, language,
+  conversation act, primary intent, the user's text, the interpretation JSON). Used for follow-ups, corrections,
+  undo/restore references and traceability. Local only; a session can be cleared.
+- No preferences here: they stay in `memory_facts`, read with the user's permissions.
+
 ### 2.3b DAW, projects, operations, safety – owner `specs/DAW-CONTROLLER.md` §10 + this file
 | Table | Main columns |
 |---|---|

@@ -25,6 +25,7 @@ agents without changing them and without us changing your code.
 | Handle approvals | `approval.list`; tell the user; the user approves in the app; you may reject or cancel |
 | Stop work | `task.cancel` |
 | Plan the next step | read `needs[]` (suggestions from an agent) and `proposed_daw_ops[]`; you decide |
+| Understand a user turn (text or voice transcript) | `prompt.interpret`: intents, targets, parameters said/deduced, constraints, ambiguities, approval needs and instructions per component. Every turn typed in the app arrives at your port already interpreted (`AgentPort::send_interpreted`). Details: `docs/prompt-engine/` |
 
 ## 3. Writing the adapter (only new code on our side)
 1. Analyse your Agent (language, runtime, tool-calling mechanism, memory, multi-agent support) and record it in

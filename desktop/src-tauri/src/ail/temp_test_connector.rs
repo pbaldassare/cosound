@@ -1,7 +1,9 @@
 //! ⚠ MOCK CENTRAL AGENT CONNECTOR – SIMULATION, NOT THE CENTRAL AGENT.
 //! Compiled only with the `temp-connector` Cargo feature (development builds). Remove when the real
-//! Agent adapter exists. No language understanding and no planning: it only executes explicit
-//! commands, through the same JSON Agent API the real adapter will use:
+//! Agent adapter exists. No language understanding and no planning of its own. It executes explicit
+//! commands, through the same JSON Agent API the real adapter will use, and – to test the Prompt Engine
+//! end to end (Prompt 10) – the instructions of an interpretation that are read-only or create new material
+//! (compose, search, loops, instrument suggestions), are available, and need no approval:
 //!   /call <agent>.<operation> [json-input]   one task
 //!   /scenario [melodic-techno-124]           the fixed collaboration script of Prompt 06 §9
 //!   /status <task_id>   /cancel <task_id>   /agents
@@ -23,7 +25,45 @@ fn reply(v: Value) -> AgentEvent {
     }
 }
 
+/// Operations the MOCK may run from an interpretation: they only read or create new material in COSOUND.
+const SAFE_OPS: [&str; 4] = ["music_theory.compose", "smart_library.search", "smart_library.suggest_loops", "plugin_intelligence.find_for_role"];
+
 impl AgentPort for MockCentralAgent {
+    fn send_interpreted(&mut self, text: &str, i: &Value, api: AgentApi) -> Vec<AgentEvent> {
+        let mut ev = vec![];
+        let mut waiting = vec![];
+        for ins in i["instructions"].as_array().into_iter().flatten() {
+            let (agent, op) = (ins["agent"].as_str().unwrap_or(""), ins["suggested_operation"].as_str().unwrap_or(""));
+            let cap = format!("{agent}.{op}");
+            let runnable = SAFE_OPS.contains(&cap.as_str()) && ins["operation_available"] == true && ins["requires_approval"] == false && ins["destructive"] == false;
+            if !runnable {
+                waiting.push(if op.is_empty() { ins["component"].as_str().unwrap_or("").to_string() } else { cap });
+                continue;
+            }
+            let inputs = &ins["inputs"];
+            let input = match op {
+                "compose" => json!({ "text": text }),
+                "suggest_loops" => json!({ "bpm": inputs["bpm"], "key": inputs["key"] }),
+                "find_for_role" => json!({ "role": inputs["role"], "text": text }),
+                _ => json!({ "text": text }),
+            };
+            let req = json!({ "request_id": crate::db::new_id(), "agent": agent, "operation": op, "input": input, "requested_by": "mock" });
+            ev.push(reply(api(&json!({ "type": "task.submit", "request": req }))));
+        }
+        if ev.is_empty() && waiting.is_empty() {
+            return vec![AgentEvent::AssistantText { text: "TEMP_CONNECTOR_EXPLICIT_ONLY".into() }];
+        }
+        ev.push(AgentEvent::AssistantText {
+            text: format!(
+                "MOCK (simulation, not the Central Agent): {} task(s) run from the interpretation{}",
+                ev.len(),
+                if waiting.is_empty() { String::new() } else { format!("; waiting for the Central Agent or the user's approval: {}", waiting.join(", ")) }
+            ),
+        });
+        ev
+    }
+
+
     fn health(&self) -> PortHealth {
         PortHealth { port_id: "mock-central-agent", is_temporary: true, connected: true }
     }
@@ -83,8 +123,8 @@ mod tests {
         let db = std::sync::Arc::new(std::sync::Mutex::new(crate::db::open_memory()));
         let dir = tempfile::tempdir().unwrap();
         let rt = Runtime::new(db, dir.path().canonicalize().unwrap());
-        let mut ail = Ail { port: Box::new(super::MockCentralAgent) };
-        assert!(matches!(&ail.send(&rt, "hello")[0], AgentEvent::AssistantText { text } if text == "TEMP_CONNECTOR_EXPLICIT_ONLY"));
+        let mut ail = Ail { port: Box::new(super::MockCentralAgent), session: "s".into() };
+        assert!(matches!(&ail.send(&rt, "hello")[1], AgentEvent::AssistantText { text } if text == "TEMP_CONNECTOR_EXPLICIT_ONLY"));
         assert!(matches!(&ail.send(&rt, "/call smart_library.stats")[0], AgentEvent::TaskResult { result } if result.status.as_str() == "COMPLETED"));
         assert!(matches!(&ail.send(&rt, "/call music_theory.generate_bassline {\"genre\":\"techno\"}")[0], AgentEvent::TaskResult { result } if result.status.as_str() == "COMPLETED"));
         assert!(matches!(&ail.send(&rt, "/call voice_to_music.transcribe_melody {\"path\":\"x\"}")[0], AgentEvent::TaskResult { result } if result.errors[0].code == "NOT_IMPLEMENTED"));
