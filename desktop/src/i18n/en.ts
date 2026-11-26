@@ -1,6 +1,6 @@
 const en = {
   nav: {
-    chat: 'Chat', production: 'Production', sketch: 'Music sketch', library: 'Smart Library', imports: 'Imported material', plugins: 'Plugins',
+    chat: 'Chat', production: 'Production', sketch: 'Music sketch', composer: 'Composer', library: 'Smart Library', imports: 'Imported material', plugins: 'Plugins',
     daws: 'DAWs', agents: 'Agents', settings: 'Settings', account: 'Account', language: 'Language',
   },
   common: {
@@ -159,6 +159,7 @@ const en = {
     dawDetection: 'DAW detection', dawHelp: 'Look for installed DAWs in the standard application folders.',
     pluginScan: 'Plugin scan', pluginHelp: 'Read the standard plugin folders (files only, plugins are not loaded).',
     pluginHost: 'Load plug-ins', pluginHostHelp: 'Load Audio Units in COSOUND\'s isolated helper to read their parameters and render previews. A plug-in that crashes cannot affect COSOUND.',
+    musicMemory: 'Musical preferences', musicMemoryHelp: 'Let the composer use the genres, keys and BPM saved in your memory to fill in what a request leaves open. Never overrides what you ask. Off by default.',
     presetWrite: 'Write presets', presetWriteHelp: 'Save new presets into the plug-ins\' preset folders, where DAWs find them. Never overwrites; asks each time. Off by default.',
     workflowMemory: 'Workflow memory', workflowHelp: 'Let the Adaptive Workflow agent remember shortcuts and procedures you declare. Off by default; keystrokes are never recorded.',
     enabled: 'Enabled', account: 'Account', privacy: 'Privacy', privacyBody: 'Libraries, projects, plugin list, voice takes and the operation register stay on this computer. Only the account, subscription and (if you enable it) the assistant name are stored online.',
@@ -188,6 +189,21 @@ const en = {
     micSkip: 'Not now', micAllow: 'Allow microphone',
     prefsBody: 'A few preferences to start. Everything can be changed later.', genres: 'Favourite genres', mainDaw: 'Main DAW', tempo: 'Usual tempo (BPM)',
     done: 'All set', doneBody: 'Your studio is ready.',
+  },
+  composer: {
+    title: 'Composer', intro: 'Describe what you want in words: COSOUND understands key, style, mood, tempo and parts, builds a progression, writes coherent parts, checks them and gives you an editable MIDI file. Original material only.',
+    placeholder: 'e.g. "Crea una melodia emozionale e ipnotica in La minore, adatta a una produzione Melodic Techno a 124 BPM"',
+    compose: 'Compose', composing: 'Composing…', seed: 'Variant', understood: 'Understood', notUnderstood: 'Not understood', memory: 'your preferences from memory were used to fill gaps',
+    key: 'Key', bpm: 'BPM', bars: 'bars', style: 'Style', moods: 'Mood', parts: 'Parts', progression: 'Progression', alternatives: 'Alternative progressions', loop: 'Loop cadence',
+    functions: { tonic: 'tonic', predominant: 'predominant', dominant: 'dominant', borrowed: 'borrowed', secondary_dominant: 'secondary dominant', chromatic: 'chromatic', neapolitan_or_phrygian: '♭II' } as Record<string, string>,
+    tracks: 'Parts', play: 'Play', stop: 'Stop', validation: 'Musical check', passed: 'passed', errors: 'technical errors', warnings: 'warnings',
+    kinds: { technical_error: 'technical error', stylistic_choice: 'stylistic choice', compositional_freedom: 'compositional freedom' } as Record<string, string>,
+    edit: 'Edit in words', editPlaceholder: 'e.g. "abbassa la melodia di un\'ottava", "rendi il basso più sincopato", "trasforma in tonalità minore"', allTracks: 'All parts', apply: 'Apply',
+    version: 'Version', history: 'Versions', undo: 'Undo last change', compare: 'Compare', with: 'with', diff: 'Changes', notes: 'notes', pitch: 'average pitch', sync: 'syncopation',
+    variations: 'Melody variations', identity: 'identity kept', export: 'Export MIDI', exported: 'MIDI file saved:', clips: 'Saved compositions',
+    theory: 'Theory', theoryKinds: { scale: 'Scale', chord: 'Chord', interval: 'Interval', key: 'Key' } as Record<string, string>, lookup: 'Show',
+    analyze: 'Analyse a MIDI file', chooseMidi: 'Choose a MIDI file…', candidates: 'Candidates', chords: 'Chords', outside: 'Notes outside the key', phrases: 'phrases', none: 'none',
+    variationNames: { rhythmic: 'rhythmic', ornamental: 'ornamental', sequence: 'sequence', inversion: 'inversion', ending: 'new ending', octave: 'octave', fragment: 'fragment' } as Record<string, string>,
   },
   sketch: {
     title: 'Music sketch',

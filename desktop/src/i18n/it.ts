@@ -2,7 +2,7 @@ import type { Dict } from './en'
 
 const it: Dict = {
   nav: {
-    chat: 'Chat', production: 'Produzione', sketch: 'Bozza musicale', library: 'Smart Library', imports: 'Materiale importato', plugins: 'Plug-in',
+    chat: 'Chat', production: 'Produzione', sketch: 'Bozza musicale', composer: 'Compositore', library: 'Smart Library', imports: 'Materiale importato', plugins: 'Plug-in',
     daws: 'DAW', agents: 'Agenti', settings: 'Impostazioni', account: 'Account', language: 'Lingua',
   },
   common: {
@@ -161,6 +161,7 @@ const it: Dict = {
     dawDetection: 'Rilevamento DAW', dawHelp: 'Cerca le DAW installate nelle cartelle standard delle applicazioni.',
     pluginScan: 'Ricerca plug-in', pluginHelp: 'Legge le cartelle standard dei plug-in (solo i file, i plug-in non vengono caricati).',
     pluginHost: 'Caricare i plug-in', pluginHostHelp: 'Carica le Audio Unit nel processo isolato di COSOUND per leggerne i parametri e preparare gli ascolti. Un plug-in che si blocca non può danneggiare COSOUND.',
+    musicMemory: 'Preferenze musicali', musicMemoryHelp: 'Permette al compositore di usare i generi, le tonalità e i BPM salvati nella memoria per completare ciò che una richiesta lascia aperto. Non cambia mai ciò che chiedi. Spento per impostazione predefinita.',
     presetWrite: 'Scrivere preset', presetWriteHelp: 'Salva nuovi preset nelle cartelle dei plug-in, dove le DAW li trovano. Non sovrascrive mai e chiede ogni volta. Spento per impostazione predefinita.',
     workflowMemory: 'Memoria dei workflow', workflowHelp: 'Permette all\'agente Adaptive Workflow di ricordare scorciatoie e procedure che dichiari. Spenta per impostazione predefinita; i tasti premuti non vengono mai registrati.',
     enabled: 'Attivo', account: 'Account', privacy: 'Privacy', privacyBody: 'Librerie, progetti, elenco dei plug-in, registrazioni vocali e registro delle operazioni restano su questo computer. Online sono salvati solo account, abbonamento e (se lo attivi) il nome dell\'assistente.',
@@ -190,6 +191,21 @@ const it: Dict = {
     micSkip: 'Non ora', micAllow: 'Consenti microfono',
     prefsBody: 'Qualche preferenza per iniziare. Tutto si può cambiare dopo.', genres: 'Generi preferiti', mainDaw: 'DAW principale', tempo: 'Tempo abituale (BPM)',
     done: 'Tutto pronto', doneBody: 'Il tuo studio è pronto.',
+  },
+  composer: {
+    title: 'Compositore', intro: 'Descrivi a parole ciò che vuoi: COSOUND capisce tonalità, stile, atmosfera, tempo e parti, costruisce una progressione, scrive parti coerenti, le verifica e ti dà un file MIDI modificabile. Solo materiale originale.',
+    placeholder: 'es. "Crea una melodia emozionale e ipnotica in La minore, adatta a una produzione Melodic Techno a 124 BPM"',
+    compose: 'Componi', composing: 'Composizione…', seed: 'Variante', understood: 'Ho capito', notUnderstood: 'Non capito', memory: 'le tue preferenze in memoria sono state usate per completare ciò che mancava',
+    key: 'Tonalità', bpm: 'BPM', bars: 'battute', style: 'Stile', moods: 'Atmosfera', parts: 'Parti', progression: 'Progressione', alternatives: 'Progressioni alternative', loop: 'Cadenza del loop',
+    functions: { tonic: 'tonica', predominant: 'predominante', dominant: 'dominante', borrowed: 'in prestito', secondary_dominant: 'dominante secondaria', chromatic: 'cromatico', neapolitan_or_phrygian: '♭II' } as Record<string, string>,
+    tracks: 'Parti', play: 'Ascolta', stop: 'Ferma', validation: 'Controllo musicale', passed: 'superato', errors: 'errori tecnici', warnings: 'avvisi',
+    kinds: { technical_error: 'errore tecnico', stylistic_choice: 'scelta stilistica', compositional_freedom: 'libertà compositiva' } as Record<string, string>,
+    edit: 'Modifica a parole', editPlaceholder: 'es. "abbassa la melodia di un\'ottava", "rendi il basso più sincopato", "trasforma in tonalità minore"', allTracks: 'Tutte le parti', apply: 'Applica',
+    version: 'Versione', history: 'Versioni', undo: 'Annulla l\'ultima modifica', compare: 'Confronta', with: 'con', diff: 'Modifiche', notes: 'note', pitch: 'altezza media', sync: 'sincope',
+    variations: 'Variazioni della melodia', identity: 'identità conservata', export: 'Esporta MIDI', exported: 'File MIDI salvato:', clips: 'Composizioni salvate',
+    theory: 'Teoria', theoryKinds: { scale: 'Scala', chord: 'Accordo', interval: 'Intervallo', key: 'Tonalità' } as Record<string, string>, lookup: 'Mostra',
+    analyze: 'Analizza un file MIDI', chooseMidi: 'Scegli un file MIDI…', candidates: 'Candidate', chords: 'Accordi', outside: 'Note fuori tonalità', phrases: 'frasi', none: 'nessuna',
+    variationNames: { rhythmic: 'ritmica', ornamental: 'ornamentale', sequence: 'progressione', inversion: 'inversione', ending: 'nuovo finale', octave: 'ottava', fragment: 'frammentazione' } as Record<string, string>,
   },
   sketch: {
     title: 'Bozza musicale',

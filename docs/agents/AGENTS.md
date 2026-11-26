@@ -8,12 +8,12 @@ Fields marked * are required. All agents: contract version 1.
 | | Agent | Role | Operations available | Permissions |
 |---|---|---|---|---|
 | A | [Music Producer](#a-music-producer) | Song structure, arrangement and production plan | 3/4 | — |
-| B | [Rhythm Engineer](#b-rhythm-engineer) | Drums, groove, swing, transitions and timing | 3/4 | — |
+| B | [Rhythm Engineer](#b-rhythm-engineer) | Drums, groove, swing, transitions and timing | 5/5 | — |
 | C | [Sound Designer](#c-sound-designer) | Choosing and designing sounds with the installed instruments | 9/10 | files.app_write, plugins.host, presets.write |
-| D | [Music Theory](#d-music-theory) | Music theory and coherent composition | 7/7 | — |
-| E | [Voice-to-Music](#e-voice-to-music) | From voice to musical material (singing, whistling, beatbox, speech) | 0/4 | files.authorized_read |
+| D | [Music Theory](#d-music-theory) | Music intelligence: theory, harmony, composition, MIDI | 21/21 | — |
+| E | [Voice-to-Music](#e-voice-to-music) | From voice to musical material (singing, whistling, beatbox, speech) | 1/5 | files.authorized_read |
 | F | [Audio Analysis](#f-audio-analysis) | Measurements on audio files and stems | 2/5 | files.app_write, files.authorized_read |
-| G | [Reference Track](#g-reference-track) | Reference profile to create an original track | 1/2 | files.authorized_read, network |
+| G | [Reference Track](#g-reference-track) | Reference profile to create an original track | 2/3 | files.authorized_read, network |
 | H | [Smart Library](#h-smart-library) | Smart catalog of the music resources on every authorized drive | 13/13 | external_devices, files.authorized_read |
 | I | [Plugin Intelligence](#i-plugin-intelligence) | Installed plug-ins: recognition, catalog, parameters, presets, effect chains | 12/13 | files.authorized_read, plugins.host, plugins.scan |
 | J | [Mixing Engineer](#j-mixing-engineer) | Mix diagnosis from measurements and proposed moves | 1/2 | daw.control, files.authorized_read |
@@ -77,9 +77,10 @@ Fields marked * are required. All agents: contract version 1.
 | `generate_drums` – MIDI drum pattern with checks and a MIDI file | available | read | rule_based | `genre`: string (techno, melodic_techno, progressive_house, house, edm); `key`: string; `tonic`: string; `mode`: string (enum); `progression`: ['string', 'array']; `bpm`: number; `bars`: integer; `seed`: integer; `swing`: number; `sevenths`: boolean; `chord_rhythm`: string (sustain, stabs, pulse); `bass_style`: string (offbeat, rolling, pulse, syncopated, sustain); `drum_style`: string (techno, melodic_techno, progressive_house, house, edm); `fill`: boolean | part, checks, midi.base64 |
 | `generate_transition` – Snare build, tom fill or drop impact | available | read | rule_based | `kind`*: string (snare_build, drum_fill, drop_impact); `bars`: integer; `bpm`: number; `seed`: integer | part, checks, midi.base64 |
 | `groove_timing` – Note lengths in ms and swing offset at a tempo | available | read | rule_based | `bpm`*: number; `swing`: number | beat_ms, bar_ms, note_lengths[], swing_offset_ms |
-| `humanize` – Humanize an existing MIDI part (timing and dynamics) | planned – requires MIDI file import (reading existing MIDI) is not built yet | read | — | `path`*: string | part |
+| `rhythm_pattern` – Rhythm pattern: steps, Euclidean, polyrhythm, swing; grid, position and duration kept apart | available | read | rule_based | `steps`: string; `euclid`: array; `poly`: array; `grid`: string; `bars`: integer; `pitch`: integer; `gate`: number; `swing`: integer | events with position and duration |
+| `humanize` – Humanize MIDI notes (timing and velocity, reproducible) | available | read | rule_based | `notes`*: array; `timing_ticks`: integer; `velocity`: integer; `seed`: integer | notes + diff |
 
-**Tools (level 3):** `music.generator`, `music.smf_writer`
+**Tools (level 3):** `music.generator`, `music.midi_editor`, `music.rhythm`, `music.smf_writer`
 
 **Permissions:** none
 
@@ -140,7 +141,7 @@ Fields marked * are required. All agents: contract version 1.
 
 ## D. Music Theory
 
-`music_theory` · v1.0.0 · Music theory and coherent composition
+`music_theory` · v1.0.0 · Music intelligence: theory, harmony, composition, MIDI
 
 **Competencies**
 
@@ -152,6 +153,11 @@ Fields marked * are required. All agents: contract version 1.
 - Tension, resolution and cadences
 - Musical coherence between parts
 - Key finding from a set of notes
+- Full theory: IT/EN notes, intervals, 33 scales, keys, 36 chords
+- Progressions generated per genre and mood, substitutions
+- Composition from requests in words with validation
+- MIDI editing in words with versions and undo
+- MIDI file analysis
 
 **Operations**
 
@@ -164,8 +170,22 @@ Fields marked * are required. All agents: contract version 1.
 | `generate_melody` – Melody with chord tones on strong beats | available | read | rule_based | `genre`: string (techno, melodic_techno, progressive_house, house, edm); `key`: string; `tonic`: string; `mode`: string (enum); `progression`: ['string', 'array']; `bpm`: number; `bars`: integer; `seed`: integer; `swing`: number; `sevenths`: boolean; `chord_rhythm`: string (sustain, stabs, pulse); `bass_style`: string (offbeat, rolling, pulse, syncopated, sustain); `drum_style`: string (techno, melodic_techno, progressive_house, house, edm); `fill`: boolean | part, checks, midi.base64 |
 | `detect_key` – Most likely key from notes or pitch-class weights | available | read | estimated | `notes`: array of object; `weights`: array of number | best, candidates[] with correlation |
 | `check_coherence` – Check that given MIDI parts fit the key and progression | available | read | rule_based | `genre`: string (techno, melodic_techno, progressive_house, house, edm); `key`: string; `tonic`: string; `mode`: string (enum); `progression`: ['string', 'array']; `bpm`: number; `bars`: integer; `seed`: integer; `swing`: number; `sevenths`: boolean; `chord_rhythm`: string (sustain, stabs, pulse); `bass_style`: string (offbeat, rolling, pulse, syncopated, sustain); `drum_style`: string (techno, melodic_techno, progressive_house, house, edm); `fill`: boolean; `ppq`: integer; `parts`*: array of object | checks per part |
+| `theory` – Theory: notes, intervals, scales, keys, circle of fifths, modulation, chords, recognition | available | read | rule_based | `what`*: string (enum); `note`: string; `from`: string; `to`: string; `tonic`: string; `scale`: string; `key`: string; `chord`: string; `pitches`: array; `notes`: array | the requested theory data |
+| `generate_progressions` – New progressions for key, style and mood, with alternatives | available | read | rule_based | `key`*: string; `style`: string; `moods`: array; `length`: integer; `count`: integer; `seed`: integer | progressions[] with chords, functions, loop cadence |
+| `analyze_progression` – Roman numerals, functions, secondary dominants, borrowed chords, cadences | available | read | rule_based | `key`: string; `chords`*: array | analysis |
+| `substitutions` – Explained chord substitutions | available | read | rule_based | `key`*: string; `chord`*: string | substitutions[] |
+| `compose` – Composition from a request in words or structured, validated and stored with versions | available | low | rule_based | `text`: string; `key`: string; `bpm`: number; `bars`: integer; `style`: string; `parts`: array; `moods`: array; `melody_style`: string; `bass_style`: string; `arp_pattern`: string; `seed`: integer; `title`: string | clip_id, tracks, progression and alternatives, validation, analysis |
+| `vary_melody` – Melody variation that keeps its identity | available | low | rule_based | `clip_id`*: string; `kind`: string (enum); `seed`: integer | new version + identity kept |
+| `edit_midi` – MIDI edit in words (octave, syncopation, length, hypnotic, mode…), new version | available | low | rule_based | `clip_id`*: string; `track`: string; `text`*: string; `seed`: integer | new version + diff |
+| `get_clip` – Composition with tracks and version history | available | read | measured | `clip_id`*: string | clip |
+| `undo_edit` – Undo the last version (the original stays) | available | low | measured | `clip_id`*: string | clip at the previous version |
+| `compare_versions` – Compare two versions | available | read | measured | `clip_id`*: string; `from`: integer; `to`: integer | per-track diff |
+| `export_midi` – Export a Standard MIDI File into COSOUND's folder | available | low | measured | `clip_id`*: string; `version`: integer | path, base64 |
+| `analyze_midi` – Analysis of a MIDI file or notes: key, chords, phrases, repetitions, out-of-key notes | available | read | estimated | `path`: string; `notes`: array; `bpm`: number | analysis |
+| `validate` – Musical validation of tracks | available | read | rule_based | `tracks`*: array; `key`*: string; `chords`: array; `bars_per_chord`: number; `moods`: array | findings by kind |
+| `style_profiles` – Style profiles, also blended | available | read | convention | `blend`: array | styles or blend |
 
-**Tools (level 3):** `music.generator`, `music.key_detection`, `music.smf_writer`, `music.theory`
+**Tools (level 3):** `memory.facts`, `music.arpeggio`, `music.bass`, `music.chords`, `music.composer`, `music.generator`, `music.harmony`, `music.key_detection`, `music.keys`, `music.melody`, `music.midi_analysis`, `music.midi_editor`, `music.notes`, `music.scales`, `music.smf_writer`, `music.styles`, `music.theory`, `music.validation`
 
 **Permissions:** none
 
@@ -178,6 +198,8 @@ Fields marked * are required. All agents: contract version 1.
 - 4/4 only and one chord per bar when generating
 - Rule-based melodies, no motif development
 - Key finding is an estimate (Krumhansl profiles)
+- Requests in words are read with rules (Italian/English): words not understood are reported
+- Chord recognition from audio needs the audio analysis engine (M6)
 
 ## E. Voice-to-Music
 
@@ -196,12 +218,13 @@ Fields marked * are required. All agents: contract version 1.
 
 | Operation | Status | Risk | Basis | Input | Output |
 |---|---|---|---|---|---|
+| `notes_to_music` – Notes already estimated from the voice → rhythm, key, MIDI, chords (correction only on request) | available | read | estimated | `notes`*: array; `bpm`: number; `grid`: string; `correct`: boolean | notes, deviations, key, chords, MIDI |
 | `transcribe_melody` – Sung/whistled melody → MIDI with confidence | planned – requires pitch-tracking engine (milestone M5) | read | — | `path`*: string | part, confidence |
 | `transcribe_rhythm` – Beatbox → drum pattern | planned – requires onset/drum-class engine (milestone M5) | read | — | `path`*: string | part |
 | `transcribe_speech` – Speech → text for the central Agent | planned – requires speech-to-text engine (milestone M5) | read | — | `path`*: string | text |
 | `classify_take` – Speech, singing, whistling or vocal percussion? | planned – requires voice classifier (milestone M5) | read | — | `path`*: string | class, confidence |
 
-**Tools (level 3):** `music.smf_writer`, `voice.pitch_tracker`, `voice.speech_to_text`
+**Tools (level 3):** `music.smf_writer`, `music.voice_bridge`, `voice.pitch_tracker`, `voice.speech_to_text`
 
 **Permissions:** `files.authorized_read`
 
@@ -269,9 +292,10 @@ Fields marked * are required. All agents: contract version 1.
 | Operation | Status | Risk | Basis | Input | Output |
 |---|---|---|---|---|---|
 | `build_profile` – Profile with the source of every value (web or measured) and a brief for an original track | available | read | mixed | `title`: string; `artist`: string; `genre`: string (enum); `web_facts`: object; `audio_path`: string | profile{field: {value, basis, source}}, brief |
+| `compose_inspired` – Original composition inspired by the reference's general traits, with originality checks | available | low | rule_based | `title`: string; `key`: any; `bpm`: any; `chords`: any; `melody`: any; `parts`: array; `seed`: integer | composition + originality checks |
 | `research_online` – Online research about a track | planned – requires web research tool; in this version research is done by the central Agent, which passes the facts in build_profile.web_facts | read | — | `title`*: string; `artist`: string | web_facts |
 
-**Tools (level 3):** `audio.wav_meter`, `music.arrangement`, `web.research`
+**Tools (level 3):** `audio.wav_meter`, `music.arrangement`, `music.composer`, `music.harmony`, `music.melody`, `music.reference_bridge`, `music.validation`, `web.research`
 
 **Permissions:** `files.authorized_read`, `network`
 

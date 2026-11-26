@@ -3,7 +3,7 @@ import type { Session } from '@supabase/supabase-js'
 import { api, type AppInfo, type PortHealth, type Project, type Settings } from './api'
 import { supabase } from './supabase'
 
-export type Page = 'chat' | 'production' | 'sketch' | 'library' | 'imports' | 'plugins' | 'daws' | 'agents' | 'settings' | 'account'
+export type Page = 'chat' | 'production' | 'sketch' | 'composer' | 'library' | 'imports' | 'plugins' | 'daws' | 'agents' | 'settings' | 'account'
 
 type Store = {
   info: AppInfo | null

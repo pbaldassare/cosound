@@ -71,6 +71,61 @@ pub fn write(parts: &[Part], bpm: f64, key: Key, title: &str) -> Vec<u8> {
     out
 }
 
+/// A track for the MIDI Generation Engine: any name, channel, optional program change, notes and controller
+/// events (tick, CC number, value), e.g. CC74 filter or CC1 modulation automation.
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
+pub struct Track {
+    pub name: String,
+    pub channel: u8,
+    pub program: Option<u8>,
+    pub notes: Vec<super::generate::MidiNote>,
+    #[serde(default)]
+    pub cc: Vec<(u32, u8, u8)>,
+}
+
+/// Format-1 file with a conductor track (title, tempo, time and key signature) and one track per part.
+pub fn write_tracks(tracks: &[Track], bpm: f64, key: Key, title: &str, time_sig: (u8, u8)) -> Vec<u8> {
+    let mut out = b"MThd".to_vec();
+    out.extend_from_slice(&6u32.to_be_bytes());
+    out.extend_from_slice(&1u16.to_be_bytes());
+    out.extend_from_slice(&((tracks.len() + 1) as u16).to_be_bytes());
+    out.extend_from_slice(&(PPQ as u16).to_be_bytes());
+    let mut t = Vec::new();
+    meta(&mut t, 0x03, &ascii(title));
+    let den_pow = (time_sig.1.max(1) as f64).log2().round() as u8;
+    meta(&mut t, 0x58, &[time_sig.0, den_pow, 24, 8]);
+    let us = (60_000_000.0 / bpm).round() as u32;
+    meta(&mut t, 0x51, &us.to_be_bytes()[1..]);
+    meta(&mut t, 0x59, &[key.signature().clamp(-7, 7) as i8 as u8, key.mode.minor_third() as u8]);
+    chunk(&mut out, t);
+    for tr in tracks {
+        let ch = tr.channel & 0x0F;
+        let mut t = Vec::new();
+        meta(&mut t, 0x03, &ascii(&tr.name));
+        if let (Some(p), false) = (tr.program, ch == 9) {
+            t.extend_from_slice(&[0, 0xC0 | ch, p & 0x7F]);
+        }
+        // (tick, order, status, a, b): controllers before note-offs before note-ons on the same tick
+        let mut ev: Vec<(u32, u8, u8, u8, u8)> = Vec::with_capacity(tr.notes.len() * 2 + tr.cc.len());
+        for (tick, cc, v) in &tr.cc {
+            ev.push((*tick, 0, 0xB0 | ch, cc & 0x7F, v & 0x7F));
+        }
+        for n in &tr.notes {
+            ev.push((n.start, 2, 0x90 | ch, n.pitch & 0x7F, n.vel.clamp(1, 127)));
+            ev.push((n.start + n.dur.max(1), 1, 0x80 | ch, n.pitch & 0x7F, 0));
+        }
+        ev.sort_by_key(|e| (e.0, e.1, e.3));
+        let mut last = 0;
+        for (tick, _, st, a, b) in ev {
+            vlq(&mut t, tick - last);
+            last = tick;
+            t.extend_from_slice(&[st, a, b]);
+        }
+        chunk(&mut out, t);
+    }
+    out
+}
+
 /// Minimal reader used by the tests to prove the file is well formed (supports running status).
 #[cfg(test)]
 pub fn read(bytes: &[u8]) -> Result<(u16, u16, Vec<Vec<(u32, u8, u8, u8)>>, Option<u32>), String> {
@@ -119,6 +174,10 @@ pub fn read(bytes: &[u8]) -> Result<(u16, u16, Vec<Vec<(u32, u8, u8, u8)>>, Opti
                     i += 2 + l;
                 }
                 s if s & 0xF0 == 0xC0 => i += 1,
+                s if s & 0xF0 == 0xB0 => {
+                    evs.push((tick, s, body[i], body[i + 1]));
+                    i += 2;
+                }
                 s if s & 0xF0 == 0x80 || s & 0xF0 == 0x90 => {
                     evs.push((tick, s, body[i], body[i + 1]));
                     i += 2;

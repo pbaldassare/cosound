@@ -66,5 +66,11 @@ Status: **Accepted** (can be implemented), **Proposed** (needs confirmation), **
 - Audio Units only, on macOS. VST3 hosting would need a C++ host with the Steinberg SDK (license and effort to weigh); CLAP a custom host; AAX cannot be hosted by third parties (integration-sdks §1.4). JUCE was not used (commercial license, ADR-011).
 - Designed sounds reach DAWs as new preset files (never overwriting); parameter control inside DAWs waits for the connectors (ADR-007, M4).
 
+### ADR-014 Music engine: deterministic rules, every output checked — Accepted (2026-11-27, Prompt 09)
+- Notes, chords and MIDI are produced by rule-based Rust modules (`desktop/src-tauri/src/music/`) with seeds, so the same request and seed give the same result. No language model writes musical data.
+- Every composition and every edit goes through `validate.rs`; only technical errors (range, length, overlaps) fail. Notes outside the key are described by function, not treated as errors.
+- A future AI model (melody suggestion, audio transcription) may only feed this engine and stays behind the same checks (Prompt 09 §21).
+- Musical preferences are read from the shared memory with the user's permission and only fill gaps; the engine keeps no memory of its own.
+
 ### ADR-012 Commercial gating by entitlements — Accepted
 - Feature keys per plan in `plan_features`; trial length in `app_settings`; auto-conversion only with a recorded `consents` row. Payments postponed (Stripe planned).

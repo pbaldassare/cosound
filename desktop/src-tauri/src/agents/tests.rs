@@ -173,6 +173,33 @@ fn every_available_operation_runs() {
         assert!(r.tools_used.iter().all(|t| m.tools.contains(t)), "{agent}.{op} used undeclared tools {:?}", r.tools_used);
         r.result.unwrap()
     };
+    // Prompt 09 operations (Music Intelligence Engine)
+    let mut music_ops = 0;
+    for (agent, op, input) in [
+        ("music_theory", "theory", json!({ "what": "scale", "tonic": "Fa diesis", "scale": "minore" })),
+        ("music_theory", "generate_progressions", json!({ "key": "A minor", "style": "melodic_techno", "count": 3 })),
+        ("music_theory", "analyze_progression", json!({ "key": "C major", "chords": ["Dm7", "G7", "Cmaj7"] })),
+        ("music_theory", "substitutions", json!({ "key": "C major", "chord": "G7" })),
+        ("music_theory", "style_profiles", json!({ "blend": [{ "style": "techno", "weight": 0.7 }, { "style": "ambient", "weight": 0.3 }] })),
+        ("music_theory", "analyze_midi", json!({ "notes": [{ "pitch": 57, "start": 0, "dur": 240 }, { "pitch": 60, "start": 240, "dur": 240 }, { "pitch": 64, "start": 480, "dur": 240 }] })),
+        ("music_theory", "validate", json!({ "key": "A minor", "chords": ["Am"], "tracks": [{ "name": "Melody", "channel": 1, "program": null, "notes": [{ "pitch": 69, "start": 0, "dur": 240, "vel": 100 }] }] })),
+        ("rhythm_engineer", "rhythm_pattern", json!({ "euclid": [5, 16], "bars": 1 })),
+        ("rhythm_engineer", "humanize", json!({ "notes": [{ "pitch": 36, "start": 0, "dur": 100, "vel": 100 }, { "pitch": 36, "start": 480, "dur": 100, "vel": 100 }] })),
+        ("voice_to_music", "notes_to_music", json!({ "notes": [{ "hz": 220.0, "onset_s": 0.0, "dur_s": 0.4 }, { "hz": 262.0, "onset_s": 0.5, "dur_s": 0.4 }, { "hz": 330.0, "onset_s": 1.0, "dur_s": 0.4 }] })),
+        ("reference_track", "compose_inspired", json!({ "title": "Ref", "key": { "value": "A minor", "source": "web" }, "bpm": { "value": 124, "source": "web" }, "parts": ["chords", "melody"] })),
+    ] {
+        check(agent, op, input);
+        music_ops += 1;
+    }
+    let comp = check("music_theory", "compose", json!({ "text": "melodia e basso in La minore melodic techno 124 bpm" }));
+    let clip = comp["clip_id"].as_str().unwrap().to_string();
+    check("music_theory", "edit_midi", json!({ "clip_id": clip, "track": "melodia", "text": "abbassa di un'ottava" }));
+    check("music_theory", "vary_melody", json!({ "clip_id": clip, "kind": "sequence" }));
+    check("music_theory", "compare_versions", json!({ "clip_id": clip, "from": 1, "to": 3 }));
+    check("music_theory", "get_clip", json!({ "clip_id": clip }));
+    check("music_theory", "undo_edit", json!({ "clip_id": clip }));
+    check("music_theory", "export_midi", json!({ "clip_id": clip }));
+    music_ops += 7;
     let mut plugin_ops = 0;
     for (agent, op, input) in [
         ("plugin_intelligence", "list", json!({ "text": "riverbero" })),
@@ -210,7 +237,7 @@ fn every_available_operation_runs() {
         plugin_ops += host_ops;
     }
     let available = reg.manifests.iter().flat_map(|m| &m.operations).filter(|o| o.status == "available").count();
-    assert_eq!(cases.len() + 3 + plugin_ops, available, "every available operation is exercised");
+    assert_eq!(cases.len() + 3 + plugin_ops + music_ops, available, "every available operation is exercised");
 }
 
 #[test]
@@ -499,6 +526,39 @@ fn central_agent_mock_designs_a_bass_with_installed_synths() {
     let st = api(&json!({ "type": "task.status", "task_id": inst.task_id }));
     assert_eq!(st["data"]["status"], "COMPLETED");
     *crate::plugins::design::TEST_PRESETS_ROOT.lock().unwrap() = None;
+}
+
+/// Prompt 09 example through the JSON Agent API only, as the partner's Central Agent will send it.
+#[test]
+fn central_agent_mock_composes_edits_and_exports_music() {
+    let e = env();
+    let api = |m: &Value| e.rt.handle(m);
+    let call = |op: &str, input: Value| -> TaskResult {
+        let r = api(&json!({ "contract_version": "1", "type": "task.submit", "request": { "contract_version": "1", "request_id": db::new_id(), "agent": "music_theory", "operation": op, "input": input, "run_async": false } }));
+        serde_json::from_value(r["data"].clone()).unwrap()
+    };
+    let c = call("compose", json!({ "text": "Crea una melodia emozionale e ipnotica in tonalità di La minore, adatta a una produzione Melodic Techno a 124 BPM." }));
+    assert_eq!(c.status, Status::Completed, "{:?}", c.errors);
+    let r = c.result.unwrap();
+    assert_eq!((r["key"].as_str(), r["bpm"].as_f64(), r["validation"]["passed"].as_bool()), (Some("A minor"), Some(124.0), Some(true)));
+    assert_eq!(r["request_understood"]["moods"], json!(["emotional", "hypnotic"]));
+    assert!(r["alternative_progressions"].as_array().unwrap().len() >= 2, "variations are proposed");
+    let id = r["clip_id"].as_str().unwrap();
+    let ed = call("edit_midi", json!({ "clip_id": id, "track": "melody", "text": "Abbassa questa melodia di un'ottava" }));
+    assert_eq!(ed.result.unwrap()["diff"]["Melody"]["average_pitch_change"], -12.0);
+    let x = call("export_midi", json!({ "clip_id": id }));
+    let path = x.result.unwrap()["path"].as_str().unwrap().to_string();
+    let a = call("analyze_midi", json!({ "path": path }));
+    assert_eq!(a.status, Status::Completed, "the exported file is inside COSOUND's folder and can be analysed: {:?}", a.errors);
+    // the DAW Controller receives the exported file: tempo, key, an instrument track and a MIDI import
+    let plan = e.run("daw_controller", "plan_operations", json!({ "daw": "logic", "bpm": 124, "key": "A minor", "parts": [{ "name": "Melody", "path": path }] }));
+    assert_eq!(plan.status, Status::Completed, "{:?}", plan.errors);
+    let ops: Vec<&str> = plan.proposed_daw_ops.iter().filter_map(|o| o["op"].as_str()).collect();
+    assert_eq!(ops, ["set_tempo", "set_key_signature", "create_track", "import_midi"]);
+    assert_eq!(plan.proposed_daw_ops[3]["args"]["file"], json!(path));
+    assert_eq!(a.result.unwrap()["bpm"], 124.0);
+    // memory preferences are not used without the permission
+    assert_eq!(call("compose", json!({ "text": "un brano" })).result.unwrap()["memory_used"], false);
 }
 
 #[test]

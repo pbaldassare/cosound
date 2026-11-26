@@ -396,6 +396,90 @@ fn plugins_remember(app: State<App>, role: String, product_id: String) -> R<Valu
     plugins::design::remember_instrument(&app.db.lock().unwrap(), &role, &product_id)
 }
 
+// ---------- Music Intelligence Engine (Prompt 09) ----------
+
+fn music_styles(app: &App) -> music::styles::Styles {
+    music::styles::Styles::load(Some(&app.data_dir))
+}
+
+#[tauri::command]
+fn music_theory(input: Value) -> R<Value> {
+    music::api::theory(&input)
+}
+
+#[tauri::command]
+fn music_harmony(input: Value) -> R<Value> {
+    music::api::harmony_api(&input)
+}
+
+#[tauri::command]
+fn music_rhythm(input: Value) -> R<Value> {
+    music::api::rhythm_api(&input)
+}
+
+#[tauri::command]
+fn music_style_list(app: State<App>) -> Value {
+    json!(music_styles(&app).all())
+}
+
+/// Compose from words or structure; musical preferences from the memory only with the Settings permission.
+#[tauri::command]
+async fn music_compose(app: State<'_, App>, input: Value) -> R<Value> {
+    let allow = perm(&app, "perm_music_memory", false);
+    music::api::compose_api(&app.db.lock().unwrap(), &music_styles(&app), &input, allow)
+}
+
+#[tauri::command]
+fn music_clips(app: State<App>) -> Value {
+    json!(music::api::clips(&app.db.lock().unwrap()))
+}
+
+#[tauri::command]
+fn music_clip(app: State<App>, id: String) -> R<Value> {
+    music::api::clip(&app.db.lock().unwrap(), &id)
+}
+
+#[tauri::command]
+fn music_edit(app: State<App>, id: String, track: String, text: String, seed: Option<u64>) -> R<Value> {
+    music::api::edit_clip(&app.db.lock().unwrap(), &id, &track, &text, seed.unwrap_or(1))
+}
+
+#[tauri::command]
+fn music_vary(app: State<App>, id: String, kind: String, seed: Option<u64>) -> R<Value> {
+    music::api::vary_clip(&app.db.lock().unwrap(), &id, &kind, seed.unwrap_or(1))
+}
+
+#[tauri::command]
+fn music_undo(app: State<App>, id: String) -> R<Value> {
+    music::api::undo(&app.db.lock().unwrap(), &id)
+}
+
+#[tauri::command]
+fn music_compare(app: State<App>, id: String, from: i64, to: i64) -> R<Value> {
+    music::api::compare(&app.db.lock().unwrap(), &id, from, to)
+}
+
+#[tauri::command]
+fn music_export_clip(app: State<App>, id: String, version: Option<i64>) -> R<Value> {
+    music::api::export(&app.db.lock().unwrap(), &app.data_dir, &id, version)
+}
+
+/// Analyse a MIDI file the user picked in the file dialog (read only).
+#[tauri::command]
+async fn music_analyze_file(path: String) -> R<Value> {
+    music::api::analyze_file(std::path::Path::new(&path))
+}
+
+#[tauri::command]
+fn music_voice(input: Value) -> R<Value> {
+    music::api::voice_api(&input)
+}
+
+#[tauri::command]
+fn music_reference(app: State<App>, input: Value) -> R<Value> {
+    music::api::reference_api(&app.db.lock().unwrap(), &music_styles(&app), &input)
+}
+
 // ---------- music engine (M2) ----------
 
 /// Chords, bass, melody and drums for the preview page. Deterministic: same input, same notes.
@@ -573,6 +657,21 @@ pub fn run() {
             plugins_design_plan,
             plugins_remember,
             music_options,
+            music_theory,
+            music_harmony,
+            music_rhythm,
+            music_style_list,
+            music_compose,
+            music_clips,
+            music_clip,
+            music_edit,
+            music_vary,
+            music_undo,
+            music_compare,
+            music_export_clip,
+            music_analyze_file,
+            music_voice,
+            music_reference,
             music_sketch,
             music_export_midi,
             ail_status,

@@ -18,9 +18,20 @@ impl Agent for ReferenceTrack {
         "reference_track"
     }
     fn operations(&self) -> &'static [&'static str] {
-        &["build_profile"]
+        &["build_profile", "compose_inspired"]
     }
     fn run(&self, op: &str, input: &Value, cx: &mut Ctx) -> OpResult {
+        if op == "compose_inspired" {
+            for t in ["music.reference_bridge", "music.composer", "music.harmony", "music.melody", "music.validation"] {
+                cx.tool(t);
+            }
+            let styles = crate::music::styles::Styles::load(Some(cx.data_dir));
+            let mut i = input.clone();
+            i["compose"] = json!(true);
+            let v = crate::music::api::reference_api(&cx.db.lock().unwrap(), &styles, &i).map_err(AgentError::input)?;
+            cx.limit("only general traits of the reference are reused; the result is checked for a different progression and a dissimilar melody");
+            return Ok(Outcome::new(v, "rule_based"));
+        }
         if op != "build_profile" {
             return Err(unknown(self.id(), op));
         }

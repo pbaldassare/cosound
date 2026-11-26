@@ -4,8 +4,8 @@
   "name": "Music Theory",
   "version": "1.0.0",
   "role": {
-    "it": "Teoria musicale e composizione coerente",
-    "en": "Music theory and coherent composition"
+    "it": "Intelligenza musicale: teoria, armonia, composizione, MIDI",
+    "en": "Music intelligence: theory, harmony, composition, MIDI"
   },
   "competencies": {
     "it": [
@@ -16,7 +16,12 @@
       "Melodie, linee di basso e arpeggi",
       "Tensione, risoluzione e cadenze",
       "Coerenza musicale tra le parti",
-      "Riconoscimento della tonalità da un insieme di note"
+      "Riconoscimento della tonalità da un insieme di note",
+      "Teoria completa: note IT/EN, intervalli, 33 scale, tonalità, 36 accordi",
+      "Progressioni generate per genere e atmosfera, sostituzioni",
+      "Composizione da richieste a parole con validazione",
+      "Modifica del MIDI a parole con versioni e annullamento",
+      "Analisi di file MIDI"
     ],
     "en": [
       "Notes, sharps, flats, tones and semitones",
@@ -26,7 +31,12 @@
       "Melodies, basslines and arpeggios",
       "Tension, resolution and cadences",
       "Musical coherence between parts",
-      "Key finding from a set of notes"
+      "Key finding from a set of notes",
+      "Full theory: IT/EN notes, intervals, 33 scales, keys, 36 chords",
+      "Progressions generated per genre and mood, substitutions",
+      "Composition from requests in words with validation",
+      "MIDI editing in words with versions and undo",
+      "MIDI file analysis"
     ]
   },
   "operations": [
@@ -777,25 +787,576 @@
       ],
       "permissions": [],
       "basis": "rule_based"
+    },
+    {
+      "name": "theory",
+      "status": "available",
+      "risk": "read",
+      "requires_approval": false,
+      "summary": {
+        "it": "Teoria: note, intervalli, scale, tonalità, cerchio delle quinte, modulazioni, accordi, riconoscimento",
+        "en": "Theory: notes, intervals, scales, keys, circle of fifths, modulation, chords, recognition"
+      },
+      "input": {
+        "type": "object",
+        "properties": {
+          "what": {
+            "type": "string",
+            "enum": [
+              "note",
+              "interval",
+              "scale",
+              "scales",
+              "key",
+              "circle",
+              "modulation",
+              "chord",
+              "chord_types",
+              "recognize_chord",
+              "estimate_key"
+            ]
+          },
+          "note": {
+            "type": "string"
+          },
+          "from": {
+            "type": "string"
+          },
+          "to": {
+            "type": "string"
+          },
+          "tonic": {
+            "type": "string"
+          },
+          "scale": {
+            "type": "string"
+          },
+          "key": {
+            "type": "string"
+          },
+          "chord": {
+            "type": "string"
+          },
+          "pitches": {
+            "type": "array"
+          },
+          "notes": {
+            "type": "array"
+          }
+        },
+        "required": [
+          "what"
+        ]
+      },
+      "output": "the requested theory data",
+      "tools": [
+        "music.notes",
+        "music.scales",
+        "music.keys",
+        "music.chords"
+      ],
+      "permissions": [],
+      "basis": "rule_based"
+    },
+    {
+      "name": "generate_progressions",
+      "status": "available",
+      "risk": "read",
+      "requires_approval": false,
+      "summary": {
+        "it": "Progressioni nuove per tonalità, stile e atmosfera, con alternative",
+        "en": "New progressions for key, style and mood, with alternatives"
+      },
+      "input": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "style": {
+            "type": "string"
+          },
+          "moods": {
+            "type": "array"
+          },
+          "length": {
+            "type": "integer"
+          },
+          "count": {
+            "type": "integer"
+          },
+          "seed": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "key"
+        ]
+      },
+      "output": "progressions[] with chords, functions, loop cadence",
+      "tools": [
+        "music.harmony"
+      ],
+      "permissions": [],
+      "basis": "rule_based"
+    },
+    {
+      "name": "analyze_progression",
+      "status": "available",
+      "risk": "read",
+      "requires_approval": false,
+      "summary": {
+        "it": "Numeri romani, funzioni, dominanti secondarie, prestiti, cadenze",
+        "en": "Roman numerals, functions, secondary dominants, borrowed chords, cadences"
+      },
+      "input": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "chords": {
+            "type": "array"
+          }
+        },
+        "required": [
+          "chords"
+        ]
+      },
+      "output": "analysis",
+      "tools": [
+        "music.harmony"
+      ],
+      "permissions": [],
+      "basis": "rule_based"
+    },
+    {
+      "name": "substitutions",
+      "status": "available",
+      "risk": "read",
+      "requires_approval": false,
+      "summary": {
+        "it": "Sostituzioni armoniche spiegate",
+        "en": "Explained chord substitutions"
+      },
+      "input": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "chord": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "key",
+          "chord"
+        ]
+      },
+      "output": "substitutions[]",
+      "tools": [
+        "music.harmony"
+      ],
+      "permissions": [],
+      "basis": "rule_based"
+    },
+    {
+      "name": "compose",
+      "status": "available",
+      "risk": "low",
+      "requires_approval": false,
+      "summary": {
+        "it": "Composizione da una richiesta a parole o strutturata, validata e salvata con versioni",
+        "en": "Composition from a request in words or structured, validated and stored with versions"
+      },
+      "input": {
+        "type": "object",
+        "properties": {
+          "text": {
+            "type": "string"
+          },
+          "key": {
+            "type": "string"
+          },
+          "bpm": {
+            "type": "number"
+          },
+          "bars": {
+            "type": "integer"
+          },
+          "style": {
+            "type": "string"
+          },
+          "parts": {
+            "type": "array"
+          },
+          "moods": {
+            "type": "array"
+          },
+          "melody_style": {
+            "type": "string"
+          },
+          "bass_style": {
+            "type": "string"
+          },
+          "arp_pattern": {
+            "type": "string"
+          },
+          "seed": {
+            "type": "integer"
+          },
+          "title": {
+            "type": "string"
+          }
+        }
+      },
+      "output": "clip_id, tracks, progression and alternatives, validation, analysis",
+      "tools": [
+        "music.composer",
+        "music.styles",
+        "music.harmony",
+        "music.melody",
+        "music.bass",
+        "music.arpeggio",
+        "music.generator",
+        "music.validation",
+        "memory.facts"
+      ],
+      "permissions": [],
+      "basis": "rule_based"
+    },
+    {
+      "name": "vary_melody",
+      "status": "available",
+      "risk": "low",
+      "requires_approval": false,
+      "summary": {
+        "it": "Variazione della melodia che ne conserva l'identità",
+        "en": "Melody variation that keeps its identity"
+      },
+      "input": {
+        "type": "object",
+        "properties": {
+          "clip_id": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "rhythmic",
+              "ornamental",
+              "sequence",
+              "inversion",
+              "ending",
+              "octave",
+              "fragment"
+            ]
+          },
+          "seed": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "clip_id"
+        ]
+      },
+      "output": "new version + identity kept",
+      "tools": [
+        "music.melody",
+        "music.midi_editor"
+      ],
+      "permissions": [],
+      "basis": "rule_based"
+    },
+    {
+      "name": "edit_midi",
+      "status": "available",
+      "risk": "low",
+      "requires_approval": false,
+      "summary": {
+        "it": "Modifica del MIDI a parole (ottava, sincope, durata, ipnotico, modo…), nuova versione",
+        "en": "MIDI edit in words (octave, syncopation, length, hypnotic, mode…), new version"
+      },
+      "input": {
+        "type": "object",
+        "properties": {
+          "clip_id": {
+            "type": "string"
+          },
+          "track": {
+            "type": "string"
+          },
+          "text": {
+            "type": "string"
+          },
+          "seed": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "clip_id",
+          "text"
+        ]
+      },
+      "output": "new version + diff",
+      "tools": [
+        "music.midi_editor"
+      ],
+      "permissions": [],
+      "basis": "rule_based"
+    },
+    {
+      "name": "get_clip",
+      "status": "available",
+      "risk": "read",
+      "requires_approval": false,
+      "summary": {
+        "it": "Composizione con tracce e cronologia delle versioni",
+        "en": "Composition with tracks and version history"
+      },
+      "input": {
+        "type": "object",
+        "properties": {
+          "clip_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "clip_id"
+        ]
+      },
+      "output": "clip",
+      "tools": [
+        "music.midi_editor"
+      ],
+      "permissions": [],
+      "basis": "measured"
+    },
+    {
+      "name": "undo_edit",
+      "status": "available",
+      "risk": "low",
+      "requires_approval": false,
+      "summary": {
+        "it": "Annulla l'ultima versione (l'originale resta)",
+        "en": "Undo the last version (the original stays)"
+      },
+      "input": {
+        "type": "object",
+        "properties": {
+          "clip_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "clip_id"
+        ]
+      },
+      "output": "clip at the previous version",
+      "tools": [
+        "music.midi_editor"
+      ],
+      "permissions": [],
+      "basis": "measured"
+    },
+    {
+      "name": "compare_versions",
+      "status": "available",
+      "risk": "read",
+      "requires_approval": false,
+      "summary": {
+        "it": "Confronto tra due versioni",
+        "en": "Compare two versions"
+      },
+      "input": {
+        "type": "object",
+        "properties": {
+          "clip_id": {
+            "type": "string"
+          },
+          "from": {
+            "type": "integer"
+          },
+          "to": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "clip_id"
+        ]
+      },
+      "output": "per-track diff",
+      "tools": [
+        "music.midi_editor"
+      ],
+      "permissions": [],
+      "basis": "measured"
+    },
+    {
+      "name": "export_midi",
+      "status": "available",
+      "risk": "low",
+      "requires_approval": false,
+      "summary": {
+        "it": "Esporta un file MIDI standard nella cartella di COSOUND",
+        "en": "Export a Standard MIDI File into COSOUND's folder"
+      },
+      "input": {
+        "type": "object",
+        "properties": {
+          "clip_id": {
+            "type": "string"
+          },
+          "version": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "clip_id"
+        ]
+      },
+      "output": "path, base64",
+      "tools": [
+        "music.smf_writer"
+      ],
+      "permissions": [
+        "files.app_write"
+      ],
+      "basis": "measured"
+    },
+    {
+      "name": "analyze_midi",
+      "status": "available",
+      "risk": "read",
+      "requires_approval": false,
+      "summary": {
+        "it": "Analisi di un file MIDI o di note: tonalità, accordi, frasi, ripetizioni, note fuori tonalità",
+        "en": "Analysis of a MIDI file or notes: key, chords, phrases, repetitions, out-of-key notes"
+      },
+      "input": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string"
+          },
+          "notes": {
+            "type": "array"
+          },
+          "bpm": {
+            "type": "number"
+          }
+        }
+      },
+      "output": "analysis",
+      "tools": [
+        "music.midi_analysis"
+      ],
+      "permissions": [
+        "files.authorized_read"
+      ],
+      "basis": "estimated"
+    },
+    {
+      "name": "validate",
+      "status": "available",
+      "risk": "read",
+      "requires_approval": false,
+      "summary": {
+        "it": "Validazione musicale di tracce",
+        "en": "Musical validation of tracks"
+      },
+      "input": {
+        "type": "object",
+        "properties": {
+          "tracks": {
+            "type": "array"
+          },
+          "key": {
+            "type": "string"
+          },
+          "chords": {
+            "type": "array"
+          },
+          "bars_per_chord": {
+            "type": "number"
+          },
+          "moods": {
+            "type": "array"
+          }
+        },
+        "required": [
+          "tracks",
+          "key"
+        ]
+      },
+      "output": "findings by kind",
+      "tools": [
+        "music.validation"
+      ],
+      "permissions": [],
+      "basis": "rule_based"
+    },
+    {
+      "name": "style_profiles",
+      "status": "available",
+      "risk": "read",
+      "requires_approval": false,
+      "summary": {
+        "it": "Profili di stile, anche combinati",
+        "en": "Style profiles, also blended"
+      },
+      "input": {
+        "type": "object",
+        "properties": {
+          "blend": {
+            "type": "array"
+          }
+        }
+      },
+      "output": "styles or blend",
+      "tools": [
+        "music.styles"
+      ],
+      "permissions": [],
+      "basis": "convention"
     }
   ],
   "tools": [
+    "memory.facts",
+    "music.arpeggio",
+    "music.bass",
+    "music.chords",
+    "music.composer",
     "music.generator",
+    "music.harmony",
     "music.key_detection",
+    "music.keys",
+    "music.melody",
+    "music.midi_analysis",
+    "music.midi_editor",
+    "music.notes",
+    "music.scales",
     "music.smf_writer",
-    "music.theory"
+    "music.styles",
+    "music.theory",
+    "music.validation"
   ],
   "permissions": [],
   "limits": {
     "it": [
       "Solo 4/4 e un accordo per battuta nella generazione",
       "Melodie basate su regole, senza sviluppo di motivi",
-      "Il riconoscimento della tonalità è una stima (profili di Krumhansl)"
+      "Il riconoscimento della tonalità è una stima (profili di Krumhansl)",
+      "Le richieste a parole sono lette con regole (italiano/inglese): le parole non capite vengono segnalate",
+      "Riconoscimento di accordi dall'audio: richiede il motore di analisi audio (M6)"
     ],
     "en": [
       "4/4 only and one chord per bar when generating",
       "Rule-based melodies, no motif development",
-      "Key finding is an estimate (Krumhansl profiles)"
+      "Key finding is an estimate (Krumhansl profiles)",
+      "Requests in words are read with rules (Italian/English): words not understood are reported",
+      "Chord recognition from audio needs the audio analysis engine (M6)"
     ]
   },
   "input_formats": [

@@ -152,5 +152,19 @@
       "it": "Salvare nuovi preset nelle cartelle dei plug-in, senza mai sovrascrivere",
       "en": "Save new presets into the plug-ins' preset folders, never overwriting"
     }
+  },
+  {
+    "id": "memory.music",
+    "setting": "perm_music_memory",
+    "default": false,
+    "grantable": true,
+    "label": {
+      "it": "Preferenze musicali",
+      "en": "Musical preferences"
+    },
+    "description": {
+      "it": "Usare le preferenze musicali salvate nella memoria (generi, tonalità, BPM) per completare le richieste, mai per imporle",
+      "en": "Use the musical preferences saved in the memory (genres, keys, BPM) to fill in requests, never to impose them"
+    }
   }
 ]

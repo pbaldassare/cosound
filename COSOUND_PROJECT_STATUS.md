@@ -13,6 +13,7 @@
 | 06 | Multi-Agent System: 13 agenti specializzati, registry, protocollo, Agent API, connettore MOCK | ✅ **Completato (2026-11-26)** per la parte che non dipende dall'Agent centrale: 36 operazioni reali su 53, le altre previste con il componente mancante | `docs/agents/`, rapporto `docs/agents/PROMPT-06-REPORT.md` |
 | 07 | Smart Library System: scansione multidrive incrementale, analisi audio, MIDI e preset, classificazione, ricerca IT/EN, somiglianza, loop, duplicati | ✅ **Completato (2026-11-26)** su macOS; 17 dei 18 test richiesti verificati, USB fisica e NAS da provare a mano; licenza Symphonia (MPL-2.0) da confermare (ADR-011a) | `desktop/src-tauri/src/smartlib/`, `docs/smart-library/`, rapporto `docs/smart-library/PROMPT-07-REPORT.md` |
 | 08 | Plugin Intelligence System: riconoscimento AU/AUv3/VST3/VST2/CLAP/AAX, catalogo, documentazione, parametri reali, preset, progettazione del suono con ascolto prima/dopo, catene di effetti, adattatore DAW | ✅ **Completato (2026-11-26)** su macOS con le Audio Unit di sistema; 13 dei 16 test verificati per intero, 3 in parte (formati di terze parti, Logic Pro, controllo dentro la DAW) | `desktop/src-tauri/src/plugins/`, `docs/plugin-intelligence/`, rapporto `docs/plugin-intelligence/PROMPT-08-REPORT.md` |
+| 09 | Music Intelligence Engine: teoria (note, intervalli, 33 scale, tonalità), accordi e armonia, progressioni, melodie, bassi, arpeggi, ritmo, stili, composizione da richieste a parole IT/EN, modifica MIDI a parole con versioni, analisi MIDI, verifica musicale, ponti Voice-to-Music e Reference Track | ✅ **Completato (2026-11-27)**; 17 dei 19 test verificati per intero, 2 in parte (intonazione dalla voce M5, DAW pilotata M4) | `desktop/src-tauri/src/music/`, `docs/music-intelligence/`, rapporto `docs/music-intelligence/PROMPT-09-REPORT.md` |
 
 ## Verifica del Prompt 02 (eseguita il 2026-11-24)
 - 20 sezioni della knowledge base, ciascuna con `README.md` e registro fonti; tutte le 14 sezioni richieste sono coperte (mappa in `docs/knowledge/README.md`).
@@ -53,11 +54,12 @@
 | Microfono e registrazioni vocali | 🟡 implementato; su macOS permessi e bundle corretti, registrazione reale da provare a mano (finestra di autorizzazione) |
 | Agent Integration Layer (AgentPort, porta "non collegato", Agent API JSON verso gli agenti) | 🟡 provvisorio – adattatore in attesa dell'Agent (D-1…D-6) |
 | Multi-Agent System (Prompt 06): runtime, protocollo con 6 stati, registry di agenti/strumenti/permessi, approvazioni solo dall'utente, annullamento, eventi, registro `ail_tasks` | ✅ completato e testato |
-| 13 agenti specializzati | ✅ 12 con operazioni reali (64 su 80 dopo il Prompt 08) · Voice-to-Music solo dichiarato (motore M5) · 16 operazioni previste |
+| 13 agenti specializzati | ✅ tutti con operazioni reali (82 su 97 dopo il Prompt 09) · Voice-to-Music: `notes_to_music` operativa, trascrizione dall'audio prevista (motore M5) · 15 operazioni previste |
 | Misuratore audio WAV (BS.1770, true peak, correlazione), template di arrangiamento, catalogo suoni e synth, Music Memory | ✅ completati e testati |
 | Connettore MOCK dell'Agent centrale (ex connettore di test) + script dello scenario | ⚠️ **simulazione**, solo build di sviluppo, da eliminare all'arrivo dell'Agent |
-| Compatibilità macOS/Windows, installer | 🟡 macOS verificato il 2026-11-25 (build, test, avvio, installer .app/.dmg aarch64 generati, non firmati); Windows solo via CI (pronta in `.github/workflows/desktop.yml`, non ancora pubblicata su GitHub: il login usato per il push non ha il permesso `workflow`); installer non firmati, nessun download pubblicato |
+| Compatibilità macOS/Windows, installer | 🟡 macOS verificato il 2026-11-25 (build, test, avvio, installer .app/.dmg aarch64 generati, non firmati); Windows e Linux verificati dalla CI (`.github/workflows/desktop.yml`, attiva dal 2026-11-26: test Rust, `tsc`, build Tauri su tre sistemi); app non ancora provata a mano su Windows; installer non firmati, nessun download pubblicato |
 | Motore musicale M2: teoria musicale, generazione MIDI di accordi, basso, melodia e batteria, export Standard MIDI File, pagina "Bozza musicale" con piano-roll e ascolto | ✅ completato e testato (24 test Rust, 2.980 parti generate e verificate, file letti da `file` e `mido`) |
+| Music Intelligence Engine (Prompt 09): teoria, scale e tonalità, accordi, armonia, melodie, bassi, arpeggi, ritmo, 11 stili, composizione a parole, modifica MIDI con versioni, analisi MIDI, verifica musicale, pagina Compositore | ✅ completato e testato (34 test nuovi, 44 composizioni complete verificate in ogni esecuzione) · intonazione dalla voce (M5) e accordi dall'audio (M6) da completare |
 | Audio Analysis, Voice-to-Music, Reference, Mix/Master, connettori DAW, Plugin Intelligence | 📝 progettati, non implementati (roadmap M4–M9) |
 | Integrazione con l'Agent centrale | ⏳ in attesa del codice dell'Agent |
 | Pagamenti | ⏸️ non attivi (gestione abbonamento disattivata nell'app) |
@@ -98,3 +100,13 @@
 - **Database locale**: migrazione `004_plugins.sql`.
 - **Da fare a mano**: provare un synth Audio Unit di terze parti; con Logic Pro installato, verificare che i preset
   creati da COSOUND compaiano nel menu del plug-in.
+
+## Prompt 09 – riepilogo (2026-11-27)
+- **Completato**: Music Intelligence Engine in `desktop/src-tauri/src/music/` (17 moduli nuovi sopra il motore M2):
+  teoria, scale e tonalità, accordi, armonia, melodie, bassi, arpeggi, ritmo, stili, composizione da richieste a parole,
+  modifica MIDI a parole con versioni e annullamento, analisi MIDI, verifica musicale, ponti Voice-to-Music e Reference
+  Track. Nuova pagina Compositore. 17 operazioni nuove negli agenti. Test: 120 superati.
+- **Simulato**: nulla nel motore; il Central Agent resta il MOCK del Prompt 06 (*in attesa dell'Agent*).
+- **Da completare**: intonazione dalla voce (M5), accordi dall'audio (M6), note scritte direttamente nella DAW (M4).
+- **Database locale**: migrazione `005_music.sql`. Permesso nuovo: "Preferenze musicali" (spento all'inizio).
+- **Da fare a mano**: ascoltare alcune composizioni nella DAW; provare la pagina Compositore su Windows.

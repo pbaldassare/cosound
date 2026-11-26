@@ -27,6 +27,43 @@
   },
   "operations": [
     {
+      "name": "notes_to_music",
+      "status": "available",
+      "risk": "read",
+      "requires_approval": false,
+      "summary": {
+        "it": "Note già stimate dalla voce → ritmo, tonalità, MIDI, accordi (correzione solo su richiesta)",
+        "en": "Notes already estimated from the voice → rhythm, key, MIDI, chords (correction only on request)"
+      },
+      "input": {
+        "type": "object",
+        "properties": {
+          "notes": {
+            "type": "array"
+          },
+          "bpm": {
+            "type": "number"
+          },
+          "grid": {
+            "type": "string"
+          },
+          "correct": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "notes"
+        ]
+      },
+      "output": "notes, deviations, key, chords, MIDI",
+      "tools": [
+        "music.voice_bridge",
+        "music.smf_writer"
+      ],
+      "permissions": [],
+      "basis": "estimated"
+    },
+    {
       "name": "transcribe_melody",
       "status": "planned",
       "risk": "read",
@@ -146,6 +183,7 @@
   ],
   "tools": [
     "music.smf_writer",
+    "music.voice_bridge",
     "voice.pitch_tracker",
     "voice.speech_to_text"
   ],

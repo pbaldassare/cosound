@@ -81,6 +81,22 @@ export type Sketch = {
 export type GenreOption = { id: string; label: string; bpm: number; key: string; progression: string; bass_style: string; drum_style: string; chord_rhythm: string; swing: number }
 export type MusicOptions = { genres: GenreOption[]; modes: { id: string; default_progression: string }[]; bass_styles: string[]; drum_styles: string[]; chord_rhythms: string[] }
 export type SketchInput = Record<string, unknown>
+export type TrackV = { name: string; channel: number; program: number | null; cc: [number, number, number][]; notes: MidiNote[] }
+export type Finding = { part: string; check: string; severity: 'error' | 'warning' | 'info'; kind: 'technical_error' | 'stylistic_choice' | 'compositional_freedom'; detail: string; at: string | null }
+export type Validation = { passed: boolean; technical_errors: number; warnings: number; findings: Finding[] }
+export type ProgChord = { symbol: string; roman: string; function: string; notes: string[] }
+export type AltProg = { roman: string; chords: string[]; functions: string[]; loop_cadence: string; origin: string; style_note: string }
+export type Composed = {
+  clip_id: string; title: string; key: string; nome: string; bpm: number; bars: number; seed: number
+  style: { id: string; label: string; sources: string[] }; moods: string[]
+  progression: { key: string; chords: ProgChord[]; loop_cadence: string }; alternative_progressions: AltProg[]
+  validation: Validation; analysis: Record<string, Record<string, unknown>>; choices: string[]
+  request_understood: { parts: string[]; moods: string[]; key: string | null; bpm: number | null; bars: number | null; styles: [string, number][]; unknown: string[] }
+  tracks: TrackV[]; timeline: { start: number; len: number; chord: string; roman: string }[]; length_ticks: number; ppq: number; memory_used: boolean
+}
+export type Clip = { clip_id: string; title: string; key: string; bpm: number; bars: number; version: number; tracks: TrackV[]; timeline: { start: number; len: number; chord: string; roman: string }[]; report: Composed; history: { version: number; operation: string; description: string | null; at: string }[]; length_ticks: number; ppq: number }
+export type NoteDiff = { notes_before: number; notes_after: number; removed: number; added: number; changed_length_or_velocity: number; average_pitch_change: number; syncopation_before: number; syncopation_after: number }
+export type EditResult = { clip_id: string; version: number; previous_version: number; operations: { op: string }[]; not_understood: string[]; key: string; diff: Record<string, NoteDiff>; tracks: TrackV[] }
 
 export type PortHealth = { port_id: string; is_temporary: boolean; connected: boolean }
 export type AilError = { code: string; message: string }
@@ -151,6 +167,18 @@ export const api = {
   saveTake: (projectId: string | null, bytes: number[], ext: string, mode: string) => invoke<string>('voice_save_take', { projectId, bytes, ext, mode }),
 
   daws: () => invoke<DawFound[]>('daw_detect'),
+  musicTheory: (input: Record<string, unknown>) => invoke<Record<string, any>>('music_theory', { input }),
+  musicHarmony: (input: Record<string, unknown>) => invoke<Record<string, any>>('music_harmony', { input }),
+  musicStyles: () => invoke<{ id: string; label: string; bpm: { default: number } }[]>('music_style_list'),
+  musicCompose: (input: Record<string, unknown>) => invoke<Composed>('music_compose', { input }),
+  musicClips: () => invoke<{ clip_id: string; title: string; key: string; bpm: number; versions: number; created_at: string }[]>('music_clips'),
+  musicClip: (id: string) => invoke<Clip>('music_clip', { id }),
+  musicEdit: (id: string, track: string, text: string) => invoke<EditResult>('music_edit', { id, track, text }),
+  musicVary: (id: string, kind: string, seed: number) => invoke<{ version: number; variation: { identity_kept: number } }>('music_vary', { id, kind, seed }),
+  musicUndo: (id: string) => invoke<Clip>('music_undo', { id }),
+  musicCompare: (id: string, from: number, to: number) => invoke<{ tracks: { track: string; diff: NoteDiff | null }[] }>('music_compare', { id, from, to }),
+  musicExportClip: (id: string) => invoke<{ path: string; version: number }>('music_export_clip', { id }),
+  musicAnalyzeFile: (path: string) => invoke<Record<string, any>>('music_analyze_file', { path }),
   pluginsScan: () => invoke<{ plugins: { new: number; missing: number; back: number; incompatible: number; errors: number; notes: string[] }; preset_folders: { stored: number } }>('plugins_scan'),
   pluginsOverview: () => invoke<PluginOverview>('plugins_overview'),
   pluginsList: (text: string, kind: string, category: string) => invoke<PluginRow[]>('plugins_list', { text, kind, category }),

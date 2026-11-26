@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { AudioLines, Bot, Cable, FolderInput, HardDrive, MessageSquare, Piano, Puzzle, Settings, User, TriangleAlert } from 'lucide-react'
+import { AudioLines, Bot, Cable, FolderInput, HardDrive, MessageSquare, Music4, Piano, Puzzle, Settings, User, TriangleAlert } from 'lucide-react'
 import { useStore, type Page } from '../lib/store'
 import { LanguageToggle, useT } from '../i18n'
 import { Dot } from './ui'
@@ -7,6 +7,7 @@ import { Dot } from './ui'
 const items: { page: Page; icon: typeof Bot }[] = [
   { page: 'chat', icon: MessageSquare },
   { page: 'production', icon: AudioLines },
+  { page: 'composer', icon: Music4 },
   { page: 'sketch', icon: Piano },
   { page: 'library', icon: HardDrive },
   { page: 'imports', icon: FolderInput },

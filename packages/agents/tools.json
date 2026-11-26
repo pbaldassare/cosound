@@ -459,5 +459,181 @@
       "it": "Cosa ogni DAW consente con i plug-in e piano per il DAW Controller",
       "en": "What each DAW allows with plug-ins, and the plan for the DAW Controller"
     }
+  },
+  {
+    "id": "music.notes",
+    "name": "Notes and intervals",
+    "layer": 3,
+    "status": "available",
+    "module": "desktop/src-tauri/src/music/notes.rs",
+    "description": {
+      "it": "Note IT/EN, ottave, MIDI, frequenze, intervalli semplici e composti",
+      "en": "Notes IT/EN, octaves, MIDI, frequencies, simple and compound intervals"
+    }
+  },
+  {
+    "id": "music.scales",
+    "name": "Scale catalog",
+    "layer": 3,
+    "status": "available",
+    "module": "desktop/src-tauri/src/music/scales.rs",
+    "description": {
+      "it": "33 scale con formula, gradi, carattere e fonte",
+      "en": "33 scales with formula, degrees, character and source"
+    }
+  },
+  {
+    "id": "music.keys",
+    "name": "Keys",
+    "layer": 3,
+    "status": "available",
+    "module": "desktop/src-tauri/src/music/keys.rs",
+    "description": {
+      "it": "Armature, cerchio delle quinte, tonalità vicine, modulazioni, stima della tonalità",
+      "en": "Signatures, circle of fifths, related keys, modulation, key estimation"
+    }
+  },
+  {
+    "id": "music.chords",
+    "name": "Chord Engine",
+    "layer": 3,
+    "status": "available",
+    "module": "desktop/src-tauri/src/music/chords.rs",
+    "description": {
+      "it": "36 tipi di accordo, sigle, rivolti, voicing, riconoscimento",
+      "en": "36 chord types, symbols, inversions, voicings, recognition"
+    }
+  },
+  {
+    "id": "music.harmony",
+    "name": "Harmony Engine",
+    "layer": 3,
+    "status": "available",
+    "module": "desktop/src-tauri/src/music/harmony.rs",
+    "description": {
+      "it": "Analisi delle progressioni, sostituzioni, generazione per stile e atmosfera",
+      "en": "Progression analysis, substitutions, generation by style and mood"
+    }
+  },
+  {
+    "id": "music.melody",
+    "name": "Melody Engine",
+    "layer": 3,
+    "status": "available",
+    "module": "desktop/src-tauri/src/music/melody.rs",
+    "description": {
+      "it": "Melodie da motivi, frasi domanda/risposta, note estranee, variazioni",
+      "en": "Motif-based melodies, question/answer phrases, non-chord tones, variations"
+    }
+  },
+  {
+    "id": "music.bass",
+    "name": "Bassline Engine",
+    "layer": 3,
+    "status": "available",
+    "module": "desktop/src-tauri/src/music/bass.rs",
+    "description": {
+      "it": "11 stili di basso, relazione con la cassa",
+      "en": "11 bass styles, kick-aware"
+    }
+  },
+  {
+    "id": "music.arpeggio",
+    "name": "Arpeggio Engine",
+    "layer": 3,
+    "status": "available",
+    "module": "desktop/src-tauri/src/music/arp.rs",
+    "description": {
+      "it": "9 schemi di arpeggio, velocità, ottave, accenti",
+      "en": "9 arpeggio patterns, rates, octaves, accents"
+    }
+  },
+  {
+    "id": "music.rhythm",
+    "name": "Rhythm & Groove Engine",
+    "layer": 3,
+    "status": "available",
+    "module": "desktop/src-tauri/src/music/rhythm.rs",
+    "description": {
+      "it": "Griglia, posizione e durata, euclidei, poliritmie, swing, quantizzazione",
+      "en": "Grid, position and duration, Euclidean, polyrhythm, swing, quantize"
+    }
+  },
+  {
+    "id": "music.styles",
+    "name": "Style Intelligence",
+    "layer": 3,
+    "status": "available",
+    "module": "desktop/src-tauri/src/music/styles.rs",
+    "description": {
+      "it": "11 profili di stile modificabili e combinabili",
+      "en": "11 editable, blendable style profiles"
+    }
+  },
+  {
+    "id": "music.composer",
+    "name": "Composition Engine",
+    "layer": 3,
+    "status": "available",
+    "module": "desktop/src-tauri/src/music/compose.rs",
+    "description": {
+      "it": "Dalla richiesta a parole a una composizione validata e al MIDI",
+      "en": "From a request in words to a validated composition and MIDI"
+    }
+  },
+  {
+    "id": "music.midi_editor",
+    "name": "MIDI editing + versions",
+    "layer": 3,
+    "status": "available",
+    "module": "desktop/src-tauri/src/music/edit.rs",
+    "description": {
+      "it": "Modifiche a parole, versioni, confronto, annullamento",
+      "en": "Edits in words, versions, compare, undo"
+    }
+  },
+  {
+    "id": "music.midi_analysis",
+    "name": "MIDI Analysis Engine",
+    "layer": 3,
+    "status": "available",
+    "module": "desktop/src-tauri/src/music/analysis.rs",
+    "description": {
+      "it": "Tonalità, accordi, progressione, frasi, ripetizioni, note fuori tonalità",
+      "en": "Key, chords, progression, phrases, repetitions, out-of-key notes"
+    }
+  },
+  {
+    "id": "music.validation",
+    "name": "Musical Validation Engine",
+    "layer": 3,
+    "status": "available",
+    "module": "desktop/src-tauri/src/music/validate.rs",
+    "description": {
+      "it": "Errore tecnico, scelta stilistica, libertà compositiva",
+      "en": "Technical error, stylistic choice, compositional freedom"
+    }
+  },
+  {
+    "id": "music.voice_bridge",
+    "name": "Voice-to-Music bridge",
+    "layer": 3,
+    "status": "available",
+    "module": "desktop/src-tauri/src/music/voice.rs",
+    "description": {
+      "it": "Note stimate dalla voce → ritmo, tonalità, MIDI, accordi",
+      "en": "Notes estimated from the voice → rhythm, key, MIDI, chords"
+    }
+  },
+  {
+    "id": "music.reference_bridge",
+    "name": "Reference Track bridge",
+    "layer": 3,
+    "status": "available",
+    "module": "desktop/src-tauri/src/music/reference.rs",
+    "description": {
+      "it": "Lettura della reference con fonti e composizione originale verificata",
+      "en": "Reference reading with sources and checked original composition"
+    }
   }
 ]

@@ -115,6 +115,16 @@ Details: `docs/smart-library/ARCHITECTURE.md` §3.
 
 Details: `docs/plugin-intelligence/ARCHITECTURE.md` §4.
 
+### 2.3a Music Intelligence – owner `docs/music-intelligence/ARCHITECTURE.md`
+**Implemented (Prompt 09, migration `005_music.sql`)**:
+- `music_clips`: one row per composition (title, request, key, BPM, bars, style, chord timeline and report as JSON).
+- `music_versions`: every compose / edit / variation is a new version with its tracks as JSON (notes, channel,
+  program, CC), so versions can be compared and undone. Version 1 is never deleted.
+- Musical preferences are not stored here: they stay in `memory_facts`, read only with the "Preferenze musicali"
+  permission.
+
+Details: `docs/music-intelligence/ARCHITECTURE.md` §4.
+
 ### 2.3b DAW, projects, operations, safety – owner `specs/DAW-CONTROLLER.md` §10 + this file
 | Table | Main columns |
 |---|---|

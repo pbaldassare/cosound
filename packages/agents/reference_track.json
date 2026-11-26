@@ -97,6 +97,44 @@
       "basis": "mixed"
     },
     {
+      "name": "compose_inspired",
+      "status": "available",
+      "risk": "low",
+      "requires_approval": false,
+      "summary": {
+        "it": "Composizione originale ispirata ai tratti generali della reference, con controllo di originalità",
+        "en": "Original composition inspired by the reference's general traits, with originality checks"
+      },
+      "input": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "key": {},
+          "bpm": {},
+          "chords": {},
+          "melody": {},
+          "parts": {
+            "type": "array"
+          },
+          "seed": {
+            "type": "integer"
+          }
+        }
+      },
+      "output": "composition + originality checks",
+      "tools": [
+        "music.reference_bridge",
+        "music.composer",
+        "music.harmony",
+        "music.melody",
+        "music.validation"
+      ],
+      "permissions": [],
+      "basis": "rule_based"
+    },
+    {
       "name": "research_online",
       "status": "planned",
       "risk": "read",
@@ -132,6 +170,11 @@
   "tools": [
     "audio.wav_meter",
     "music.arrangement",
+    "music.composer",
+    "music.harmony",
+    "music.melody",
+    "music.reference_bridge",
+    "music.validation",
     "web.research"
   ],
   "permissions": [

@@ -226,35 +226,91 @@
       "basis": "rule_based"
     },
     {
-      "name": "humanize",
-      "status": "planned",
+      "name": "rhythm_pattern",
+      "status": "available",
       "risk": "read",
       "requires_approval": false,
       "summary": {
-        "it": "Umanizza un MIDI esistente (timing e dinamica)",
-        "en": "Humanize an existing MIDI part (timing and dynamics)"
+        "it": "Pattern ritmico: passi, euclideo, poliritmia, swing; griglia, posizione e durata distinte",
+        "en": "Rhythm pattern: steps, Euclidean, polyrhythm, swing; grid, position and duration kept apart"
       },
       "input": {
         "type": "object",
         "properties": {
-          "path": {
+          "steps": {
             "type": "string"
+          },
+          "euclid": {
+            "type": "array"
+          },
+          "poly": {
+            "type": "array"
+          },
+          "grid": {
+            "type": "string"
+          },
+          "bars": {
+            "type": "integer"
+          },
+          "pitch": {
+            "type": "integer"
+          },
+          "gate": {
+            "type": "number"
+          },
+          "swing": {
+            "type": "integer"
+          }
+        }
+      },
+      "output": "events with position and duration",
+      "tools": [
+        "music.rhythm"
+      ],
+      "permissions": [],
+      "basis": "rule_based"
+    },
+    {
+      "name": "humanize",
+      "status": "available",
+      "risk": "read",
+      "requires_approval": false,
+      "summary": {
+        "it": "Umanizza note MIDI (tempo e velocity, riproducibile)",
+        "en": "Humanize MIDI notes (timing and velocity, reproducible)"
+      },
+      "input": {
+        "type": "object",
+        "properties": {
+          "notes": {
+            "type": "array"
+          },
+          "timing_ticks": {
+            "type": "integer"
+          },
+          "velocity": {
+            "type": "integer"
+          },
+          "seed": {
+            "type": "integer"
           }
         },
         "required": [
-          "path"
+          "notes"
         ]
       },
-      "output": "part",
+      "output": "notes + diff",
       "tools": [
-        "music.generator"
+        "music.midi_editor"
       ],
       "permissions": [],
-      "requires": "MIDI file import (reading existing MIDI) is not built yet"
+      "basis": "rule_based"
     }
   ],
   "tools": [
     "music.generator",
+    "music.midi_editor",
+    "music.rhythm",
     "music.smf_writer"
   ],
   "permissions": [],
