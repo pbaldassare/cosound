@@ -1,6 +1,13 @@
 # Spec – Plugin Intelligence (Prompt 03 §9, deliverable 12)
 
-Status: v0.1 · 2026-11-24 · PROVISIONAL. Knowledge base: `docs/knowledge/integration-sdks/`,
+Status: v0.1 · 2026-11-24 · design document.
+
+> **Implemented on 2026-11-26 (Prompt 08)**: scanner, registry, knowledge engine, parameter discovery and control through
+> COSOUND's isolated Audio Unit host, presets, sound design with before/after audition, effect chains, DAW adapter.
+> Hosting is Audio Units on macOS only. Control inside DAWs and the human hand are not built. Current architecture:
+> `docs/plugin-intelligence/ARCHITECTURE.md`; report: `docs/plugin-intelligence/PROMPT-08-REPORT.md`.
+>
+> The rest of this document is the original design. Knowledge base: `docs/knowledge/integration-sdks/`,
 `synthesizers/`, `plugins-effects/`, `daw-integration/`. Architecture: `../ARCHITECTURE.md`,
 `../MULTI-AGENT-ARCHITECTURE.md` §7b (human-hand principle).
 

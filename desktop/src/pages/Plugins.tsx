@@ -1,58 +1,59 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { RefreshCw } from 'lucide-react'
-import { api } from '../lib/api'
+import { api, errText, type PluginOverview } from '../lib/api'
 import { useStore } from '../lib/store'
 import { fill, useT } from '../i18n'
-import { Badge, Card, Empty, ErrorLine, Note, PageHeader, btnPrimary, useLoad } from '../components/ui'
+import { Badge, ErrorLine, Note, PageHeader, btnPrimary } from '../components/ui'
+import { Catalog, ChainCard, DawCapsCard, DesignStudio, Diagnostics, PresetSearch } from '../components/PluginIntelligence'
 
 export default function Plugins() {
   const { settings } = useStore()
   const { t } = useT()
   const allowed = settings.perm_plugin_scan !== '0'
-  const list = useLoad(() => (allowed ? api.plugins() : Promise.resolve([])), [allowed])
-  const [q, setQ] = useState('')
-  const [format, setFormat] = useState('')
-  const rows = (list.data ?? []).filter((p) => (!format || p.format === format) && `${p.name} ${p.vendor ?? ''}`.toLowerCase().includes(q.toLowerCase()))
+  const [ov, setOv] = useState<PluginOverview | null>(null)
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [info, setInfo] = useState<string | null>(null)
+  const [version, setVersion] = useState(0)
+  const loadOv = () => api.pluginsOverview().then(setOv, (e) => setError(errText(e)))
+  const scan = async () => {
+    setBusy(true)
+    setError(null)
+    try {
+      const r = await api.pluginsScan()
+      setInfo(fill(t.plugins.scanned, { n: r.plugins.new, m: r.plugins.missing, b: r.plugins.back, i: r.plugins.incompatible }) + (r.plugins.notes.length ? ` · ${r.plugins.notes.join(' · ')}` : ''))
+      await loadOv()
+      setVersion((v) => v + 1)
+    } catch (e) { setError(errText(e)) } finally { setBusy(false) }
+  }
+  useEffect(() => {
+    loadOv().then(() => api.pluginsOverview().then((o) => { if (o.products === 0 && allowed) scan() }))
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div className="mx-auto max-w-6xl space-y-5">
       <PageHeader title={t.plugins.title}>
-        <button className={btnPrimary} disabled={!allowed || list.loading} onClick={list.reload}><RefreshCw size={15} className={list.loading ? 'animate-spin' : ''} />{t.plugins.scan}</button>
+        <button className={btnPrimary} disabled={!allowed || busy} onClick={scan}><RefreshCw size={15} className={busy ? 'animate-spin' : ''} />{busy ? t.plugins.scanning : t.plugins.scan}</button>
       </PageHeader>
-      <Note>{allowed ? t.plugins.note : `${t.settings.pluginScan}: ${t.common.no}`}</Note>
-      <ErrorLine error={list.error} />
-      <Card title={fill(t.plugins.found, { n: rows.length })} actions={
-        <div className="flex gap-2">
-          <input className="field !w-48 !py-1" placeholder={t.plugins.filter} aria-label={t.plugins.filter} value={q} onChange={(e) => setQ(e.target.value)} />
-          <select className="field !w-28 !py-1" aria-label={t.plugins.format} value={format} onChange={(e) => setFormat(e.target.value)}>
-            <option value="">{t.common.all}</option>
-            {['VST3', 'AU', 'CLAP', 'VST2'].map((f) => <option key={f}>{f}</option>)}
-          </select>
+      <Note>{allowed ? t.plugins.note : t.plugins.noScan}</Note>
+      <ErrorLine error={error} />
+      {ov && (
+        <div className="flex flex-wrap items-center gap-2 text-xs">
+          {Object.entries(ov.by_kind).map(([k, n]) => <Badge key={k} tone={k === 'instrument' ? 'violet' : 'off'}>{t.plugins.kinds[k] ?? k} {n}</Badge>)}
+          {Object.entries(ov.by_format).map(([f, n]) => <Badge key={f} tone="info">{f} {n}</Badge>)}
+          {Object.values(ov.presets).reduce((a, b) => a + b, 0) > 0 && <Badge>{t.plugins.presets} {Object.values(ov.presets).reduce((a, b) => a + b, 0)}</Badge>}
+          <Badge tone={ov.host_available ? 'ok' : 'warn'}>{t.plugins.host}: {ov.host_available ? t.plugins.hostOk : t.plugins.hostNo}</Badge>
+          {info && <span className="text-muted">{info}</span>}
         </div>
-      }>
-        {!list.loading && rows.length === 0 ? <Empty>{t.plugins.empty}</Empty> : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
-              <thead className="text-[11px] uppercase tracking-wider text-muted">
-                <tr>{[t.plugins.name, t.plugins.format, t.plugins.kind, t.plugins.vendor, t.plugins.version, t.plugins.scope, t.plugins.control].map((h) => <th key={h} className="px-2 py-2 font-medium">{h}</th>)}</tr>
-              </thead>
-              <tbody className="divide-y divide-line/50">
-                {rows.map((p) => (
-                  <tr key={p.path} title={p.path}>
-                    <td className="px-2 py-1.5 font-medium selectable">{p.name}</td>
-                    <td className="px-2"><Badge tone="info">{p.format}</Badge></td>
-                    <td className="px-2">{p.kind === 'unknown' ? '—' : <Badge tone={p.kind === 'instrument' ? 'violet' : 'off'}>{t.plugins.kinds[p.kind]}</Badge>}</td>
-                    <td className="px-2 text-muted">{p.vendor ?? '—'}</td>
-                    <td className="px-2 text-muted">{p.version ?? '—'}</td>
-                    <td className="px-2 text-muted">{t.plugins.scopes[p.scope]}</td>
-                    <td className="px-2 text-xs text-muted">{t.plugins.notMeasured}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </Card>
+      )}
+      <Catalog ov={ov} version={version} />
+      <DesignStudio ov={ov} />
+      <div className="grid gap-5 lg:grid-cols-2">
+        <ChainCard />
+        <PresetSearch />
+        <DawCapsCard />
+        <Diagnostics ov={ov} />
+      </div>
     </div>
   )
 }

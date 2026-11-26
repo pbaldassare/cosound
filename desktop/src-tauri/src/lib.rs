@@ -262,9 +262,138 @@ async fn daw_detect() -> Vec<daw::DawFound> {
     daw::detect()
 }
 
+// ---------- Plugin Intelligence System (Prompt 08) ----------
+
+/// Permission toggle from Settings ("1" on, "0" off, absent = default), same rule as the agent runtime.
+fn perm(app: &App, setting: &str, default: bool) -> bool {
+    db::setting(&app.db.lock().unwrap(), setting).ok().flatten().map_or(default, |v| v == "1")
+}
+
+fn need(app: &App, setting: &str, default: bool, what: &str) -> R<()> {
+    if perm(app, setting, default) {
+        Ok(())
+    } else {
+        Err(format!("{what} is turned off in Settings → Permissions"))
+    }
+}
+
 #[tauri::command]
-async fn plugins_scan() -> Vec<plugins::Plugin> {
-    plugins::scan()
+async fn plugins_scan(app: State<'_, App>) -> R<Value> {
+    need(&app, "perm_plugin_scan", true, "Plug-in scanning")?;
+    plugins::api::refresh(&app.db.lock().unwrap())
+}
+
+#[tauri::command]
+fn plugins_overview(app: State<App>) -> Value {
+    plugins::api::overview(&app.db.lock().unwrap())
+}
+
+#[tauri::command]
+fn plugins_list(app: State<App>, text: String, kind: Option<String>, category: Option<String>, missing: Option<bool>) -> Value {
+    json!(plugins::registry::list(&app.db.lock().unwrap(), &text, kind.as_deref().filter(|k| !k.is_empty()), category.as_deref().filter(|c| !c.is_empty()), missing.unwrap_or(false)))
+}
+
+#[tauri::command]
+fn plugins_detail(app: State<App>, id: String) -> R<Value> {
+    plugins::api::detail(&app.db.lock().unwrap(), &id, &plugins::knowledge::Knowledge::load(Some(&app.data_dir)))
+}
+
+#[tauri::command]
+async fn plugins_discover(app: State<'_, App>, install_id: String) -> R<Value> {
+    need(&app, "perm_plugin_host", true, "Loading plug-ins in COSOUND's isolated host")?;
+    plugins::params::discover(&app.db.lock().unwrap(), &install_id, 30)
+}
+
+#[tauri::command]
+fn plugins_presets_search(app: State<App>, text: String, product_id: Option<String>) -> Value {
+    plugins::presets::search(&app.db.lock().unwrap(), &text, product_id.as_deref(), 50)
+}
+
+#[tauri::command]
+async fn plugins_preset_analyze(app: State<'_, App>, id: i64) -> R<Value> {
+    need(&app, "perm_plugin_host", true, "Loading plug-ins in COSOUND's isolated host")?;
+    plugins::presets::analyze(&app.db.lock().unwrap(), id, &app.data_dir.join("generated").join("preset-analysis"))
+}
+
+#[tauri::command]
+fn plugins_compare(app: State<App>, ids: Vec<String>) -> Value {
+    plugins::api::compare(&app.db.lock().unwrap(), &ids)
+}
+
+#[tauri::command]
+async fn plugins_chain(app: State<'_, App>, goal: String, file: Option<String>, bpm: Option<f64>, check: bool) -> R<Value> {
+    let file = file.filter(|f| !f.is_empty()).map(PathBuf::from);
+    let c = app.db.lock().unwrap();
+    let mut p = plugins::chains::propose(&c, &goal, file.as_deref(), bpm)?;
+    if check {
+        let f = file.ok_or("choose the audio file the chain will process")?;
+        need(&app, "perm_plugin_host", true, "Loading plug-ins in COSOUND's isolated host")?;
+        p["check"] = plugins::chains::check(&c, &p, &f, &app.data_dir.join("generated").join("chain-check"))?;
+    }
+    Ok(p)
+}
+
+#[tauri::command]
+fn plugins_daw(daw: String) -> R<Value> {
+    plugins::daw::capabilities(&daw).ok_or_else(|| format!("unknown DAW {daw}"))
+}
+
+#[tauri::command]
+async fn plugins_design_create(app: State<'_, App>, text: String, role: String, genre: Option<String>, key: Option<String>, bpm: Option<f64>, product_id: Option<String>) -> R<Value> {
+    need(&app, "perm_plugin_host", true, "Loading plug-ins in COSOUND's isolated host")?;
+    let f = |o: &Option<String>| o.clone().filter(|x| !x.is_empty());
+    plugins::design::create(&app.db.lock().unwrap(), &text, &role, f(&genre).as_deref(), f(&key).as_deref(), bpm, f(&product_id).as_deref())
+}
+
+#[tauri::command]
+async fn plugins_design_modify(app: State<'_, App>, id: String, text: String) -> R<Value> {
+    plugins::design::modify(&app.db.lock().unwrap(), &id, &text)
+}
+
+#[tauri::command]
+async fn plugins_design_audition(app: State<'_, App>, id: String) -> R<Value> {
+    need(&app, "perm_plugin_host", true, "Loading plug-ins in COSOUND's isolated host")?;
+    plugins::api::audition(&app.db.lock().unwrap(), &app.data_dir, &id)
+}
+
+#[tauri::command]
+async fn plugins_design_save(app: State<'_, App>, id: String, name: String) -> R<Value> {
+    plugins::design::save(&app.db.lock().unwrap(), &app.data_dir, &id, &name)
+}
+
+/// Writes outside COSOUND's folder (the plug-in's user preset folder): needs the permission, and the UI asks first.
+#[tauri::command]
+async fn plugins_design_install(app: State<'_, App>, id: String) -> R<Value> {
+    need(&app, "perm_preset_write", false, "Saving presets into plug-in preset folders")?;
+    plugins::design::install_preset(&app.db.lock().unwrap(), &id, None)
+}
+
+#[tauri::command]
+fn plugins_design_uninstall(app: State<App>, id: String) -> R<Value> {
+    plugins::design::remove_installed(&app.db.lock().unwrap(), &id)
+}
+
+#[tauri::command]
+fn plugins_designs(app: State<App>) -> Value {
+    json!(plugins::design::list(&app.db.lock().unwrap()))
+}
+
+#[tauri::command]
+fn plugins_design_get(app: State<App>, id: String) -> R<Value> {
+    plugins::design::get(&app.db.lock().unwrap(), &id).ok_or_else(|| "unknown design".into())
+}
+
+#[tauri::command]
+fn plugins_design_plan(app: State<App>, id: String, daw: String) -> R<Value> {
+    let d = plugins::design::get(&app.db.lock().unwrap(), &id).ok_or("unknown design")?;
+    plugins::daw::setup_plan(&d, &daw)
+}
+
+/// The user's usual instrument for a role, kept in the shared memory (Adaptive Workflow permission).
+#[tauri::command]
+fn plugins_remember(app: State<App>, role: String, product_id: String) -> R<Value> {
+    need(&app, "perm_workflow_memory", false, "Workflow memory")?;
+    plugins::design::remember_instrument(&app.db.lock().unwrap(), &role, &product_id)
 }
 
 // ---------- music engine (M2) ----------
@@ -424,6 +553,25 @@ pub fn run() {
             voice_save_take,
             daw_detect,
             plugins_scan,
+            plugins_overview,
+            plugins_list,
+            plugins_detail,
+            plugins_discover,
+            plugins_presets_search,
+            plugins_preset_analyze,
+            plugins_compare,
+            plugins_chain,
+            plugins_daw,
+            plugins_design_create,
+            plugins_design_modify,
+            plugins_design_audition,
+            plugins_design_save,
+            plugins_design_install,
+            plugins_design_uninstall,
+            plugins_designs,
+            plugins_design_get,
+            plugins_design_plan,
+            plugins_remember,
             music_options,
             music_sketch,
             music_export_midi,

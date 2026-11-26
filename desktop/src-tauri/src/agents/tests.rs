@@ -165,8 +165,52 @@ fn every_available_operation_runs() {
     assert_eq!(e.run("adaptive_workflow", "update", json!({ "id": id, "keys": "Ctrl+Alt+B" })).status, Status::Completed);
     assert_eq!(e.run("adaptive_workflow", "forget", json!({ "id": id })).status, Status::Completed);
     assert_eq!(e.run("adaptive_workflow", "clear", json!({})).status, Status::WaitingApproval);
+    // Prompt 08 operations. Those that load plug-ins need the isolated host (macOS); elsewhere they are skipped.
+    let check = |agent: &str, op: &str, input: Value| -> Value {
+        let r = e.run(agent, op, input);
+        assert_eq!(r.status, Status::Completed, "{agent}.{op}: {:?}", r.errors);
+        let m = reg.manifest(agent).unwrap();
+        assert!(r.tools_used.iter().all(|t| m.tools.contains(t)), "{agent}.{op} used undeclared tools {:?}", r.tools_used);
+        r.result.unwrap()
+    };
+    let mut plugin_ops = 0;
+    for (agent, op, input) in [
+        ("plugin_intelligence", "list", json!({ "text": "riverbero" })),
+        ("plugin_intelligence", "find_presets", json!({ "text": "hall" })),
+        ("plugin_intelligence", "compare", json!({ "product_ids": ["apple/aureverb2", "apple/aumatrixreverb"] })),
+        ("plugin_intelligence", "propose_chain", json!({ "goal": "melodic_lead", "bpm": 124 })),
+        ("plugin_intelligence", "daw_capabilities", json!({ "daw": "logic" })),
+        ("plugin_intelligence", "diagnostics", json!({})),
+        ("sound_designer", "list_designs", json!({})),
+        ("adaptive_workflow", "remember_plugin_preference", json!({ "kind": "instrument", "role": "bass", "product_id": "apple/dlsmusicdevice" })),
+        ("adaptive_workflow", "plugin_preferences", json!({})),
+    ] {
+        check(agent, op, input);
+        plugin_ops += 1;
+    }
+    let host_ops = 10;
+    if crate::plugins::host::available() {
+        e.set("perm_preset_write", "1");
+        check("plugin_intelligence", "map_parameters", json!({ "install_id": "AU:aufx:dist:appl" }));
+        let preset: i64 = e.db.lock().unwrap().query_row("select id from plugin_presets where source = 'factory' limit 1", [], |r| r.get(0)).unwrap();
+        check("plugin_intelligence", "analyze_preset", json!({ "preset_id": preset }));
+        check("plugin_intelligence", "check_chain", json!({ "goal": "techno_bass", "file": bass }));
+        let d = check("sound_designer", "design_sound", json!({ "text": "basso profondo e caldo", "role": "bass", "genre": "melodic_techno", "key": "A minor", "bpm": 124 }));
+        let id = d["id"].as_str().unwrap().to_string();
+        check("sound_designer", "modify_sound", json!({ "design_id": id, "text": "più aggressivo ma mantienilo caldo" }));
+        check("sound_designer", "audition", json!({ "design_id": id }));
+        check("sound_designer", "save_preset", json!({ "design_id": id, "name": "Agent Bass" }));
+        check("daw_controller", "plugin_setup_plan", json!({ "design_id": id, "daw": "logic" }));
+        // writing into the plug-in preset folders (outside COSOUND) waits for the user's approval
+        assert_eq!(e.run("sound_designer", "install_preset", json!({ "design_id": id })).status, Status::WaitingApproval);
+        assert_eq!(e.run("sound_designer", "remove_installed_presets", json!({ "design_id": id })).status, Status::WaitingApproval);
+        plugin_ops += host_ops;
+    } else {
+        eprintln!("plug-in host not available: {host_ops} plug-in operations not exercised on this system");
+        plugin_ops += host_ops;
+    }
     let available = reg.manifests.iter().flat_map(|m| &m.operations).filter(|o| o.status == "available").count();
-    assert_eq!(cases.len() + 3, available, "every available operation is exercised");
+    assert_eq!(cases.len() + 3 + plugin_ops, available, "every available operation is exercised");
 }
 
 #[test]
@@ -399,6 +443,59 @@ fn mock_is_replaceable_by_a_json_connector() {
     assert!(b.rt.handle(&json!({ "type": "events.poll", "since": 0 }))["data"].as_array().unwrap().len() >= 12);
     assert_eq!(b.rt.handle(&json!({ "type": "nope" }))["error"]["code"], "MESSAGE_UNKNOWN");
     assert_eq!(b.rt.handle(&json!({ "type": "registry.get", "contract_version": "9" }))["error"]["code"], "PROTOCOL_VERSION");
+}
+
+/// Prompt 08 example through the JSON Agent API only (what the adapter for the partner's Central Agent will do):
+/// "Voglio creare un basso profondo e caldo per una traccia Melodic Techno a 124 BPM. Utilizza i sintetizzatori che
+/// ho già installato." Only the user can approve writing into the plug-in preset folder.
+#[test]
+fn central_agent_mock_designs_a_bass_with_installed_synths() {
+    if !crate::plugins::host::available() {
+        eprintln!("plug-in host not available: scenario skipped");
+        return;
+    }
+    let e = env();
+    e.set("perm_preset_write", "1");
+    let presets_root = e.dir.join("AU Presets");
+    *crate::plugins::design::TEST_PRESETS_ROOT.lock().unwrap() = Some(presets_root.clone());
+    let api = |m: &Value| e.rt.handle(m);
+    let mut n = 0;
+    let mut call = |agent: &str, op: &str, input: Value| -> TaskResult {
+        n += 1;
+        let r = api(&json!({ "contract_version": "1", "type": "task.submit", "request": { "contract_version": "1", "request_id": format!("p8-{n}"), "agent": agent, "operation": op, "input": input, "run_async": false } }));
+        serde_json::from_value(r["data"].clone()).unwrap()
+    };
+    let scan = call("plugin_intelligence", "scan", json!({}));
+    assert_eq!(scan.status, Status::Completed);
+    let synths = call("plugin_intelligence", "find_for_role", json!({ "role": "bass", "genre": "melodic_techno", "text": "profondo caldo" }));
+    let cands = synths.result.clone().unwrap()["candidates"].as_array().unwrap().clone();
+    assert!(!cands.is_empty() && cands.iter().all(|c| c["product_id"].is_string()), "only detected instruments");
+    let d = call("sound_designer", "design_sound", json!({ "text": "basso profondo e caldo", "role": "bass", "genre": "melodic_techno", "key": "A minor", "bpm": 124 }));
+    assert_eq!(d.status, Status::Completed, "{:?}", d.errors);
+    assert_eq!(d.requested_by.as_deref(), Some("central_agent"));
+    let id = d.result.unwrap()["id"].as_str().unwrap().to_string();
+    let m = call("sound_designer", "modify_sound", json!({ "design_id": id, "text": "più aggressivo, ma mantienilo caldo e profondo" }));
+    assert!(!m.result.unwrap()["changes"].as_array().unwrap().is_empty());
+    let a = call("sound_designer", "audition", json!({ "design_id": id }));
+    assert_eq!(a.basis.as_deref(), Some("measured"));
+    assert!(a.result.unwrap()["checks"].as_array().unwrap().iter().all(|c| c["as_requested"] == true));
+    let s = call("sound_designer", "save_preset", json!({ "design_id": id, "name": "Melodic Bass 124" }));
+    assert_eq!(s.status, Status::Completed);
+    // writing outside COSOUND's folder: waits; the Central Agent cannot approve, the user can
+    let inst = call("sound_designer", "install_preset", json!({ "design_id": id }));
+    assert_eq!(inst.status, Status::WaitingApproval);
+    let ap = inst.approval.as_ref().unwrap().approval_id.clone();
+    assert_eq!(api(&json!({ "type": "approval.respond", "approval_id": ap, "decision": "approve" }))["error"]["code"], "PERMISSION_DENIED");
+    let done = e.rt.respond(&ap, true, Actor::User).unwrap();
+    assert_eq!(done.status, Status::Completed, "{:?}", done.errors);
+    let files = done.result.unwrap()["installed"].as_array().unwrap().clone();
+    assert!(files.iter().all(|f| std::path::Path::new(f["path"].as_str().unwrap()).starts_with(&presets_root) && std::path::Path::new(f["path"].as_str().unwrap()).exists()));
+    let plan = call("daw_controller", "plugin_setup_plan", json!({ "design_id": id, "daw": "logic" }));
+    assert_eq!(plan.status, Status::Completed);
+    assert!(plan.limitations.iter().any(|l| l.contains("plan only")));
+    let st = api(&json!({ "type": "task.status", "task_id": inst.task_id }));
+    assert_eq!(st["data"]["status"], "COMPLETED");
+    *crate::plugins::design::TEST_PRESETS_ROOT.lock().unwrap() = None;
 }
 
 #[test]

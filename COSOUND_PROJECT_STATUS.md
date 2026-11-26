@@ -12,6 +12,7 @@
 | 05 | A: verifica del Prompt 04 su macOS · B: motore musicale M2 (teoria, generazione MIDI, export, piano-roll) | ✅ **Completato (2026-11-25)**; restano a mano microfono e accesso con account reale | `desktop/src-tauri/src/music/`, rapporto `docs/desktop/PROMPT-05-REPORT.md` |
 | 06 | Multi-Agent System: 13 agenti specializzati, registry, protocollo, Agent API, connettore MOCK | ✅ **Completato (2026-11-26)** per la parte che non dipende dall'Agent centrale: 36 operazioni reali su 53, le altre previste con il componente mancante | `docs/agents/`, rapporto `docs/agents/PROMPT-06-REPORT.md` |
 | 07 | Smart Library System: scansione multidrive incrementale, analisi audio, MIDI e preset, classificazione, ricerca IT/EN, somiglianza, loop, duplicati | ✅ **Completato (2026-11-26)** su macOS; 17 dei 18 test richiesti verificati, USB fisica e NAS da provare a mano; licenza Symphonia (MPL-2.0) da confermare (ADR-011a) | `desktop/src-tauri/src/smartlib/`, `docs/smart-library/`, rapporto `docs/smart-library/PROMPT-07-REPORT.md` |
+| 08 | Plugin Intelligence System: riconoscimento AU/AUv3/VST3/VST2/CLAP/AAX, catalogo, documentazione, parametri reali, preset, progettazione del suono con ascolto prima/dopo, catene di effetti, adattatore DAW | ✅ **Completato (2026-11-26)** su macOS con le Audio Unit di sistema; 13 dei 16 test verificati per intero, 3 in parte (formati di terze parti, Logic Pro, controllo dentro la DAW) | `desktop/src-tauri/src/plugins/`, `docs/plugin-intelligence/`, rapporto `docs/plugin-intelligence/PROMPT-08-REPORT.md` |
 
 ## Verifica del Prompt 02 (eseguita il 2026-11-24)
 - 20 sezioni della knowledge base, ciascuna con `README.md` e registro fonti; tutte le 14 sezioni richieste sono coperte (mappa in `docs/knowledge/README.md`).
@@ -46,12 +47,13 @@
 | App desktop: shell, navigazione, IT/EN, configurazione guidata, nome assistente, impostazioni e permessi, registro operazioni | ✅ completato e testato (Linux E2E) |
 | Smart Library (Prompt 07): volumi, cartelle autorizzate, scansione incrementale, analisi audio (BPM, tonalità, carattere) con fonte e affidabilità, MIDI, preset leggibili, classificazione correggibile, ricerca in linguaggio naturale IT/EN, suoni simili, loop per il progetto, duplicati, aggiornamenti automatici | ✅ completato e testato (dischi interni ed esterni reali su macOS, 100.000 file) |
 | Progetti e importazione materiale (anche Suno/Udio, solo riferimenti + SHA-256) | ✅ completato e testato |
-| DAW Manager (solo rilevamento) e Plugin Manager (solo inventario) | ✅ completato e testato · nessuna DAW collegata |
+| DAW Manager (solo rilevamento) | ✅ completato e testato · nessuna DAW collegata |
+| Plugin Intelligence (Prompt 08): riconoscimento, catalogo, parametri reali, preset, progettazione del suono, catene di effetti | ✅ completato e testato con le Audio Unit di macOS · plug-in di terze parti e DAW non provati |
 | Account in-app (accesso, piano, prova 3/7 giorni configurabile) | 🟡 implementato; Supabase raggiungibile da macOS; accesso con utente reale da provare a mano |
 | Microfono e registrazioni vocali | 🟡 implementato; su macOS permessi e bundle corretti, registrazione reale da provare a mano (finestra di autorizzazione) |
 | Agent Integration Layer (AgentPort, porta "non collegato", Agent API JSON verso gli agenti) | 🟡 provvisorio – adattatore in attesa dell'Agent (D-1…D-6) |
 | Multi-Agent System (Prompt 06): runtime, protocollo con 6 stati, registry di agenti/strumenti/permessi, approvazioni solo dall'utente, annullamento, eventi, registro `ail_tasks` | ✅ completato e testato |
-| 13 agenti specializzati | ✅ 12 con operazioni reali (45 su 61 dopo il Prompt 07) · Voice-to-Music solo dichiarato (motore M5) · 16 operazioni previste |
+| 13 agenti specializzati | ✅ 12 con operazioni reali (64 su 80 dopo il Prompt 08) · Voice-to-Music solo dichiarato (motore M5) · 16 operazioni previste |
 | Misuratore audio WAV (BS.1770, true peak, correlazione), template di arrangiamento, catalogo suoni e synth, Music Memory | ✅ completati e testati |
 | Connettore MOCK dell'Agent centrale (ex connettore di test) + script dello scenario | ⚠️ **simulazione**, solo build di sviluppo, da eliminare all'arrivo dell'Agent |
 | Compatibilità macOS/Windows, installer | 🟡 macOS verificato il 2026-11-25 (build, test, avvio, installer .app/.dmg aarch64 generati, non firmati); Windows solo via CI (pronta in `.github/workflows/desktop.yml`, non ancora pubblicata su GitHub: il login usato per il push non ha il permesso `workflow`); installer non firmati, nessun download pubblicato |
@@ -86,3 +88,13 @@
 - **Database locale**: migrazione `003_smartlib.sql`.
 - **Da fare a mano**: chiavetta USB fisica e NAS; prova con le tue cartelle di campioni; conferma della licenza MPL-2.0 di
   Symphonia (ADR-011a).
+
+## Prompt 08 – riepilogo (2026-11-26)
+- **Completato**: motore Plugin Intelligence in `desktop/src-tauri/src/plugins/` (11 moduli) e host isolato
+  `cosound-auhost` per le Audio Unit (processo separato, incluso nel pacchetto dell'app). Pagina Plug-in rifatta.
+  19 operazioni nuove negli agenti. Test: 85 superati.
+- **Simulato**: nulla nel motore; il Central Agent resta il MOCK del Prompt 06.
+- **Da integrare**: controllo dei parametri dentro le DAW (connettori M4), caricamento di VST3/CLAP, Windows.
+- **Database locale**: migrazione `004_plugins.sql`.
+- **Da fare a mano**: provare un synth Audio Unit di terze parti; con Logic Pro installato, verificare che i preset
+  creati da COSOUND compaiano nel menu del plug-in.

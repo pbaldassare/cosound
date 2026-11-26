@@ -16,4 +16,4 @@ pub mod search;
 pub mod service;
 
 #[cfg(test)]
-mod tests;
+pub(crate) mod tests;

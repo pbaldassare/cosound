@@ -124,5 +124,33 @@
       "it": "Gli agenti non hanno accesso alla rete in questa versione",
       "en": "Agents have no network access in this version"
     }
+  },
+  {
+    "id": "plugins.host",
+    "setting": "perm_plugin_host",
+    "default": true,
+    "grantable": true,
+    "label": {
+      "it": "Caricare plug-in",
+      "en": "Load plug-ins"
+    },
+    "description": {
+      "it": "Caricare i plug-in nel processo isolato di COSOUND per leggere i parametri e preparare ascolti",
+      "en": "Load plug-ins in COSOUND's isolated process to read parameters and render previews"
+    }
+  },
+  {
+    "id": "presets.write",
+    "setting": "perm_preset_write",
+    "default": false,
+    "grantable": true,
+    "label": {
+      "it": "Scrivere preset",
+      "en": "Write presets"
+    },
+    "description": {
+      "it": "Salvare nuovi preset nelle cartelle dei plug-in, senza mai sovrascrivere",
+      "en": "Save new presets into the plug-ins' preset folders, never overwriting"
+    }
   }
 ]

@@ -60,7 +60,9 @@ desktop/
                              (docs/smart-library/)
     src/projects.rs          projects, imported material (references + SHA-256)
     src/daw.rs               DAW detection (no connection)
-    src/plugins.rs           plugin inventory (files + metadata, plugins never loaded)
+    src/plugins/             Plugin Intelligence System (Prompt 08): scanner, registry, knowledge, parameters, presets,
+                             sound design, effect chains, DAW adapter (docs/plugin-intelligence/)
+    auhost/main.swift        cosound-auhost: isolated Audio Unit host (macOS), compiled by build.rs, bundled as a sidecar
     src/music/               music engine M2: theory.rs, generate.rs (chords, bass, melody, drums, transitions + checks), smf.rs (MIDI files), arrangement.rs, caps.rs
     src/audio/wav.rs         WAV meter: BS.1770 loudness, true peak, RMS, correlation, bands
     src/sound.rs             sound recipes and synth catalog (from docs/knowledge)
@@ -70,6 +72,7 @@ desktop/
     migrations/              local DB schema
 packages/agents/*.json         agent manifests (13), tools.json, permissions.json – the Agent and Tool Registry
 packages/agents/render_docs.py regenerates docs/agents/AGENTS.md and REGISTRIES.md from the manifests
+packages/plugin-knowledge/     official plug-in documentation as JSON (Apple AU parameters from the SDK header)
 packages/contracts/*.json      JSON Schemas of the Agent Protocol
 ```
 Every engine is its own Rust module with its own tests and no dependency on the UI. Future engines plug in as level-3 tools:

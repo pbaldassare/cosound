@@ -146,6 +146,40 @@
       "basis": "rule_based"
     },
     {
+      "name": "plugin_setup_plan",
+      "status": "available",
+      "risk": "read",
+      "requires_approval": false,
+      "summary": {
+        "it": "Piano per portare un suono progettato nella DAW (strumento, preset, effetti, MIDI)",
+        "en": "Plan to bring a designed sound into the DAW (instrument, preset, effects, MIDI)"
+      },
+      "input": {
+        "type": "object",
+        "properties": {
+          "design_id": {
+            "type": "string"
+          },
+          "daw": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "design_id"
+        ]
+      },
+      "output": "steps[] with status per step, DAW capabilities",
+      "tools": [
+        "daw.detector",
+        "plugins.daw_adapter",
+        "daw.routes"
+      ],
+      "permissions": [
+        "daw.detect"
+      ],
+      "basis": "convention"
+    },
+    {
       "name": "execute_plan",
       "status": "planned",
       "risk": "medium",
@@ -180,7 +214,8 @@
     "daw.detector",
     "daw.routes",
     "files.writer",
-    "library.index"
+    "library.index",
+    "plugins.daw_adapter"
   ],
   "permissions": [
     "daw.control",

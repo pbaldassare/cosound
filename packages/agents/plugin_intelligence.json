@@ -4,46 +4,95 @@
   "name": "Plugin Intelligence",
   "version": "1.0.0",
   "role": {
-    "it": "Plug-in installati, categorie e caratteristiche",
-    "en": "Installed plugins, categories and features"
+    "it": "Plug-in installati: riconoscimento, catalogo, parametri, preset, catene di effetti",
+    "en": "Installed plug-ins: recognition, catalog, parameters, presets, effect chains"
   },
   "competencies": {
     "it": [
-      "Riconoscimento dei plug-in installati (VST3, AU, CLAP, VST2)",
-      "Organizzazione per tipo e produttore",
-      "Caratteristiche dei sintetizzatori noti (Massive, Predator, Serum, Vital, Sylenth1…)",
-      "Strumenti ed effetti adatti a una richiesta",
-      "Documentazione tecnica dalla knowledge base"
+      "Riconoscimento di AU, AUv3, VST3, VST2, CLAP, AAX su macOS e Windows",
+      "Versione, architettura, compatibilità e stato di ogni installazione",
+      "Catalogo per categorie multiple, ricerca per nome, produttore, categoria e funzione",
+      "Documentazione ufficiale con fonte e versione",
+      "Lettura dei parametri reali e del loro ruolo sonoro",
+      "Preset reali: di fabbrica, nelle cartelle dei preset e nella Smart Library, ricerca semantica",
+      "Catene di effetti adattate al materiale misurato, con controllo del livello",
+      "Capacità di ogni DAW con i plug-in"
     ],
     "en": [
-      "Detection of installed plugins (VST3, AU, CLAP, VST2)",
-      "Organization by type and vendor",
-      "Features of well-known synths (Massive, Predator, Serum, Vital, Sylenth1…)",
-      "Instruments and effects suited to a request",
-      "Technical documentation from the knowledge base"
+      "Recognition of AU, AUv3, VST3, VST2, CLAP, AAX on macOS and Windows",
+      "Version, architecture, compatibility and status of every install",
+      "Multi-category catalog, search by name, vendor, category and function",
+      "Official documentation with source and version",
+      "Reading the real parameters and their sound role",
+      "Real presets: factory, preset folders and Smart Library, semantic search",
+      "Effect chains adapted to the measured material, with a level check",
+      "What each DAW allows with plug-ins"
     ]
   },
   "operations": [
     {
       "name": "scan",
       "status": "available",
-      "risk": "read",
+      "risk": "low",
       "requires_approval": false,
       "summary": {
-        "it": "Inventario dei plug-in installati",
-        "en": "Inventory of installed plugins"
+        "it": "Scansione dei plug-in e delle cartelle dei preset",
+        "en": "Scan plug-ins and preset folders"
       },
       "input": {
         "type": "object",
         "properties": {}
       },
-      "output": "plugins[] by format, kind, vendor",
+      "output": "summary: new, missing, incompatible, errors; overview",
       "tools": [
-        "plugins.scanner"
+        "plugins.scanner",
+        "plugins.registry",
+        "plugins.presets"
       ],
       "permissions": [
         "plugins.scan"
       ],
+      "basis": "measured"
+    },
+    {
+      "name": "list",
+      "status": "available",
+      "risk": "read",
+      "requires_approval": false,
+      "summary": {
+        "it": "Elenco e ricerca dei plug-in rilevati",
+        "en": "List and search detected plug-ins"
+      },
+      "input": {
+        "type": "object",
+        "properties": {
+          "text": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "instrument",
+              "effect",
+              "midi_effect",
+              "generator",
+              "other",
+              "unknown"
+            ]
+          },
+          "category": {
+            "type": "string"
+          },
+          "include_missing": {
+            "type": "boolean"
+          }
+        }
+      },
+      "output": "plugins[] with categories, formats, parameter and preset counts",
+      "tools": [
+        "plugins.registry"
+      ],
+      "permissions": [],
       "basis": "measured"
     },
     {
@@ -52,42 +101,32 @@
       "risk": "read",
       "requires_approval": false,
       "summary": {
-        "it": "Strumenti installati adatti a un ruolo",
-        "en": "Installed instruments suited to a role"
+        "it": "Strumenti installati e preset per un ruolo (basso, lead, pad…)",
+        "en": "Installed instruments and presets for a role (bass, lead, pad…)"
       },
       "input": {
         "type": "object",
         "properties": {
           "role": {
-            "type": "string",
-            "enum": [
-              "bass",
-              "sub",
-              "acid",
-              "lead",
-              "pluck",
-              "arp",
-              "pad",
-              "chords",
-              "keys",
-              "texture",
-              "atmosphere"
-            ]
+            "type": "string"
+          },
+          "genre": {
+            "type": "string"
+          },
+          "text": {
+            "type": "string"
           }
-        },
-        "required": [
-          "role"
-        ]
+        }
       },
-      "output": "candidates[] (detected only)",
+      "output": "candidates[] (controllable or not, why), presets[], recipes",
       "tools": [
-        "plugins.scanner",
+        "plugins.registry",
         "plugins.catalog",
-        "sound.recipes"
+        "sound.recipes",
+        "plugins.presets",
+        "library.search"
       ],
-      "permissions": [
-        "plugins.scan"
-      ],
+      "permissions": [],
       "basis": "rule_based"
     },
     {
@@ -96,79 +135,352 @@
       "risk": "read",
       "requires_approval": false,
       "summary": {
-        "it": "Scheda di un synth noto e se è installato",
-        "en": "Profile of a known synth and whether it is installed"
+        "it": "Scheda di un plug-in: installazioni, livelli di interazione, documentazione, preset",
+        "en": "Plug-in sheet: installs, interaction levels, documentation, presets"
       },
       "input": {
         "type": "object",
         "properties": {
+          "product_id": {
+            "type": "string"
+          },
           "name": {
             "type": "string"
           }
-        },
-        "required": [
-          "name"
-        ]
+        }
       },
-      "output": "catalog entry, installed, presets in the library",
+      "output": "product, installs[] with levels and parameters, knowledge with sources and limits, presets",
       "tools": [
+        "plugins.registry",
+        "plugins.knowledge",
         "plugins.catalog",
-        "plugins.scanner",
         "library.index"
       ],
       "permissions": [],
-      "basis": "rule_based"
+      "basis": "measured"
     },
     {
       "name": "map_parameters",
-      "status": "planned",
-      "risk": "read",
+      "status": "available",
+      "risk": "low",
       "requires_approval": false,
       "summary": {
-        "it": "Mappa dei parametri di un plug-in",
-        "en": "Parameter map of a plugin"
+        "it": "Lettura dei parametri reali nell'host isolato (Audio Unit)",
+        "en": "Read the real parameters in the isolated host (Audio Units)"
       },
       "input": {
         "type": "object",
         "properties": {
-          "name": {
+          "install_id": {
             "type": "string"
           }
         },
         "required": [
-          "name"
+          "install_id"
         ]
       },
-      "output": "parameters[]",
+      "output": "parameters[] with role, factory_presets[]",
+      "tools": [
+        "plugins.host",
+        "plugins.parameters"
+      ],
+      "permissions": [
+        "plugins.host"
+      ],
+      "basis": "measured"
+    },
+    {
+      "name": "find_presets",
+      "status": "available",
+      "risk": "read",
+      "requires_approval": false,
+      "summary": {
+        "it": "Ricerca semantica tra i preset realmente presenti",
+        "en": "Semantic search among presets that really exist"
+      },
+      "input": {
+        "type": "object",
+        "properties": {
+          "text": {
+            "type": "string"
+          },
+          "product_id": {
+            "type": "string"
+          },
+          "limit": {
+            "type": "integer"
+          }
+        }
+      },
+      "output": "understood, results[] with why (only existing presets)",
+      "tools": [
+        "plugins.presets",
+        "library.search"
+      ],
+      "permissions": [],
+      "basis": "mixed"
+    },
+    {
+      "name": "analyze_preset",
+      "status": "available",
+      "risk": "low",
+      "requires_approval": false,
+      "summary": {
+        "it": "Timbro di un preset misurato su un render",
+        "en": "Timbre of a preset measured on a rendering"
+      },
+      "input": {
+        "type": "object",
+        "properties": {
+          "preset_id": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "preset_id"
+        ]
+      },
+      "output": "timbre: descriptors, centroid, loudness",
+      "tools": [
+        "plugins.host",
+        "plugins.presets",
+        "library.audio_analyzer"
+      ],
+      "permissions": [
+        "plugins.host"
+      ],
+      "basis": "estimated"
+    },
+    {
+      "name": "compare",
+      "status": "available",
+      "risk": "read",
+      "requires_approval": false,
+      "summary": {
+        "it": "Confronto tra plug-in simili",
+        "en": "Compare similar plug-ins"
+      },
+      "input": {
+        "type": "object",
+        "properties": {
+          "product_ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "product_ids"
+        ]
+      },
+      "output": "compared[]",
+      "tools": [
+        "plugins.registry",
+        "plugins.parameters"
+      ],
+      "permissions": [],
+      "basis": "measured"
+    },
+    {
+      "name": "propose_chain",
+      "status": "available",
+      "risk": "read",
+      "requires_approval": false,
+      "summary": {
+        "it": "Catena di effetti per un obiettivo, adattata al materiale se fornito",
+        "en": "Effect chain for a goal, adapted to the material when given"
+      },
+      "input": {
+        "type": "object",
+        "properties": {
+          "goal": {
+            "type": "string",
+            "enum": [
+              "techno_bass",
+              "melodic_lead",
+              "atmospheric_pad",
+              "mix_bus"
+            ]
+          },
+          "file": {
+            "type": "string"
+          },
+          "bpm": {
+            "type": "number"
+          }
+        }
+      },
+      "output": "stages[] with order, settings, installed plug-in, order_issues",
+      "tools": [
+        "plugins.chains",
+        "plugins.registry",
+        "library.audio_analyzer"
+      ],
+      "permissions": [
+        "files.authorized_read"
+      ],
+      "basis": "rule_based"
+    },
+    {
+      "name": "check_chain",
+      "status": "available",
+      "risk": "low",
+      "requires_approval": false,
+      "summary": {
+        "it": "Render del materiale attraverso la catena e controllo del sovraccarico",
+        "en": "Render the material through the chain and check for overload"
+      },
+      "input": {
+        "type": "object",
+        "properties": {
+          "goal": {
+            "type": "string"
+          },
+          "file": {
+            "type": "string"
+          },
+          "bpm": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "file"
+        ]
+      },
+      "output": "proposal + check: input/output measurements, risks",
+      "tools": [
+        "plugins.chains",
+        "plugins.registry",
+        "library.audio_analyzer",
+        "plugins.host"
+      ],
+      "permissions": [
+        "plugins.host",
+        "files.authorized_read"
+      ],
+      "basis": "measured"
+    },
+    {
+      "name": "daw_capabilities",
+      "status": "available",
+      "risk": "read",
+      "requires_approval": false,
+      "summary": {
+        "it": "Cosa consente una DAW con i plug-in, con le fonti",
+        "en": "What a DAW allows with plug-ins, with sources"
+      },
+      "input": {
+        "type": "object",
+        "properties": {
+          "daw": {
+            "type": "string",
+            "enum": [
+              "logic",
+              "ableton",
+              "fl_studio",
+              "pro_tools",
+              "cubase",
+              "reaper"
+            ]
+          }
+        }
+      },
+      "output": "operations[] with status and route",
+      "tools": [
+        "plugins.daw_adapter"
+      ],
+      "permissions": [],
+      "basis": "convention"
+    },
+    {
+      "name": "diagnostics",
+      "status": "available",
+      "risk": "read",
+      "requires_approval": false,
+      "summary": {
+        "it": "Plug-in incompatibili, mancanti, con errori; registro degli errori",
+        "en": "Incompatible, missing, failing plug-ins; error log"
+      },
+      "input": {
+        "type": "object",
+        "properties": {}
+      },
+      "output": "problems[], errors[]",
+      "tools": [
+        "plugins.registry"
+      ],
+      "permissions": [],
+      "basis": "measured"
+    },
+    {
+      "name": "control_in_daw",
+      "status": "planned",
+      "risk": "medium",
+      "requires_approval": true,
+      "summary": {
+        "it": "Controllo dei parametri dell'istanza dentro la DAW",
+        "en": "Parameter control of the instance inside the DAW"
+      },
+      "input": {
+        "type": "object",
+        "properties": {
+          "daw": {
+            "type": "string"
+          },
+          "track": {
+            "type": "string"
+          },
+          "changes": {
+            "type": "array"
+          }
+        }
+      },
+      "output": "applied changes",
       "tools": [
         "plugins.param_maps",
         "daw.connectors"
       ],
       "permissions": [],
-      "requires": "parameter maps through a DAW (milestone M7)"
+      "requires": "DAW connectors (milestone M4) and per-DAW parameter maps (M7)"
     }
   ],
   "tools": [
     "daw.connectors",
+    "library.audio_analyzer",
     "library.index",
+    "library.search",
     "plugins.catalog",
+    "plugins.chains",
+    "plugins.daw_adapter",
+    "plugins.host",
+    "plugins.knowledge",
     "plugins.param_maps",
+    "plugins.parameters",
+    "plugins.presets",
+    "plugins.registry",
     "plugins.scanner",
     "sound.recipes"
   ],
   "permissions": [
+    "files.authorized_read",
+    "plugins.host",
     "plugins.scan"
   ],
   "limits": {
     "it": [
-      "Non dichiara mai disponibile un plug-in non rilevato",
-      "Non carica i plug-in: legge solo file e metadati",
-      "Parametri e controllo dei plug-in non ancora disponibili (M7)"
+      "Un plug-in è disponibile solo se rilevato su questo computer",
+      "Carica e controlla solo Audio Unit su macOS (processo isolato); VST3, VST2, CLAP e AAX sono riconosciuti ma non caricati",
+      "Il controllo dei parametri dentro la DAW richiede i connettori (M4)",
+      "Senza documentazione ufficiale usa solo ciò che il plug-in espone, e lo dichiara",
+      "Una catena senza audio è un punto di partenza, non va applicata così com'è"
     ],
     "en": [
-      "Never reports a plugin as available unless it was detected",
-      "Never loads plugins: reads files and metadata only",
-      "Plugin parameters and control not available yet (M7)"
+      "A plug-in is available only if detected on this computer",
+      "Loads and controls Audio Units only, on macOS (isolated process); VST3, VST2, CLAP and AAX are recognized but not loaded",
+      "Parameter control inside the DAW needs the connectors (M4)",
+      "Without official documentation it uses only what the plug-in exposes, and says so",
+      "A chain without audio is a starting point, not to be applied as is"
     ]
   },
   "input_formats": [

@@ -13,14 +13,18 @@
       "Ricette di sintesi in termini generici (oscillatori, filtro, inviluppi, modulazioni)",
       "Selezione di synth e preset effettivamente installati",
       "Varianti sonore (più brillante, più scuro, più incisivo, più largo)",
-      "Collaborazione con Plugin Intelligence e Smart Library"
+      "Collaborazione con Plugin Intelligence e Smart Library",
+      "Progettazione del suono sui parametri reali degli strumenti caricabili",
+      "Ascolto prima/dopo con misure, nuovi preset reversibili"
     ],
     "en": [
       "Timbre analysis per role (bass, lead, pad, pluck, arp, texture)",
       "Synthesis recipes in generic terms (oscillators, filter, envelopes, modulation)",
       "Choice of synths and presets that are actually installed",
       "Sound variants (brighter, darker, punchier, wider)",
-      "Works with Plugin Intelligence and Smart Library"
+      "Works with Plugin Intelligence and Smart Library",
+      "Sound design on the real parameters of loadable instruments",
+      "Before/after audition with measurements, reversible new presets"
     ]
   },
   "operations": [
@@ -63,7 +67,7 @@
       "output": "recipes[], installed_instruments[], presets[]",
       "tools": [
         "sound.recipes",
-        "plugins.scanner",
+        "plugins.registry",
         "plugins.catalog",
         "library.index"
       ],
@@ -107,6 +111,234 @@
       "basis": "rule_based"
     },
     {
+      "name": "design_sound",
+      "status": "available",
+      "risk": "low",
+      "requires_approval": false,
+      "summary": {
+        "it": "Progetta un suono su uno strumento installato: scelta, effetti, valori, note dal motore musicale",
+        "en": "Design a sound on an installed instrument: choice, effects, values, notes from the music engine"
+      },
+      "input": {
+        "type": "object",
+        "properties": {
+          "text": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string"
+          },
+          "genre": {
+            "type": "string"
+          },
+          "key": {
+            "type": "string"
+          },
+          "bpm": {
+            "type": "number"
+          },
+          "product_id": {
+            "type": "string"
+          }
+        }
+      },
+      "output": "design with changes (before/after), instrument choice and alternatives, not_available",
+      "tools": [
+        "sound.recipes",
+        "plugins.registry",
+        "plugins.host",
+        "plugins.parameters",
+        "plugins.design",
+        "music.generator"
+      ],
+      "permissions": [
+        "plugins.host"
+      ],
+      "basis": "rule_based"
+    },
+    {
+      "name": "modify_sound",
+      "status": "available",
+      "risk": "low",
+      "requires_approval": false,
+      "summary": {
+        "it": "Modifica un suono a parole (es. più aggressivo ma caldo): proposta sui parametri reali",
+        "en": "Change a sound in words (e.g. more aggressive but warm): proposal on the real parameters"
+      },
+      "input": {
+        "type": "object",
+        "properties": {
+          "design_id": {
+            "type": "string"
+          },
+          "text": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "design_id",
+          "text"
+        ]
+      },
+      "output": "changes[] from → to with reasons",
+      "tools": [
+        "sound.recipes",
+        "plugins.design",
+        "plugins.parameters"
+      ],
+      "permissions": [],
+      "basis": "rule_based"
+    },
+    {
+      "name": "audition",
+      "status": "available",
+      "risk": "low",
+      "requires_approval": false,
+      "summary": {
+        "it": "Ascolto prima/dopo nell'host isolato, con misure e verifica",
+        "en": "Before/after audition in the isolated host, measured and checked"
+      },
+      "input": {
+        "type": "object",
+        "properties": {
+          "design_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "design_id"
+        ]
+      },
+      "output": "before/after files, measurements, checks, warnings",
+      "tools": [
+        "sound.recipes",
+        "plugins.host",
+        "plugins.design",
+        "library.audio_analyzer"
+      ],
+      "permissions": [
+        "plugins.host",
+        "files.app_write"
+      ],
+      "basis": "measured"
+    },
+    {
+      "name": "save_preset",
+      "status": "available",
+      "risk": "low",
+      "requires_approval": false,
+      "summary": {
+        "it": "Salva il suono come nuovi preset nella cartella di COSOUND (mai sovrascrivere)",
+        "en": "Save the sound as new presets in COSOUND's folder (never overwrite)"
+      },
+      "input": {
+        "type": "object",
+        "properties": {
+          "design_id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "design_id"
+        ]
+      },
+      "output": "files[]",
+      "tools": [
+        "sound.recipes",
+        "plugins.host",
+        "plugins.design"
+      ],
+      "permissions": [
+        "plugins.host",
+        "files.app_write"
+      ],
+      "basis": "measured"
+    },
+    {
+      "name": "install_preset",
+      "status": "available",
+      "risk": "medium",
+      "requires_approval": true,
+      "summary": {
+        "it": "Copia i preset salvati nella cartella preset del plug-in, per la DAW",
+        "en": "Copy saved presets into the plug-in's preset folder, for the DAW"
+      },
+      "input": {
+        "type": "object",
+        "properties": {
+          "design_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "design_id"
+        ]
+      },
+      "output": "installed files (new names, reversible)",
+      "tools": [
+        "sound.recipes",
+        "plugins.design"
+      ],
+      "permissions": [
+        "presets.write"
+      ],
+      "basis": "measured"
+    },
+    {
+      "name": "remove_installed_presets",
+      "status": "available",
+      "risk": "medium",
+      "requires_approval": true,
+      "summary": {
+        "it": "Rimuove i preset che COSOUND ha installato (annullamento)",
+        "en": "Remove the presets COSOUND installed (undo)"
+      },
+      "input": {
+        "type": "object",
+        "properties": {
+          "design_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "design_id"
+        ]
+      },
+      "output": "removed files",
+      "tools": [
+        "sound.recipes",
+        "plugins.design"
+      ],
+      "permissions": [
+        "presets.write"
+      ],
+      "basis": "measured"
+    },
+    {
+      "name": "list_designs",
+      "status": "available",
+      "risk": "read",
+      "requires_approval": false,
+      "summary": {
+        "it": "Suoni progettati",
+        "en": "Designed sounds"
+      },
+      "input": {
+        "type": "object",
+        "properties": {}
+      },
+      "output": "designs[]",
+      "tools": [
+        "sound.recipes",
+        "plugins.design"
+      ],
+      "permissions": [],
+      "basis": "measured"
+    },
+    {
       "name": "program_synth",
       "status": "planned",
       "risk": "medium",
@@ -135,28 +367,41 @@
         "daw.connectors"
       ],
       "permissions": [],
-      "requires": "plugin parameter maps (M7) and a DAW connector (M4)"
+      "requires": "a DAW connector (M4) to program the instance inside the DAW; in COSOUND's isolated host use design_sound / modify_sound"
     }
   ],
   "tools": [
     "daw.connectors",
+    "library.audio_analyzer",
     "library.index",
+    "music.generator",
     "plugins.catalog",
+    "plugins.design",
+    "plugins.host",
     "plugins.param_maps",
-    "plugins.scanner",
+    "plugins.parameters",
+    "plugins.registry",
     "sound.recipes"
   ],
-  "permissions": [],
+  "permissions": [
+    "files.app_write",
+    "plugins.host",
+    "presets.write"
+  ],
   "limits": {
     "it": [
       "Propone solo synth rilevati sul computer; quelli non installati sono indicati come tali",
       "Le ricette sono in termini generici, non valori specifici di un plug-in",
-      "Non modifica preset né file dei plug-in"
+      "Non modifica preset né file dei plug-in",
+      "Progetta e ascolta solo con Audio Unit su macOS; nella DAW il suono arriva come preset da scegliere",
+      "I nomi dei parametri decidono il ruolo: un parametro senza ruolo riconosciuto non viene mai mosso"
     ],
     "en": [
       "Proposes only synths detected on the computer; others are marked as not installed",
       "Recipes are in generic terms, not plugin-specific values",
-      "Never edits presets or plugin files"
+      "Never edits presets or plugin files",
+      "Designs and auditions only with Audio Units on macOS; in the DAW the sound arrives as a preset to pick",
+      "Parameter names decide the role: a parameter with no recognized role is never moved"
     ]
   },
   "input_formats": [

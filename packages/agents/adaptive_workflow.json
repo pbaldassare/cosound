@@ -296,6 +296,74 @@
       "basis": "none"
     },
     {
+      "name": "remember_plugin_preference",
+      "status": "available",
+      "risk": "low",
+      "requires_approval": false,
+      "summary": {
+        "it": "Ricorda lo strumento, il preset o la catena abituale per un ruolo",
+        "en": "Remember the usual instrument, preset or chain for a role"
+      },
+      "input": {
+        "type": "object",
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "instrument",
+              "preset",
+              "chain"
+            ]
+          },
+          "role": {
+            "type": "string"
+          },
+          "goal": {
+            "type": "string"
+          },
+          "product_id": {
+            "type": "string"
+          },
+          "preset_id": {
+            "type": "integer"
+          },
+          "stages": {
+            "type": "array"
+          }
+        }
+      },
+      "output": "fact",
+      "tools": [
+        "memory.facts"
+      ],
+      "permissions": [
+        "memory.workflow"
+      ],
+      "basis": "none"
+    },
+    {
+      "name": "plugin_preferences",
+      "status": "available",
+      "risk": "read",
+      "requires_approval": false,
+      "summary": {
+        "it": "Preferenze sui plug-in memorizzate",
+        "en": "Remembered plug-in preferences"
+      },
+      "input": {
+        "type": "object",
+        "properties": {}
+      },
+      "output": "facts[]",
+      "tools": [
+        "memory.facts"
+      ],
+      "permissions": [
+        "memory.workflow"
+      ],
+      "basis": "none"
+    },
+    {
       "name": "learn_from_history",
       "status": "planned",
       "risk": "read",

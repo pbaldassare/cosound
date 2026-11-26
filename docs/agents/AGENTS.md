@@ -1,4 +1,4 @@
-# COSOUND – Specialized agents: responsibilities (Prompt 06, updated by Prompt 07)
+# COSOUND – Specialized agents: responsibilities (Prompt 06, updated by Prompts 07 and 08)
 
 Generated from `packages/agents/<id>.json` by `packages/agents/render_docs.py` (the manifests are the source of truth,
 compiled into the app and checked by tests).
@@ -9,17 +9,17 @@ Fields marked * are required. All agents: contract version 1.
 |---|---|---|---|---|
 | A | [Music Producer](#a-music-producer) | Song structure, arrangement and production plan | 3/4 | — |
 | B | [Rhythm Engineer](#b-rhythm-engineer) | Drums, groove, swing, transitions and timing | 3/4 | — |
-| C | [Sound Designer](#c-sound-designer) | Choosing and designing sounds with the installed instruments | 2/3 | — |
+| C | [Sound Designer](#c-sound-designer) | Choosing and designing sounds with the installed instruments | 9/10 | files.app_write, plugins.host, presets.write |
 | D | [Music Theory](#d-music-theory) | Music theory and coherent composition | 7/7 | — |
 | E | [Voice-to-Music](#e-voice-to-music) | From voice to musical material (singing, whistling, beatbox, speech) | 0/4 | files.authorized_read |
 | F | [Audio Analysis](#f-audio-analysis) | Measurements on audio files and stems | 2/5 | files.app_write, files.authorized_read |
 | G | [Reference Track](#g-reference-track) | Reference profile to create an original track | 1/2 | files.authorized_read, network |
 | H | [Smart Library](#h-smart-library) | Smart catalog of the music resources on every authorized drive | 13/13 | external_devices, files.authorized_read |
-| I | [Plugin Intelligence](#i-plugin-intelligence) | Installed plugins, categories and features | 3/4 | plugins.scan |
+| I | [Plugin Intelligence](#i-plugin-intelligence) | Installed plug-ins: recognition, catalog, parameters, presets, effect chains | 12/13 | files.authorized_read, plugins.host, plugins.scan |
 | J | [Mixing Engineer](#j-mixing-engineer) | Mix diagnosis from measurements and proposed moves | 1/2 | daw.control, files.authorized_read |
 | K | [Mastering Engineer](#k-mastering-engineer) | Technical check of the master and release destinations | 1/2 | files.app_write, files.authorized_read |
-| L | [DAW Controller](#l-daw-controller) | The only component that operates DAWs, with verified methods only | 2/3 | daw.control, daw.detect, files.app_write |
-| M | [Adaptive Workflow](#m-adaptive-workflow) | Memory of the user's working habits, under their control | 7/8 | memory.workflow |
+| L | [DAW Controller](#l-daw-controller) | The only component that operates DAWs, with verified methods only | 3/4 | daw.control, daw.detect, files.app_write |
+| M | [Adaptive Workflow](#m-adaptive-workflow) | Memory of the user's working habits, under their control | 9/10 | memory.workflow |
 
 ## A. Music Producer
 
@@ -104,6 +104,8 @@ Fields marked * are required. All agents: contract version 1.
 - Choice of synths and presets that are actually installed
 - Sound variants (brighter, darker, punchier, wider)
 - Works with Plugin Intelligence and Smart Library
+- Sound design on the real parameters of loadable instruments
+- Before/after audition with measurements, reversible new presets
 
 **Operations**
 
@@ -111,11 +113,18 @@ Fields marked * are required. All agents: contract version 1.
 |---|---|---|---|---|---|
 | `suggest_sounds` – Recipe for the role + installed synths + presets in the library | available | read | rule_based | `role`*: string (enum); `genre`: string | recipes[], installed_instruments[], presets[] |
 | `patch_variants` – Variants of a recipe | available | read | rule_based | `recipe_id`*: string (enum) | recipe, variants[] |
-| `program_synth` – Set a synth's parameters inside the DAW | planned – requires plugin parameter maps (M7) and a DAW connector (M4) | medium (approval) | — | `plugin`*: string; `recipe_id`: string | applied parameters |
+| `design_sound` – Design a sound on an installed instrument: choice, effects, values, notes from the music engine | available | low | rule_based | `text`: string; `role`: string; `genre`: string; `key`: string; `bpm`: number; `product_id`: string | design with changes (before/after), instrument choice and alternatives, not_available |
+| `modify_sound` – Change a sound in words (e.g. more aggressive but warm): proposal on the real parameters | available | low | rule_based | `design_id`*: string; `text`*: string | changes[] from → to with reasons |
+| `audition` – Before/after audition in the isolated host, measured and checked | available | low | measured | `design_id`*: string | before/after files, measurements, checks, warnings |
+| `save_preset` – Save the sound as new presets in COSOUND's folder (never overwrite) | available | low | measured | `design_id`*: string; `name`: string | files[] |
+| `install_preset` – Copy saved presets into the plug-in's preset folder, for the DAW | available | medium (approval) | measured | `design_id`*: string | installed files (new names, reversible) |
+| `remove_installed_presets` – Remove the presets COSOUND installed (undo) | available | medium (approval) | measured | `design_id`*: string | removed files |
+| `list_designs` – Designed sounds | available | read | measured | — | designs[] |
+| `program_synth` – Set a synth's parameters inside the DAW | planned – requires a DAW connector (M4) to program the instance inside the DAW; in COSOUND's isolated host use design_sound / modify_sound | medium (approval) | — | `plugin`*: string; `recipe_id`: string | applied parameters |
 
-**Tools (level 3):** `daw.connectors`, `library.index`, `plugins.catalog`, `plugins.param_maps`, `plugins.scanner`, `sound.recipes`
+**Tools (level 3):** `daw.connectors`, `library.audio_analyzer`, `library.index`, `music.generator`, `plugins.catalog`, `plugins.design`, `plugins.host`, `plugins.param_maps`, `plugins.parameters`, `plugins.registry`, `sound.recipes`
 
-**Permissions:** none
+**Permissions:** `files.app_write`, `plugins.host`, `presets.write`
 
 **Input formats:** application/json · **Output formats:** application/json
 
@@ -126,6 +135,8 @@ Fields marked * are required. All agents: contract version 1.
 - Proposes only synths detected on the computer; others are marked as not installed
 - Recipes are in generic terms, not plugin-specific values
 - Never edits presets or plugin files
+- Designs and auditions only with Audio Units on macOS; in the DAW the sound arrives as a preset to pick
+- Parameter names decide the role: a parameter with no recognized role is never moved
 
 ## D. Music Theory
 
@@ -327,28 +338,40 @@ Fields marked * are required. All agents: contract version 1.
 
 ## I. Plugin Intelligence
 
-`plugin_intelligence` · v1.0.0 · Installed plugins, categories and features
+`plugin_intelligence` · v1.0.0 · Installed plug-ins: recognition, catalog, parameters, presets, effect chains
 
 **Competencies**
 
-- Detection of installed plugins (VST3, AU, CLAP, VST2)
-- Organization by type and vendor
-- Features of well-known synths (Massive, Predator, Serum, Vital, Sylenth1…)
-- Instruments and effects suited to a request
-- Technical documentation from the knowledge base
+- Recognition of AU, AUv3, VST3, VST2, CLAP, AAX on macOS and Windows
+- Version, architecture, compatibility and status of every install
+- Multi-category catalog, search by name, vendor, category and function
+- Official documentation with source and version
+- Reading the real parameters and their sound role
+- Real presets: factory, preset folders and Smart Library, semantic search
+- Effect chains adapted to the measured material, with a level check
+- What each DAW allows with plug-ins
 
 **Operations**
 
 | Operation | Status | Risk | Basis | Input | Output |
 |---|---|---|---|---|---|
-| `scan` – Inventory of installed plugins | available | read | measured | — | plugins[] by format, kind, vendor |
-| `find_for_role` – Installed instruments suited to a role | available | read | rule_based | `role`*: string (enum) | candidates[] (detected only) |
-| `plugin_info` – Profile of a known synth and whether it is installed | available | read | rule_based | `name`*: string | catalog entry, installed, presets in the library |
-| `map_parameters` – Parameter map of a plugin | planned – requires parameter maps through a DAW (milestone M7) | read | — | `name`*: string | parameters[] |
+| `scan` – Scan plug-ins and preset folders | available | low | measured | — | summary: new, missing, incompatible, errors; overview |
+| `list` – List and search detected plug-ins | available | read | measured | `text`: string; `kind`: string (instrument, effect, midi_effect, generator, other, unknown); `category`: string; `include_missing`: boolean | plugins[] with categories, formats, parameter and preset counts |
+| `find_for_role` – Installed instruments and presets for a role (bass, lead, pad…) | available | read | rule_based | `role`: string; `genre`: string; `text`: string | candidates[] (controllable or not, why), presets[], recipes |
+| `plugin_info` – Plug-in sheet: installs, interaction levels, documentation, presets | available | read | measured | `product_id`: string; `name`: string | product, installs[] with levels and parameters, knowledge with sources and limits, presets |
+| `map_parameters` – Read the real parameters in the isolated host (Audio Units) | available | low | measured | `install_id`*: string | parameters[] with role, factory_presets[] |
+| `find_presets` – Semantic search among presets that really exist | available | read | mixed | `text`: string; `product_id`: string; `limit`: integer | understood, results[] with why (only existing presets) |
+| `analyze_preset` – Timbre of a preset measured on a rendering | available | low | estimated | `preset_id`*: integer | timbre: descriptors, centroid, loudness |
+| `compare` – Compare similar plug-ins | available | read | measured | `product_ids`*: array of string | compared[] |
+| `propose_chain` – Effect chain for a goal, adapted to the material when given | available | read | rule_based | `goal`: string (techno_bass, melodic_lead, atmospheric_pad, mix_bus); `file`: string; `bpm`: number | stages[] with order, settings, installed plug-in, order_issues |
+| `check_chain` – Render the material through the chain and check for overload | available | low | measured | `goal`: string; `file`*: string; `bpm`: number | proposal + check: input/output measurements, risks |
+| `daw_capabilities` – What a DAW allows with plug-ins, with sources | available | read | convention | `daw`: string (logic, ableton, fl_studio, pro_tools, cubase, reaper) | operations[] with status and route |
+| `diagnostics` – Incompatible, missing, failing plug-ins; error log | available | read | measured | — | problems[], errors[] |
+| `control_in_daw` – Parameter control of the instance inside the DAW | planned – requires DAW connectors (milestone M4) and per-DAW parameter maps (M7) | medium (approval) | — | `daw`: string; `track`: string; `changes`: array | applied changes |
 
-**Tools (level 3):** `daw.connectors`, `library.index`, `plugins.catalog`, `plugins.param_maps`, `plugins.scanner`, `sound.recipes`
+**Tools (level 3):** `daw.connectors`, `library.audio_analyzer`, `library.index`, `library.search`, `plugins.catalog`, `plugins.chains`, `plugins.daw_adapter`, `plugins.host`, `plugins.knowledge`, `plugins.param_maps`, `plugins.parameters`, `plugins.presets`, `plugins.registry`, `plugins.scanner`, `sound.recipes`
 
-**Permissions:** `plugins.scan`
+**Permissions:** `files.authorized_read`, `plugins.host`, `plugins.scan`
 
 **Input formats:** application/json · **Output formats:** application/json
 
@@ -356,9 +379,11 @@ Fields marked * are required. All agents: contract version 1.
 
 **Limits**
 
-- Never reports a plugin as available unless it was detected
-- Never loads plugins: reads files and metadata only
-- Plugin parameters and control not available yet (M7)
+- A plug-in is available only if detected on this computer
+- Loads and controls Audio Units only, on macOS (isolated process); VST3, VST2, CLAP and AAX are recognized but not loaded
+- Parameter control inside the DAW needs the connectors (M4)
+- Without official documentation it uses only what the plug-in exposes, and says so
+- A chain without audio is a starting point, not to be applied as is
 
 ## J. Mixing Engineer
 
@@ -445,9 +470,10 @@ Fields marked * are required. All agents: contract version 1.
 |---|---|---|---|---|---|
 | `detect` – Installed DAWs and versions | available | read | measured | — | daws[] |
 | `plan_operations` – Prepare DAW operations and the MIDI files to import (executes nothing in the DAW) | available | low | rule_based | `daw`: string (logic, ableton, fl, protools, cubase, reaper); `bpm`: number; `key`: string; `project_name`: string; `sections`: array of object; `parts`: array of object | operations[] with route, risk, approval; manual_steps[]; files[] |
+| `plugin_setup_plan` – Plan to bring a designed sound into the DAW (instrument, preset, effects, MIDI) | available | read | convention | `design_id`*: string; `daw`: string | steps[] with status per step, DAW capabilities |
 | `execute_plan` – Execute the plan in the DAW | planned – requires DAW connectors (milestone M4): Logic Pro first | medium (approval) | — | `plan_task_id`*: string | executed operations |
 
-**Tools (level 3):** `daw.connectors`, `daw.detector`, `daw.routes`, `files.writer`, `library.index`
+**Tools (level 3):** `daw.connectors`, `daw.detector`, `daw.routes`, `files.writer`, `library.index`, `plugins.daw_adapter`
 
 **Permissions:** `daw.control`, `daw.detect`, `files.app_write`
 
@@ -485,6 +511,8 @@ Fields marked * are required. All agents: contract version 1.
 | `forget` – Delete an item | available | low | none | `id`*: string | deleted |
 | `clear` – Delete the whole workflow memory (needs the user's confirmation) | available | high (approval) | none | — | deleted count |
 | `status` – Whether memory is on and how many items | available | read | none | — | enabled, count |
+| `remember_plugin_preference` – Remember the usual instrument, preset or chain for a role | available | low | none | `kind`: string (instrument, preset, chain); `role`: string; `goal`: string; `product_id`: string; `preset_id`: integer; `stages`: array | fact |
+| `plugin_preferences` – Remembered plug-in preferences | available | read | none | — | facts[] |
 | `learn_from_history` – Propose procedures from repeated DAW operations | planned – requires a DAW event stream (milestone M4); keystrokes are never recorded | read | — | — | suggestions[] |
 
 **Tools (level 3):** `daw.connectors`, `memory.facts`

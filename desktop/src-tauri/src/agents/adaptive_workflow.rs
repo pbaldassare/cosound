@@ -34,7 +34,7 @@ impl Agent for AdaptiveWorkflow {
         "adaptive_workflow"
     }
     fn operations(&self) -> &'static [&'static str] {
-        &["remember", "recall", "list", "update", "forget", "clear", "status"]
+        &["remember", "recall", "list", "update", "forget", "clear", "status", "remember_plugin_preference", "plugin_preferences"]
     }
     fn run(&self, op: &str, input: &Value, cx: &mut Ctx) -> OpResult {
         cx.tool("memory.facts");
@@ -98,6 +98,24 @@ impl Agent for AdaptiveWorkflow {
                 let n = memory::clear(&cx.db.lock().unwrap(), CAT).map_err(mem_err)?;
                 Ok(Outcome::new(json!({ "deleted": n }), "none"))
             }
+            // Plug-in habits (usual instrument, preset or effect chain for a role) go to the same memory, category
+            // "plugin": the Plugin Intelligence System reads them; it never keeps a memory of its own.
+            "remember_plugin_preference" => {
+                let kind = s(input, "kind").unwrap_or("instrument");
+                if !["instrument", "preset", "chain"].contains(&kind) {
+                    return Err(AgentError::input("kind must be instrument, preset or chain"));
+                }
+                let scope = s(input, "role").or(s(input, "goal")).ok_or_else(|| AgentError::input("role (or goal for a chain) is required"))?;
+                let c = cx.db.lock().unwrap();
+                let key = if kind == "instrument" { format!("preferred_instrument:{scope}") } else { format!("preferred_{kind}:{scope}") };
+                let value = json!({ "product_id": input["product_id"], "preset_id": input["preset_id"], "stages": input["stages"] });
+                if let Some(old) = memory::list(&c, Some("plugin")).map_err(mem_err)?.into_iter().find(|f| f.key == key) {
+                    memory::delete(&c, &old.id).map_err(mem_err)?;
+                }
+                let f = memory::add(&c, "plugin", &key, &value, "explicit", "custom", 1.0, Some("adaptive_workflow")).map_err(mem_err)?;
+                Ok(Outcome::new(json!({ "fact": f }), "none"))
+            }
+            "plugin_preferences" => Ok(Outcome::new(json!({ "facts": memory::list(&cx.db.lock().unwrap(), Some("plugin")).map_err(mem_err)? }), "none")),
             "status" => {
                 let n = list(cx)?.len();
                 Ok(Outcome::new(json!({ "enabled": cx.granted("memory.workflow"), "items": n, "keystroke_logging": false }), "none"))

@@ -1,0 +1,1832 @@
+{
+ "source": {
+  "title": "AudioToolbox/AudioUnitParameters.h",
+  "publisher": "Apple",
+  "sdk_version": "15.5",
+  "kind": "official SDK header",
+  "extracted": "2026-11-26"
+ },
+ "note": "Parameter IDs, units, ranges and defaults exactly as documented in the header. Runtime discovery (cosound-auhost describe) remains the authority for what an installed unit exposes.",
+ "units": [
+  {
+   "unit": "all",
+   "au": null,
+   "parameters": [
+    {
+     "constant": "kPannerParam_Gain",
+     "id": 0,
+     "doc": "Global, Linear, 0->1, 1",
+     "scope": "Global",
+     "unit": "Linear",
+     "range": "0->1",
+     "default": "1"
+    },
+    {
+     "constant": "kPannerParam_Azimuth",
+     "id": 1,
+     "doc": "Global, Degrees, -180->180, 0",
+     "scope": "Global",
+     "unit": "Degrees",
+     "range": "-180->180",
+     "default": "0"
+    },
+    {
+     "constant": "kPannerParam_Elevation",
+     "id": 2,
+     "doc": "Global, Degrees, -90->90, 0",
+     "scope": "Global",
+     "unit": "Degrees",
+     "range": "-90->90",
+     "default": "0"
+    },
+    {
+     "constant": "kPannerParam_Distance",
+     "id": 3,
+     "doc": "Global, Linear, 0->1, 1",
+     "scope": "Global",
+     "unit": "Linear",
+     "range": "0->1",
+     "default": "1"
+    },
+    {
+     "constant": "kPannerParam_CoordScale",
+     "id": 4,
+     "doc": "Global, Meters, 0.01->1000, 1",
+     "scope": "Global",
+     "unit": "Meters",
+     "range": "0.01->1000",
+     "default": "1"
+    },
+    {
+     "constant": "kPannerParam_RefDistance",
+     "id": 5,
+     "doc": "Global, Meters, 0.01->1000, 1",
+     "scope": "Global",
+     "unit": "Meters",
+     "range": "0.01->1000",
+     "default": "1"
+    }
+   ]
+  },
+  {
+   "unit": "AUSpatialMixer",
+   "au": "aumx:3dem:appl",
+   "parameters": [
+    {
+     "constant": "kSpatialMixerParam_Azimuth",
+     "id": 0,
+     "doc": "Input, Degrees, -180->180, 0",
+     "scope": "Input",
+     "unit": "Degrees",
+     "range": "-180->180",
+     "default": "0"
+    },
+    {
+     "constant": "kSpatialMixerParam_Elevation",
+     "id": 1,
+     "doc": "Input, Degrees, -90->90, 0",
+     "scope": "Input",
+     "unit": "Degrees",
+     "range": "-90->90",
+     "default": "0"
+    },
+    {
+     "constant": "kSpatialMixerParam_Distance",
+     "id": 2,
+     "doc": "Input, Metres, 0->10000, 0",
+     "scope": "Input",
+     "unit": "Metres",
+     "range": "0->10000",
+     "default": "0"
+    },
+    {
+     "constant": "kSpatialMixerParam_Gain",
+     "id": 3,
+     "doc": "Input/Output, dB, -120->20, 0",
+     "scope": "Input/Output",
+     "unit": "dB",
+     "range": "-120->20",
+     "default": "0"
+    },
+    {
+     "constant": "kSpatialMixerParam_PlaybackRate",
+     "id": 4,
+     "doc": "Input, rate scaler\t0.5 -> 2.0, 1.0"
+    },
+    {
+     "constant": "kSpatialMixerParam_Enable",
+     "id": 5,
+     "doc": "bus enable : 0 or 1, 1"
+    },
+    {
+     "constant": "kSpatialMixerParam_MinGain",
+     "id": 6,
+     "doc": "Minimum input gain constraint : 0.0 -> 10.0, 0.0"
+    },
+    {
+     "constant": "kSpatialMixerParam_MaxGain",
+     "id": 7,
+     "doc": "Maximum input gain constraint : 0.0 -> 10.0, 10.0"
+    },
+    {
+     "constant": "kSpatialMixerParam_ReverbBlend",
+     "id": 8,
+     "doc": "Input, Dry/Wet equal-power blend, %\t  0.0 -> 100.0, 30.0",
+     "scope": "Input",
+     "unit": "Dry/Wet equal-power blend",
+     "range": "%\t  0.0 -> 100.0",
+     "default": "30.0"
+    },
+    {
+     "constant": "kSpatialMixerParam_GlobalReverbGain",
+     "id": 9,
+     "doc": "Global, dB,\t\t-40.0 -> +40.0, 0.0",
+     "scope": "Global",
+     "unit": "dB",
+     "range": "-40.0 -> +40.0",
+     "default": "0.0"
+    },
+    {
+     "constant": "kSpatialMixerParam_OcclusionAttenuation",
+     "id": 10,
+     "doc": "Occlusion is a filter applied to the sound prior to the reverb send"
+    },
+    {
+     "constant": "kSpatialMixerParam_ObstructionAttenuation",
+     "id": 11,
+     "doc": "Obstruction is a filter applied to the \"direct\" part of the sound (so is post reverb send)"
+    },
+    {
+     "constant": "kSpatialMixerParam_HeadYaw",
+     "id": 19,
+     "doc": "Global, Degrees, -180->180, 0",
+     "scope": "Global",
+     "unit": "Degrees",
+     "range": "-180->180",
+     "default": "0"
+    },
+    {
+     "constant": "kSpatialMixerParam_HeadPitch",
+     "id": 20,
+     "doc": "Global, Degrees, -90->90, 0",
+     "scope": "Global",
+     "unit": "Degrees",
+     "range": "-90->90",
+     "default": "0"
+    },
+    {
+     "constant": "kSpatialMixerParam_HeadRoll",
+     "id": 21,
+     "doc": "Global, Degrees, -180->180, 0",
+     "scope": "Global",
+     "unit": "Degrees",
+     "range": "-180->180",
+     "default": "0"
+    }
+   ]
+  },
+  {
+   "unit": "AUMixer3D",
+   "au": "aumx:3dmx:appl",
+   "parameters": [
+    {
+     "constant": "k3DMixerParam_Azimuth",
+     "id": 0,
+     "doc": "Input, Degrees, -180->180, 0",
+     "scope": "Input",
+     "unit": "Degrees",
+     "range": "-180->180",
+     "default": "0"
+    },
+    {
+     "constant": "k3DMixerParam_Elevation",
+     "id": 1,
+     "doc": "Input, Degrees, -90->90, 0",
+     "scope": "Input",
+     "unit": "Degrees",
+     "range": "-90->90",
+     "default": "0"
+    },
+    {
+     "constant": "k3DMixerParam_Distance",
+     "id": 2,
+     "doc": "Input, Metres, 0->10000, 0",
+     "scope": "Input",
+     "unit": "Metres",
+     "range": "0->10000",
+     "default": "0"
+    },
+    {
+     "constant": "k3DMixerParam_Gain",
+     "id": 3,
+     "doc": "Input/Output, dB, -120->20, 0",
+     "scope": "Input/Output",
+     "unit": "dB",
+     "range": "-120->20",
+     "default": "0"
+    },
+    {
+     "constant": "k3DMixerParam_PlaybackRate",
+     "id": 4,
+     "doc": "Input, rate scaler\t0.5 -> 2.0"
+    },
+    {
+     "constant": "k3DMixerParam_PreAveragePower",
+     "id": 1000,
+     "doc": "while k3DMixerParam_PostAveragePower + 1 indicates the right channel."
+    },
+    {
+     "constant": "k3DMixerParam_PrePeakHoldLevel",
+     "id": 2000
+    },
+    {
+     "constant": "k3DMixerParam_PostAveragePower",
+     "id": 3000
+    },
+    {
+     "constant": "k3DMixerParam_PostPeakHoldLevel",
+     "id": 4000
+    }
+   ]
+  },
+  {
+   "unit": "AUMultiChannelMixer",
+   "au": "aumx:mcmx:appl",
+   "parameters": [
+    {
+     "constant": "kMultiChannelMixerParam_Volume",
+     "id": 0,
+     "doc": "Global, Linear Gain, 0->1, 1. (the volume value can actually be any finite number, including negative.)",
+     "scope": "Global",
+     "unit": "Linear Gain",
+     "range": "0->1",
+     "default": "1. (the volume value can actually be any finite number"
+    },
+    {
+     "constant": "kMultiChannelMixerParam_Enable",
+     "id": 1,
+     "doc": "Global, Boolean, 0->1, 1",
+     "scope": "Global",
+     "unit": "Boolean",
+     "range": "0->1",
+     "default": "1"
+    },
+    {
+     "constant": "kMultiChannelMixerParam_Pan",
+     "id": 2,
+     "doc": "Global, Pan, -1->1, 0",
+     "scope": "Global",
+     "unit": "Pan",
+     "range": "-1->1",
+     "default": "0"
+    },
+    {
+     "constant": "kMultiChannelMixerParam_PreAveragePower",
+     "id": 1000,
+     "doc": "these report level in dB, as do the other mixers"
+    },
+    {
+     "constant": "kMultiChannelMixerParam_PrePeakHoldLevel",
+     "id": 2000
+    },
+    {
+     "constant": "kMultiChannelMixerParam_PostAveragePower",
+     "id": 3000
+    },
+    {
+     "constant": "kMultiChannelMixerParam_PostPeakHoldLevel",
+     "id": 4000
+    }
+   ]
+  },
+  {
+   "unit": "AUMatrixMixer",
+   "au": "aumx:mxmx:appl",
+   "parameters": [
+    {
+     "constant": "kMatrixMixerParam_Volume",
+     "id": 0
+    },
+    {
+     "constant": "kMatrixMixerParam_Enable",
+     "id": 1
+    },
+    {
+     "constant": "kMatrixMixerParam_PreAveragePower",
+     "id": 1000,
+     "doc": "these report level in dB, as do the other mixers"
+    },
+    {
+     "constant": "kMatrixMixerParam_PrePeakHoldLevel",
+     "id": 2000
+    },
+    {
+     "constant": "kMatrixMixerParam_PostAveragePower",
+     "id": 3000
+    },
+    {
+     "constant": "kMatrixMixerParam_PostPeakHoldLevel",
+     "id": 4000
+    },
+    {
+     "constant": "kMatrixMixerParam_PreAveragePowerLinear",
+     "id": 5000,
+     "doc": "these report linear levels - for \"expert\" use only."
+    },
+    {
+     "constant": "kMatrixMixerParam_PrePeakHoldLevelLinear",
+     "id": 6000
+    },
+    {
+     "constant": "kMatrixMixerParam_PostAveragePowerLinear",
+     "id": 7000
+    },
+    {
+     "constant": "kMatrixMixerParam_PostPeakHoldLevelLinear",
+     "id": 8000
+    }
+   ]
+  },
+  {
+   "unit": "AudioDeviceOutput",
+   "au": "auou:ahal:appl",
+   "parameters": [
+    {
+     "constant": "kHALOutputParam_Volume",
+     "id": 14,
+     "doc": "Global, LinearGain, 0->1, 1",
+     "scope": "Global",
+     "unit": "LinearGain",
+     "range": "0->1",
+     "default": "1"
+    }
+   ]
+  },
+  {
+   "unit": "AUTimePitch",
+   "au": "auol:tmpt:appl",
+   "parameters": [
+    {
+     "constant": "kTimePitchParam_Rate",
+     "id": 0
+    },
+    {
+     "constant": "kTimePitchParam_Pitch",
+     "id": 1
+    },
+    {
+     "constant": "kTimePitchParam_EffectBlend",
+     "id": 2
+    }
+   ]
+  },
+  {
+   "unit": "AUNewTimePitch",
+   "au": "aufc:nutp:appl",
+   "parameters": [
+    {
+     "constant": "kNewTimePitchParam_Rate",
+     "id": 0,
+     "doc": "Global, rate, 1/32 -> 32.0, 1.0",
+     "scope": "Global",
+     "unit": "rate",
+     "range": "1/32 -> 32.0",
+     "default": "1.0"
+    },
+    {
+     "constant": "kNewTimePitchParam_Pitch",
+     "id": 1,
+     "doc": "Global, Cents, -2400 -> 2400, 1.0",
+     "scope": "Global",
+     "unit": "Cents",
+     "range": "-2400 -> 2400",
+     "default": "1.0"
+    },
+    {
+     "constant": "kNewTimePitchParam_Smoothness",
+     "id": 4,
+     "doc": "Global, generic, 3.0 -> 32.0, 8.0",
+     "scope": "Global",
+     "unit": "generic",
+     "range": "3.0 -> 32.0",
+     "default": "8.0"
+    },
+    {
+     "constant": "kNewTimePitchParam_EnableSpectralCoherence",
+     "id": 6,
+     "doc": "Global, Boolean, 0->1, 1",
+     "scope": "Global",
+     "unit": "Boolean",
+     "range": "0->1",
+     "default": "1"
+    },
+    {
+     "constant": "kNewTimePitchParam_EnableTransientPreservation",
+     "id": 7,
+     "doc": "Global, Boolean, 0->1, 1",
+     "scope": "Global",
+     "unit": "Boolean",
+     "range": "0->1",
+     "default": "1"
+    }
+   ]
+  },
+  {
+   "unit": "AUSampler",
+   "au": "aumu:samp:appl",
+   "parameters": [
+    {
+     "constant": "kAUSamplerParam_Gain",
+     "id": 900,
+     "doc": "Global, dB, -90->12, 0",
+     "scope": "Global",
+     "unit": "dB",
+     "range": "-90->12",
+     "default": "0"
+    },
+    {
+     "constant": "kAUSamplerParam_CoarseTuning",
+     "id": 901,
+     "doc": "Global, Semitones, -24->24, 0",
+     "scope": "Global",
+     "unit": "Semitones",
+     "range": "-24->24",
+     "default": "0"
+    },
+    {
+     "constant": "kAUSamplerParam_FineTuning",
+     "id": 902,
+     "doc": "Global, Cents, -99->99, 0",
+     "scope": "Global",
+     "unit": "Cents",
+     "range": "-99->99",
+     "default": "0"
+    },
+    {
+     "constant": "kAUSamplerParam_Pan",
+     "id": 903,
+     "doc": "Global, -1.0->1.0, 0"
+    }
+   ]
+  },
+  {
+   "unit": "AUBandpass",
+   "au": "aufx:bpas:appl",
+   "parameters": [
+    {
+     "constant": "kBandpassParam_CenterFrequency",
+     "id": 0,
+     "doc": "Global, Hz, 20->(SampleRate/2), 5000",
+     "scope": "Global",
+     "unit": "Hz",
+     "range": "20->(SampleRate/2)",
+     "default": "5000"
+    },
+    {
+     "constant": "kBandpassParam_Bandwidth",
+     "id": 1,
+     "doc": "Global, Cents, 100->12000, 600",
+     "scope": "Global",
+     "unit": "Cents",
+     "range": "100->12000",
+     "default": "600"
+    }
+   ]
+  },
+  {
+   "unit": "AUHipass",
+   "au": "aufx:hpas:appl",
+   "parameters": [
+    {
+     "constant": "kHipassParam_CutoffFrequency",
+     "id": 0,
+     "doc": "Global, Hz, 10->(SampleRate/2), 6900",
+     "scope": "Global",
+     "unit": "Hz",
+     "range": "10->(SampleRate/2)",
+     "default": "6900"
+    },
+    {
+     "constant": "kHipassParam_Resonance",
+     "id": 1,
+     "doc": "Global, dB, -20->40, 0",
+     "scope": "Global",
+     "unit": "dB",
+     "range": "-20->40",
+     "default": "0"
+    }
+   ]
+  },
+  {
+   "unit": "AULowpass",
+   "au": "aufx:lpas:appl",
+   "parameters": [
+    {
+     "constant": "kLowPassParam_CutoffFrequency",
+     "id": 0,
+     "doc": "Global, Hz, 10->(SampleRate/2), 6900",
+     "scope": "Global",
+     "unit": "Hz",
+     "range": "10->(SampleRate/2)",
+     "default": "6900"
+    },
+    {
+     "constant": "kLowPassParam_Resonance",
+     "id": 1,
+     "doc": "Global, dB, -20->40, 0",
+     "scope": "Global",
+     "unit": "dB",
+     "range": "-20->40",
+     "default": "0"
+    }
+   ]
+  },
+  {
+   "unit": "AUHighShelfFilter",
+   "au": "aufx:hshf:appl",
+   "parameters": [
+    {
+     "constant": "kHighShelfParam_CutOffFrequency",
+     "id": 0,
+     "doc": "Global, Hz, 10000->(SampleRate/2), 10000",
+     "scope": "Global",
+     "unit": "Hz",
+     "range": "10000->(SampleRate/2)",
+     "default": "10000"
+    },
+    {
+     "constant": "kHighShelfParam_Gain",
+     "id": 1,
+     "doc": "Global, dB, -40->40, 0",
+     "scope": "Global",
+     "unit": "dB",
+     "range": "-40->40",
+     "default": "0"
+    }
+   ]
+  },
+  {
+   "unit": "AULowShelfFilter",
+   "au": "aufx:lshf:appl",
+   "parameters": [
+    {
+     "constant": "kAULowShelfParam_CutoffFrequency",
+     "id": 0,
+     "doc": "Global, Hz, 10->200, 80",
+     "scope": "Global",
+     "unit": "Hz",
+     "range": "10->200",
+     "default": "80"
+    },
+    {
+     "constant": "kAULowShelfParam_Gain",
+     "id": 1,
+     "doc": "Global, dB, -40->40, 0",
+     "scope": "Global",
+     "unit": "dB",
+     "range": "-40->40",
+     "default": "0"
+    }
+   ]
+  },
+  {
+   "unit": "AUParametricEQ",
+   "au": "aufx:pmeq:appl",
+   "parameters": [
+    {
+     "constant": "kParametricEQParam_CenterFreq",
+     "id": 0,
+     "doc": "Global, Hz, 20->(SampleRate/2), 2000",
+     "scope": "Global",
+     "unit": "Hz",
+     "range": "20->(SampleRate/2)",
+     "default": "2000"
+    },
+    {
+     "constant": "kParametricEQParam_Q",
+     "id": 1,
+     "doc": "Global, Hz, 0.1->20, 1.0",
+     "scope": "Global",
+     "unit": "Hz",
+     "range": "0.1->20",
+     "default": "1.0"
+    },
+    {
+     "constant": "kParametricEQParam_Gain",
+     "id": 2,
+     "doc": "Global, dB, -20->20, 0",
+     "scope": "Global",
+     "unit": "dB",
+     "range": "-20->20",
+     "default": "0"
+    }
+   ]
+  },
+  {
+   "unit": "AUPeakLimiter",
+   "au": "aufx:lmtr:appl",
+   "parameters": [
+    {
+     "constant": "kLimiterParam_AttackTime",
+     "id": 0,
+     "doc": "Global, Secs, 0.001->0.03, 0.012",
+     "scope": "Global",
+     "unit": "Secs",
+     "range": "0.001->0.03",
+     "default": "0.012"
+    },
+    {
+     "constant": "kLimiterParam_DecayTime",
+     "id": 1,
+     "doc": "Global, Secs, 0.001->0.06, 0.024",
+     "scope": "Global",
+     "unit": "Secs",
+     "range": "0.001->0.06",
+     "default": "0.024"
+    },
+    {
+     "constant": "kLimiterParam_PreGain",
+     "id": 2,
+     "doc": "Global, dB, -40->40, 0",
+     "scope": "Global",
+     "unit": "dB",
+     "range": "-40->40",
+     "default": "0"
+    }
+   ]
+  },
+  {
+   "unit": "AUDynamicsProcessor",
+   "au": "aufx:dcmp:appl",
+   "parameters": [
+    {
+     "constant": "kDynamicsProcessorParam_Threshold",
+     "id": 0,
+     "doc": "Global, dB, -40->20, -20",
+     "scope": "Global",
+     "unit": "dB",
+     "range": "-40->20",
+     "default": "-20"
+    },
+    {
+     "constant": "kDynamicsProcessorParam_HeadRoom",
+     "id": 1,
+     "doc": "Global, dB, 0.1->40.0, 5",
+     "scope": "Global",
+     "unit": "dB",
+     "range": "0.1->40.0",
+     "default": "5"
+    },
+    {
+     "constant": "kDynamicsProcessorParam_ExpansionRatio",
+     "id": 2,
+     "doc": "Global, rate, 1->50.0, 2",
+     "scope": "Global",
+     "unit": "rate",
+     "range": "1->50.0",
+     "default": "2"
+    },
+    {
+     "constant": "kDynamicsProcessorParam_ExpansionThreshold",
+     "id": 3,
+     "doc": "Global, dB"
+    },
+    {
+     "constant": "kDynamicsProcessorParam_AttackTime",
+     "id": 4,
+     "doc": "Global, secs, 0.0001->0.2, 0.001",
+     "scope": "Global",
+     "unit": "secs",
+     "range": "0.0001->0.2",
+     "default": "0.001"
+    },
+    {
+     "constant": "kDynamicsProcessorParam_ReleaseTime",
+     "id": 5,
+     "doc": "Global, secs, 0.01->3, 0.05",
+     "scope": "Global",
+     "unit": "secs",
+     "range": "0.01->3",
+     "default": "0.05"
+    },
+    {
+     "constant": "kDynamicsProcessorParam_OverallGain",
+     "id": 6,
+     "doc": "Global, dB, -40->40, 0",
+     "scope": "Global",
+     "unit": "dB",
+     "range": "-40->40",
+     "default": "0"
+    },
+    {
+     "constant": "kDynamicsProcessorParam_CompressionAmount",
+     "id": 1000,
+     "doc": "Global, dB, read-only parameter"
+    },
+    {
+     "constant": "kDynamicsProcessorParam_InputAmplitude",
+     "id": 2000
+    },
+    {
+     "constant": "kDynamicsProcessorParam_OutputAmplitude",
+     "id": 3000
+    }
+   ]
+  },
+  {
+   "unit": "AUVarispeed",
+   "au": "auol:vari:appl",
+   "parameters": [
+    {
+     "constant": "kVarispeedParam_PlaybackRate",
+     "id": 0,
+     "doc": "Global, Rate, 0.25 -> 4.0, 1.0",
+     "scope": "Global",
+     "unit": "Rate",
+     "range": "0.25 -> 4.0",
+     "default": "1.0"
+    },
+    {
+     "constant": "kVarispeedParam_PlaybackCents",
+     "id": 1,
+     "doc": "Global, Cents, -2400 -> 2400, 0.0",
+     "scope": "Global",
+     "unit": "Cents",
+     "range": "-2400 -> 2400",
+     "default": "0.0"
+    }
+   ]
+  },
+  {
+   "unit": "AUDistortion",
+   "au": "aufx:dist:appl",
+   "parameters": [
+    {
+     "constant": "kDistortionParam_Delay",
+     "id": 0,
+     "doc": "Global, Milliseconds, 0.1 -> 500, 0.1",
+     "scope": "Global",
+     "unit": "Milliseconds",
+     "range": "0.1 -> 500",
+     "default": "0.1"
+    },
+    {
+     "constant": "kDistortionParam_Decay",
+     "id": 1,
+     "doc": "Global, Rate, 0.1 -> 50, 1.0",
+     "scope": "Global",
+     "unit": "Rate",
+     "range": "0.1 -> 50",
+     "default": "1.0"
+    },
+    {
+     "constant": "kDistortionParam_DelayMix",
+     "id": 2,
+     "doc": "Global, Percent, 0 -> 100, 50",
+     "scope": "Global",
+     "unit": "Percent",
+     "range": "0 -> 100",
+     "default": "50"
+    },
+    {
+     "constant": "kDistortionParam_Decimation",
+     "id": 3,
+     "doc": "Global, Percent, 0 -> 100"
+    },
+    {
+     "constant": "kDistortionParam_Rounding",
+     "id": 4,
+     "doc": "Global, Percent, 0 -> 100, 0",
+     "scope": "Global",
+     "unit": "Percent",
+     "range": "0 -> 100",
+     "default": "0"
+    },
+    {
+     "constant": "kDistortionParam_DecimationMix",
+     "id": 5,
+     "doc": "Global, Percent, 0 -> 100, 50",
+     "scope": "Global",
+     "unit": "Percent",
+     "range": "0 -> 100",
+     "default": "50"
+    },
+    {
+     "constant": "kDistortionParam_LinearTerm",
+     "id": 6,
+     "doc": "Global, Linear Gain, 0 -> 1, 1",
+     "scope": "Global",
+     "unit": "Linear Gain",
+     "range": "0 -> 1",
+     "default": "1"
+    },
+    {
+     "constant": "kDistortionParam_SquaredTerm",
+     "id": 7,
+     "doc": "Global, Linear Gain, 0 -> 20, 0",
+     "scope": "Global",
+     "unit": "Linear Gain",
+     "range": "0 -> 20",
+     "default": "0"
+    },
+    {
+     "constant": "kDistortionParam_CubicTerm",
+     "id": 8,
+     "doc": "Global, Linear Gain, 0 -> 20, 0",
+     "scope": "Global",
+     "unit": "Linear Gain",
+     "range": "0 -> 20",
+     "default": "0"
+    },
+    {
+     "constant": "kDistortionParam_PolynomialMix",
+     "id": 9,
+     "doc": "Global, Percent, 0 -> 100, 50",
+     "scope": "Global",
+     "unit": "Percent",
+     "range": "0 -> 100",
+     "default": "50"
+    },
+    {
+     "constant": "kDistortionParam_RingModFreq1",
+     "id": 10,
+     "doc": "Global, Hertz, 0.5 -> 8000, 100",
+     "scope": "Global",
+     "unit": "Hertz",
+     "range": "0.5 -> 8000",
+     "default": "100"
+    },
+    {
+     "constant": "kDistortionParam_RingModFreq2",
+     "id": 11,
+     "doc": "Global, Hertz, 0.5 -> 8000, 100",
+     "scope": "Global",
+     "unit": "Hertz",
+     "range": "0.5 -> 8000",
+     "default": "100"
+    },
+    {
+     "constant": "kDistortionParam_RingModBalance",
+     "id": 12,
+     "doc": "Global, Percent, 0 -> 100, 50",
+     "scope": "Global",
+     "unit": "Percent",
+     "range": "0 -> 100",
+     "default": "50"
+    },
+    {
+     "constant": "kDistortionParam_RingModMix",
+     "id": 13,
+     "doc": "Global, Percent, 0 -> 100, 0",
+     "scope": "Global",
+     "unit": "Percent",
+     "range": "0 -> 100",
+     "default": "0"
+    },
+    {
+     "constant": "kDistortionParam_SoftClipGain",
+     "id": 14,
+     "doc": "Global, dB, -80 -> 20, -6",
+     "scope": "Global",
+     "unit": "dB",
+     "range": "-80 -> 20",
+     "default": "-6"
+    },
+    {
+     "constant": "kDistortionParam_FinalMix",
+     "id": 15,
+     "doc": "Global, Percent, 0 -> 100, 50",
+     "scope": "Global",
+     "unit": "Percent",
+     "range": "0 -> 100",
+     "default": "50"
+    }
+   ]
+  },
+  {
+   "unit": "AUDelay",
+   "au": "aufx:dely:appl",
+   "parameters": [
+    {
+     "constant": "kDelayParam_WetDryMix",
+     "id": 0,
+     "doc": "Global, EqPow Crossfade, 0->100, 50",
+     "scope": "Global",
+     "unit": "EqPow Crossfade",
+     "range": "0->100",
+     "default": "50"
+    },
+    {
+     "constant": "kDelayParam_DelayTime",
+     "id": 1,
+     "doc": "Global, Secs, 0->2, 1",
+     "scope": "Global",
+     "unit": "Secs",
+     "range": "0->2",
+     "default": "1"
+    },
+    {
+     "constant": "kDelayParam_Feedback",
+     "id": 2,
+     "doc": "Global, Percent, -100->100, 50",
+     "scope": "Global",
+     "unit": "Percent",
+     "range": "-100->100",
+     "default": "50"
+    },
+    {
+     "constant": "kDelayParam_LopassCutoff",
+     "id": 3,
+     "doc": "Global, Hz, 10->(SampleRate/2), 15000",
+     "scope": "Global",
+     "unit": "Hz",
+     "range": "10->(SampleRate/2)",
+     "default": "15000"
+    }
+   ]
+  },
+  {
+   "unit": "AUSampleDelay",
+   "au": "aufx:sdly:appl",
+   "parameters": [
+    {
+     "constant": "kSampleDelayParam_DelayFrames",
+     "id": 0,
+     "doc": "Global, Samples, 0->(SampleRate), 0",
+     "scope": "Global",
+     "unit": "Samples",
+     "range": "0->(SampleRate)",
+     "default": "0"
+    }
+   ]
+  },
+  {
+   "unit": "AUNBandEQ",
+   "au": "aufx:nbeq:appl",
+   "parameters": [
+    {
+     "constant": "kAUNBandEQParam_GlobalGain",
+     "id": 0,
+     "doc": "Global, dB, -96->24, 0",
+     "scope": "Global",
+     "unit": "dB",
+     "range": "-96->24",
+     "default": "0"
+    },
+    {
+     "constant": "kAUNBandEQParam_BypassBand",
+     "id": 1000,
+     "doc": "Global, Boolean, 0 or 1, 1",
+     "scope": "Global",
+     "unit": "Boolean",
+     "range": "0 or 1",
+     "default": "1"
+    },
+    {
+     "constant": "kAUNBandEQParam_FilterType",
+     "id": 2000,
+     "doc": "Global, Indexed, 0->kNumAUNBandEQFilterTypes-1, 0",
+     "scope": "Global",
+     "unit": "Indexed",
+     "range": "0->kNumAUNBandEQFilterTypes-1",
+     "default": "0"
+    },
+    {
+     "constant": "kAUNBandEQParam_Frequency",
+     "id": 3000,
+     "doc": "Global, Hz, 20->(SampleRate/2), 1000",
+     "scope": "Global",
+     "unit": "Hz",
+     "range": "20->(SampleRate/2)",
+     "default": "1000"
+    },
+    {
+     "constant": "kAUNBandEQParam_Gain",
+     "id": 4000,
+     "doc": "Global, dB, -96->24, 0",
+     "scope": "Global",
+     "unit": "dB",
+     "range": "-96->24",
+     "default": "0"
+    },
+    {
+     "constant": "kAUNBandEQParam_Bandwidth",
+     "id": 5000,
+     "doc": "Global, octaves, 0.05->5.0, 0.5",
+     "scope": "Global",
+     "unit": "octaves",
+     "range": "0.05->5.0",
+     "default": "0.5"
+    }
+   ]
+  },
+  {
+   "unit": "AURoundTripAACParam",
+   "au": null,
+   "parameters": [
+    {
+     "constant": "kRoundTripAACParam_Format",
+     "id": 0,
+     "doc": "Global, indexed : AAC, HE-AAC, HE-AACv2",
+     "scope": "Global",
+     "unit": "indexed : AAC",
+     "range": "HE-AAC",
+     "default": "HE-AACv2"
+    },
+    {
+     "constant": "kRoundTripAACParam_EncodingStrategy",
+     "id": 1,
+     "doc": "Global, indexed"
+    },
+    {
+     "constant": "kRoundTripAACParam_RateOrQuality",
+     "id": 2,
+     "doc": "Global, indexed"
+    },
+    {
+     "constant": "kRoundTripAACParam_BitRate",
+     "id": 1,
+     "doc": "These are deprecated:"
+    },
+    {
+     "constant": "kRoundTripAACParam_Quality",
+     "id": 2
+    },
+    {
+     "constant": "kRoundTripAACParam_CompressedFormatSampleRate",
+     "id": 3
+    }
+   ]
+  },
+  {
+   "unit": "AUMatrixReverb",
+   "au": "aufx:mrev:appl",
+   "parameters": [
+    {
+     "constant": "kReverbParam_DryWetMix",
+     "id": 0,
+     "doc": "Global, EqPow CrossFade, 0->100, 100",
+     "scope": "Global",
+     "unit": "EqPow CrossFade",
+     "range": "0->100",
+     "default": "100"
+    },
+    {
+     "constant": "kReverbParam_SmallLargeMix",
+     "id": 1,
+     "doc": "Global, EqPow CrossFade, 0->100, 50",
+     "scope": "Global",
+     "unit": "EqPow CrossFade",
+     "range": "0->100",
+     "default": "50"
+    },
+    {
+     "constant": "kReverbParam_SmallSize",
+     "id": 2,
+     "doc": "Global, Secs, 0.005->0.020, 0.06",
+     "scope": "Global",
+     "unit": "Secs",
+     "range": "0.005->0.020",
+     "default": "0.06"
+    },
+    {
+     "constant": "kReverbParam_LargeSize",
+     "id": 3,
+     "doc": "Global, Secs, 0.4->10.0, 3.07",
+     "scope": "Global",
+     "unit": "Secs",
+     "range": "0.4->10.0",
+     "default": "3.07"
+    },
+    {
+     "constant": "kReverbParam_PreDelay",
+     "id": 4,
+     "doc": "Global, Secs, 0.001->0.03, 0.025",
+     "scope": "Global",
+     "unit": "Secs",
+     "range": "0.001->0.03",
+     "default": "0.025"
+    },
+    {
+     "constant": "kReverbParam_LargeDelay",
+     "id": 5,
+     "doc": "Global, Secs, 0.001->0.1, 0.035",
+     "scope": "Global",
+     "unit": "Secs",
+     "range": "0.001->0.1",
+     "default": "0.035"
+    },
+    {
+     "constant": "kReverbParam_SmallDensity",
+     "id": 6,
+     "doc": "Global, Genr, 0->1, 0.28",
+     "scope": "Global",
+     "unit": "Genr",
+     "range": "0->1",
+     "default": "0.28"
+    },
+    {
+     "constant": "kReverbParam_LargeDensity",
+     "id": 7,
+     "doc": "Global, Genr, 0->1, 0.82",
+     "scope": "Global",
+     "unit": "Genr",
+     "range": "0->1",
+     "default": "0.82"
+    },
+    {
+     "constant": "kReverbParam_LargeDelayRange",
+     "id": 8,
+     "doc": "Global, Genr, 0->1, 0.3",
+     "scope": "Global",
+     "unit": "Genr",
+     "range": "0->1",
+     "default": "0.3"
+    },
+    {
+     "constant": "kReverbParam_SmallBrightness",
+     "id": 9,
+     "doc": "Global, Genr, 0.1->1, 0.96",
+     "scope": "Global",
+     "unit": "Genr",
+     "range": "0.1->1",
+     "default": "0.96"
+    },
+    {
+     "constant": "kReverbParam_LargeBrightness",
+     "id": 10,
+     "doc": "Global, Genr, 0.1->1, 0.49",
+     "scope": "Global",
+     "unit": "Genr",
+     "range": "0.1->1",
+     "default": "0.49"
+    },
+    {
+     "constant": "kReverbParam_SmallDelayRange",
+     "id": 11,
+     "doc": "Global, Genr, 0->1 0.5"
+    },
+    {
+     "constant": "kReverbParam_ModulationRate",
+     "id": 12,
+     "doc": "Global, Hz, 0.001->2.0, 1.0",
+     "scope": "Global",
+     "unit": "Hz",
+     "range": "0.001->2.0",
+     "default": "1.0"
+    },
+    {
+     "constant": "kReverbParam_ModulationDepth",
+     "id": 13,
+     "doc": "Global, Genr, 0.0 -> 1.0, 0.2",
+     "scope": "Global",
+     "unit": "Genr",
+     "range": "0.0 -> 1.0",
+     "default": "0.2"
+    }
+   ]
+  },
+  {
+   "unit": "AUMultibandCompressor",
+   "au": "aufx:mcmp:appl",
+   "parameters": [
+    {
+     "constant": "kMultibandCompressorParam_Pregain",
+     "id": 0,
+     "doc": "Global, dB, -40 -> 40, 0",
+     "scope": "Global",
+     "unit": "dB",
+     "range": "-40 -> 40",
+     "default": "0"
+    },
+    {
+     "constant": "kMultibandCompressorParam_Postgain",
+     "id": 1,
+     "doc": "Global, dB, -40 -> 40, 0",
+     "scope": "Global",
+     "unit": "dB",
+     "range": "-40 -> 40",
+     "default": "0"
+    },
+    {
+     "constant": "kMultibandCompressorParam_Crossover1",
+     "id": 2,
+     "doc": "Global, Hertz, 20 -> (SampleRate/2), 120.0",
+     "scope": "Global",
+     "unit": "Hertz",
+     "range": "20 -> (SampleRate/2)",
+     "default": "120.0"
+    },
+    {
+     "constant": "kMultibandCompressorParam_Crossover2",
+     "id": 3,
+     "doc": "Global, Hertz, 20 -> (SampleRate/2), 700.0",
+     "scope": "Global",
+     "unit": "Hertz",
+     "range": "20 -> (SampleRate/2)",
+     "default": "700.0"
+    },
+    {
+     "constant": "kMultibandCompressorParam_Crossover3",
+     "id": 4,
+     "doc": "Global, Hertz, 20 -> (SampleRate/2), 3000.0",
+     "scope": "Global",
+     "unit": "Hertz",
+     "range": "20 -> (SampleRate/2)",
+     "default": "3000.0"
+    },
+    {
+     "constant": "kMultibandCompressorParam_Threshold1",
+     "id": 5,
+     "doc": "Global, dB, -100.0 -> 0.0, -22.0",
+     "scope": "Global",
+     "unit": "dB",
+     "range": "-100.0 -> 0.0",
+     "default": "-22.0"
+    },
+    {
+     "constant": "kMultibandCompressorParam_Threshold2",
+     "id": 6,
+     "doc": "Global, dB, -100.0 -> 0.0, -32.0",
+     "scope": "Global",
+     "unit": "dB",
+     "range": "-100.0 -> 0.0",
+     "default": "-32.0"
+    },
+    {
+     "constant": "kMultibandCompressorParam_Threshold3",
+     "id": 7,
+     "doc": "Global, dB, -100.0 -> 0.0, -33.0",
+     "scope": "Global",
+     "unit": "dB",
+     "range": "-100.0 -> 0.0",
+     "default": "-33.0"
+    },
+    {
+     "constant": "kMultibandCompressorParam_Threshold4",
+     "id": 8,
+     "doc": "Global, dB, -100.0 -> 0.0, -36.0",
+     "scope": "Global",
+     "unit": "dB",
+     "range": "-100.0 -> 0.0",
+     "default": "-36.0"
+    },
+    {
+     "constant": "kMultibandCompressorParam_Headroom1",
+     "id": 9,
+     "doc": "Global, dB, 0.1 -> 40.0, 5.0",
+     "scope": "Global",
+     "unit": "dB",
+     "range": "0.1 -> 40.0",
+     "default": "5.0"
+    },
+    {
+     "constant": "kMultibandCompressorParam_Headroom2",
+     "id": 10,
+     "doc": "Global, dB, 0.1 -> 40.0, 12.0",
+     "scope": "Global",
+     "unit": "dB",
+     "range": "0.1 -> 40.0",
+     "default": "12.0"
+    },
+    {
+     "constant": "kMultibandCompressorParam_Headroom3",
+     "id": 11,
+     "doc": "Global, dB, 0.1 -> 40.0, 5.0",
+     "scope": "Global",
+     "unit": "dB",
+     "range": "0.1 -> 40.0",
+     "default": "5.0"
+    },
+    {
+     "constant": "kMultibandCompressorParam_Headroom4",
+     "id": 12,
+     "doc": "Global, dB, 0.1 -> 40.0, 7.5",
+     "scope": "Global",
+     "unit": "dB",
+     "range": "0.1 -> 40.0",
+     "default": "7.5"
+    },
+    {
+     "constant": "kMultibandCompressorParam_AttackTime",
+     "id": 13,
+     "doc": "Global, Secs, 0.001 -> 0.200, 0.080",
+     "scope": "Global",
+     "unit": "Secs",
+     "range": "0.001 -> 0.200",
+     "default": "0.080"
+    },
+    {
+     "constant": "kMultibandCompressorParam_ReleaseTime",
+     "id": 14,
+     "doc": "Global, Secs, 0.010 -> 3.0, 0.120",
+     "scope": "Global",
+     "unit": "Secs",
+     "range": "0.010 -> 3.0",
+     "default": "0.120"
+    },
+    {
+     "constant": "kMultibandCompressorParam_EQ1",
+     "id": 15,
+     "doc": "Global, dB, -20 -> 20, 0",
+     "scope": "Global",
+     "unit": "dB",
+     "range": "-20 -> 20",
+     "default": "0"
+    },
+    {
+     "constant": "kMultibandCompressorParam_EQ2",
+     "id": 16,
+     "doc": "Global, dB, -20 -> 20, 0",
+     "scope": "Global",
+     "unit": "dB",
+     "range": "-20 -> 20",
+     "default": "0"
+    },
+    {
+     "constant": "kMultibandCompressorParam_EQ3",
+     "id": 17,
+     "doc": "Global, dB, -20 -> 20, 0",
+     "scope": "Global",
+     "unit": "dB",
+     "range": "-20 -> 20",
+     "default": "0"
+    },
+    {
+     "constant": "kMultibandCompressorParam_EQ4",
+     "id": 18,
+     "doc": "Global, dB, -20 -> 20, 0",
+     "scope": "Global",
+     "unit": "dB",
+     "range": "-20 -> 20",
+     "default": "0"
+    },
+    {
+     "constant": "kMultibandCompressorParam_CompressionAmount1",
+     "id": 1000,
+     "doc": "Global, dB, 0 -> 20"
+    },
+    {
+     "constant": "kMultibandCompressorParam_CompressionAmount2",
+     "id": 2000,
+     "doc": "Global, dB, 0 -> 20"
+    },
+    {
+     "constant": "kMultibandCompressorParam_CompressionAmount3",
+     "id": 3000,
+     "doc": "Global, dB, 0 -> 20"
+    },
+    {
+     "constant": "kMultibandCompressorParam_CompressionAmount4",
+     "id": 4000,
+     "doc": "Global, dB, 0 -> 20"
+    },
+    {
+     "constant": "kMultibandCompressorParam_InputAmplitude1",
+     "id": 5000,
+     "doc": "Global, dB, -120 -> 20"
+    },
+    {
+     "constant": "kMultibandCompressorParam_InputAmplitude2",
+     "id": 6000,
+     "doc": "Global, dB, -120 -> 20"
+    },
+    {
+     "constant": "kMultibandCompressorParam_InputAmplitude3",
+     "id": 7000,
+     "doc": "Global, dB, -120 -> 20"
+    },
+    {
+     "constant": "kMultibandCompressorParam_InputAmplitude4",
+     "id": 8000,
+     "doc": "Global, dB, -120 -> 20"
+    },
+    {
+     "constant": "kMultibandCompressorParam_OutputAmplitude1",
+     "id": 9000,
+     "doc": "Global, dB, -120 -> 20"
+    },
+    {
+     "constant": "kMultibandCompressorParam_OutputAmplitude2",
+     "id": 10000,
+     "doc": "Global, dB, -120 -> 20"
+    },
+    {
+     "constant": "kMultibandCompressorParam_OutputAmplitude3",
+     "id": 11000,
+     "doc": "Global, dB, -120 -> 20"
+    },
+    {
+     "constant": "kMultibandCompressorParam_OutputAmplitude4",
+     "id": 12000,
+     "doc": "Global, dB, -120 -> 20"
+    }
+   ]
+  },
+  {
+   "unit": "AUFilter",
+   "au": "aufx:filt:appl",
+   "parameters": [
+    {
+     "constant": "kMultibandFilter_LowFilterType",
+     "id": 0,
+     "doc": "Global, indexed, 0 -> 1, 0",
+     "scope": "Global",
+     "unit": "indexed",
+     "range": "0 -> 1",
+     "default": "0"
+    },
+    {
+     "constant": "kMultibandFilter_LowFrequency",
+     "id": 1,
+     "doc": "Global, Hertz, 10 -> (SampleRate/2), 100",
+     "scope": "Global",
+     "unit": "Hertz",
+     "range": "10 -> (SampleRate/2)",
+     "default": "100"
+    },
+    {
+     "constant": "kMultibandFilter_LowGain",
+     "id": 2,
+     "doc": "Global, dB, -18 -> +18, 0",
+     "scope": "Global",
+     "unit": "dB",
+     "range": "-18 -> +18",
+     "default": "0"
+    },
+    {
+     "constant": "kMultibandFilter_CenterFreq1",
+     "id": 3,
+     "doc": "Global, Hertz, 10 -> (SampleRate/2), 100",
+     "scope": "Global",
+     "unit": "Hertz",
+     "range": "10 -> (SampleRate/2)",
+     "default": "100"
+    },
+    {
+     "constant": "kMultibandFilter_CenterGain1",
+     "id": 4,
+     "doc": "Global, dB, -18 -> +18, 0",
+     "scope": "Global",
+     "unit": "dB",
+     "range": "-18 -> +18",
+     "default": "0"
+    },
+    {
+     "constant": "kMultibandFilter_Bandwidth1",
+     "id": 5,
+     "doc": "Global, Octaves, 0.05 -> 3.0, 2.0",
+     "scope": "Global",
+     "unit": "Octaves",
+     "range": "0.05 -> 3.0",
+     "default": "2.0"
+    },
+    {
+     "constant": "kMultibandFilter_CenterFreq2",
+     "id": 6,
+     "doc": "Global, Hertz, 10 -> (SampleRate/2), 100",
+     "scope": "Global",
+     "unit": "Hertz",
+     "range": "10 -> (SampleRate/2)",
+     "default": "100"
+    },
+    {
+     "constant": "kMultibandFilter_CenterGain2",
+     "id": 7,
+     "doc": "Global, dB, -18 -> +18, 0",
+     "scope": "Global",
+     "unit": "dB",
+     "range": "-18 -> +18",
+     "default": "0"
+    },
+    {
+     "constant": "kMultibandFilter_Bandwidth2",
+     "id": 8,
+     "doc": "Global, Octaves, 0.05 -> 3.0, 2.0",
+     "scope": "Global",
+     "unit": "Octaves",
+     "range": "0.05 -> 3.0",
+     "default": "2.0"
+    },
+    {
+     "constant": "kMultibandFilter_CenterFreq3",
+     "id": 9,
+     "doc": "Global, Hertz, 10 -> (SampleRate/2), 100",
+     "scope": "Global",
+     "unit": "Hertz",
+     "range": "10 -> (SampleRate/2)",
+     "default": "100"
+    },
+    {
+     "constant": "kMultibandFilter_CenterGain3",
+     "id": 10,
+     "doc": "Global, dB, -18 -> +18, 0",
+     "scope": "Global",
+     "unit": "dB",
+     "range": "-18 -> +18",
+     "default": "0"
+    },
+    {
+     "constant": "kMultibandFilter_Bandwidth3",
+     "id": 11,
+     "doc": "Global, Octaves, 0.05 -> 3.0, 2.0",
+     "scope": "Global",
+     "unit": "Octaves",
+     "range": "0.05 -> 3.0",
+     "default": "2.0"
+    },
+    {
+     "constant": "kMultibandFilter_HighFilterType",
+     "id": 12,
+     "doc": "Global, indexed, 0 -> 1, 0",
+     "scope": "Global",
+     "unit": "indexed",
+     "range": "0 -> 1",
+     "default": "0"
+    },
+    {
+     "constant": "kMultibandFilter_HighFrequency",
+     "id": 13,
+     "doc": "Global, Hertz, 10 -> (SampleRate/2), 100",
+     "scope": "Global",
+     "unit": "Hertz",
+     "range": "10 -> (SampleRate/2)",
+     "default": "100"
+    },
+    {
+     "constant": "kMultibandFilter_HighGain",
+     "id": 14,
+     "doc": "Global, dB, -18 -> +18, 0",
+     "scope": "Global",
+     "unit": "dB",
+     "range": "-18 -> +18",
+     "default": "0"
+    }
+   ]
+  },
+  {
+   "unit": "AURogerBeep",
+   "au": "aufx:rogr:appl",
+   "parameters": [
+    {
+     "constant": "kRogerBeepParam_InGateThreshold",
+     "id": 0,
+     "doc": "Global, dB, -80 -> 0, -6",
+     "scope": "Global",
+     "unit": "dB",
+     "range": "-80 -> 0",
+     "default": "-6"
+    },
+    {
+     "constant": "kRogerBeepParam_InGateThresholdTime",
+     "id": 1,
+     "doc": "Global, Milliseconds, 0 -> 1000, 1000",
+     "scope": "Global",
+     "unit": "Milliseconds",
+     "range": "0 -> 1000",
+     "default": "1000"
+    },
+    {
+     "constant": "kRogerBeepParam_OutGateThreshold",
+     "id": 2,
+     "doc": "Global, dB, -80 -> 0, -6",
+     "scope": "Global",
+     "unit": "dB",
+     "range": "-80 -> 0",
+     "default": "-6"
+    },
+    {
+     "constant": "kRogerBeepParam_OutGateThresholdTime",
+     "id": 3,
+     "doc": "Global, Milliseconds, 0 -> 1000, 1000",
+     "scope": "Global",
+     "unit": "Milliseconds",
+     "range": "0 -> 1000",
+     "default": "1000"
+    },
+    {
+     "constant": "kRogerBeepParam_Sensitivity",
+     "id": 4,
+     "doc": "Global, indexed, 0 -> 2, 2",
+     "scope": "Global",
+     "unit": "indexed",
+     "range": "0 -> 2",
+     "default": "2"
+    },
+    {
+     "constant": "kRogerBeepParam_RogerType",
+     "id": 5,
+     "doc": "Global, indexed, 0 -> 2, 0",
+     "scope": "Global",
+     "unit": "indexed",
+     "range": "0 -> 2",
+     "default": "0"
+    },
+    {
+     "constant": "kRogerBeepParam_RogerGain",
+     "id": 6,
+     "doc": "Global, dB, -80 -> 20, -6",
+     "scope": "Global",
+     "unit": "dB",
+     "range": "-80 -> 20",
+     "default": "-6"
+    }
+   ]
+  },
+  {
+   "unit": "Stereo",
+   "au": null,
+   "parameters": [
+    {
+     "constant": "kStereoMixerParam_Volume",
+     "id": 0,
+     "doc": "Input/Output, Mixer Fader Curve, 0->1, 1",
+     "scope": "Input/Output",
+     "unit": "Mixer Fader Curve",
+     "range": "0->1",
+     "default": "1"
+    },
+    {
+     "constant": "kStereoMixerParam_Pan",
+     "id": 1,
+     "doc": "Input, Pan, 0->1, 0.5",
+     "scope": "Input",
+     "unit": "Pan",
+     "range": "0->1",
+     "default": "0.5"
+    },
+    {
+     "constant": "kStereoMixerParam_PreAveragePower",
+     "id": 1000,
+     "doc": "while kStereiMixerParam_PostAveragePower + 1 indicates the right channel."
+    },
+    {
+     "constant": "kStereoMixerParam_PrePeakHoldLevel",
+     "id": 2000
+    },
+    {
+     "constant": "kStereoMixerParam_PostAveragePower",
+     "id": 3000
+    },
+    {
+     "constant": "kStereoMixerParam_PostPeakHoldLevel",
+     "id": 4000
+    }
+   ]
+  },
+  {
+   "unit": "AUNetReceive",
+   "au": "augn:nrcv:appl",
+   "parameters": [
+    {
+     "constant": "kAUNetReceiveParam_Status",
+     "id": 0,
+     "doc": "Global, indexed, 0 -> 5, read only",
+     "scope": "Global",
+     "unit": "indexed",
+     "range": "0 -> 5",
+     "default": "read only"
+    },
+    {
+     "constant": "kAUNetReceiveParam_NumParameters",
+     "id": 1
+    }
+   ]
+  },
+  {
+   "unit": "AUNetSend",
+   "au": "aufx:nsnd:appl",
+   "parameters": [
+    {
+     "constant": "kAUNetSendParam_Status",
+     "id": 0,
+     "doc": "Global, indexed, 0 -> 5, read only",
+     "scope": "Global",
+     "unit": "indexed",
+     "range": "0 -> 5",
+     "default": "read only"
+    },
+    {
+     "constant": "kAUNetSendParam_NumParameters",
+     "id": 1
+    }
+   ]
+  },
+  {
+   "unit": "DLSMusicDevice",
+   "au": "aumu:dls :appl",
+   "parameters": [
+    {
+     "constant": "kMusicDeviceParam_Tuning",
+     "id": 0,
+     "doc": "Global, Cents, -1200, 1200, 0",
+     "scope": "Global",
+     "unit": "Cents",
+     "range": "-1200",
+     "default": "1200"
+    },
+    {
+     "constant": "kMusicDeviceParam_Volume",
+     "id": 1,
+     "doc": "Global, dB, -120->40, 0",
+     "scope": "Global",
+     "unit": "dB",
+     "range": "-120->40",
+     "default": "0"
+    },
+    {
+     "constant": "kMusicDeviceParam_ReverbVolume",
+     "id": 2,
+     "doc": "Global, dB, -120->40, 0",
+     "scope": "Global",
+     "unit": "dB",
+     "range": "-120->40",
+     "default": "0"
+    }
+   ]
+  },
+  {
+   "unit": "AURandom",
+   "au": null,
+   "parameters": [
+    {
+     "constant": "kRandomParam_BoundA",
+     "id": 0
+    },
+    {
+     "constant": "kRandomParam_BoundB",
+     "id": 1
+    },
+    {
+     "constant": "kRandomParam_Curve",
+     "id": 2
+    }
+   ]
+  },
+  {
+   "unit": "AUReverb2",
+   "au": "aufx:rvb2:appl",
+   "parameters": [
+    {
+     "constant": "kReverb2Param_DryWetMix",
+     "id": 0,
+     "doc": "Global, CrossFade, 0->100, 100",
+     "scope": "Global",
+     "unit": "CrossFade",
+     "range": "0->100",
+     "default": "100"
+    },
+    {
+     "constant": "kReverb2Param_Gain",
+     "id": 1,
+     "doc": "Global, Decibels, -20->20, 0",
+     "scope": "Global",
+     "unit": "Decibels",
+     "range": "-20->20",
+     "default": "0"
+    },
+    {
+     "constant": "kReverb2Param_MinDelayTime",
+     "id": 2,
+     "doc": "Global, Secs, 0.0001->1.0, 0.008",
+     "scope": "Global",
+     "unit": "Secs",
+     "range": "0.0001->1.0",
+     "default": "0.008"
+    },
+    {
+     "constant": "kReverb2Param_MaxDelayTime",
+     "id": 3,
+     "doc": "Global, Secs, 0.0001->1.0, 0.050",
+     "scope": "Global",
+     "unit": "Secs",
+     "range": "0.0001->1.0",
+     "default": "0.050"
+    },
+    {
+     "constant": "kReverb2Param_DecayTimeAt0Hz",
+     "id": 4,
+     "doc": "Global, Secs, 0.001->20.0, 1.0",
+     "scope": "Global",
+     "unit": "Secs",
+     "range": "0.001->20.0",
+     "default": "1.0"
+    },
+    {
+     "constant": "kReverb2Param_DecayTimeAtNyquist",
+     "id": 5,
+     "doc": "Global, Secs, 0.001->20.0, 0.5",
+     "scope": "Global",
+     "unit": "Secs",
+     "range": "0.001->20.0",
+     "default": "0.5"
+    },
+    {
+     "constant": "kReverb2Param_RandomizeReflections",
+     "id": 6,
+     "doc": "Global, Integer, 1->1000"
+    }
+   ]
+  }
+ ]
+}

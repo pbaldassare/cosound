@@ -57,7 +57,7 @@ def status(o):
 
 def agents_md():
     out = [
-        "# COSOUND – Specialized agents: responsibilities (Prompt 06, updated by Prompt 07)",
+        "# COSOUND – Specialized agents: responsibilities (Prompt 06, updated by Prompts 07 and 08)",
         "",
         "Generated from `packages/agents/<id>.json` by `packages/agents/render_docs.py` (the manifests are the source of truth,",
         "compiled into the app and checked by tests).",

@@ -41,7 +41,7 @@ impl Agent for DawController {
         "daw_controller"
     }
     fn operations(&self) -> &'static [&'static str] {
-        &["detect", "plan_operations"]
+        &["detect", "plan_operations", "plugin_setup_plan"]
     }
     fn run(&self, op: &str, input: &Value, cx: &mut Ctx) -> OpResult {
         cx.tool("daw.detector");
@@ -122,6 +122,19 @@ impl Agent for DawController {
                 );
                 out.proposed_daw_ops = ops;
                 Ok(out)
+            }
+            "plugin_setup_plan" => {
+                cx.tool("plugins.daw_adapter");
+                cx.tool("daw.routes");
+                let id = s(input, "design_id").ok_or_else(|| AgentError::input("design_id is required"))?;
+                let daw_id = s(input, "daw").unwrap_or("logic");
+                let d = crate::plugins::design::get(&cx.db.lock().unwrap(), id).ok_or_else(|| AgentError::new("NOT_FOUND", "unknown design"))?;
+                if !found.iter().any(|x| x.id == daw_id && x.detected) {
+                    cx.limit(format!("{daw_id} was not detected on this computer: the plan cannot be executed here"));
+                }
+                let plan = crate::plugins::daw::setup_plan(&d, daw_id).map_err(AgentError::input)?;
+                cx.limit("plan only: no DAW connector exists yet (M4); steps marked planned are done by the user");
+                Ok(Outcome::new(plan, "convention"))
             }
             _ => Err(unknown(self.id(), op)),
         }

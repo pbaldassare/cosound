@@ -7,7 +7,7 @@ use std::path::Path;
 
 pub type Db = std::sync::Mutex<Connection>;
 
-const MIGRATIONS: &[&str] = &[include_str!("../migrations/001_init.sql"), include_str!("../migrations/002_agents.sql"), include_str!("../migrations/003_smartlib.sql")];
+const MIGRATIONS: &[&str] = &[include_str!("../migrations/001_init.sql"), include_str!("../migrations/002_agents.sql"), include_str!("../migrations/003_smartlib.sql"), include_str!("../migrations/004_plugins.sql")];
 
 pub fn open(path: &Path) -> rusqlite::Result<Connection> {
     let c = Connection::open(path)?;

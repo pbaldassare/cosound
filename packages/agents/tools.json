@@ -177,13 +177,13 @@
   },
   {
     "id": "plugins.scanner",
-    "name": "Plugin scanner",
+    "name": "Plugin Scanner",
     "layer": 3,
     "status": "available",
-    "module": "desktop/src-tauri/src/plugins.rs",
+    "module": "desktop/src-tauri/src/plugins/scanner.rs",
     "description": {
-      "it": "Inventario dei plug-in senza caricarli",
-      "en": "Plugin inventory without loading them"
+      "it": "Plug-in nelle cartelle standard e nel registro Audio Unit di macOS: formato, versione, architettura",
+      "en": "Plug-ins in the standard folders and macOS's Audio Unit registry: format, version, architecture"
     }
   },
   {
@@ -266,15 +266,15 @@
   },
   {
     "id": "plugins.param_maps",
-    "name": "Plugin parameter maps",
+    "name": "Plug-in parameter control inside the DAW",
     "layer": 3,
     "status": "planned",
     "module": null,
     "description": {
-      "it": "Parametri dei plug-in tramite la DAW",
-      "en": "Plugin parameters through the DAW"
+      "it": "Controllo dei parametri dell'istanza nella DAW",
+      "en": "Parameter control of the instance inside the DAW"
     },
-    "requires": "milestone M7"
+    "requires": "DAW connectors (milestone M4) and per-DAW parameter maps (M7)"
   },
   {
     "id": "voice.pitch_tracker",
@@ -371,5 +371,93 @@
       "en": "Language reasoning"
     },
     "requires": "ADR-005, decisions D-2/D-3"
+  },
+  {
+    "id": "plugins.registry",
+    "name": "Plugin Registry",
+    "layer": 3,
+    "status": "available",
+    "module": "desktop/src-tauri/src/plugins/registry.rs",
+    "description": {
+      "it": "Database locale dei plug-in rilevati, un prodotto per più formati, compatibilità DAW documentata",
+      "en": "Local database of detected plug-ins, one product across formats, documented DAW compatibility"
+    }
+  },
+  {
+    "id": "plugins.knowledge",
+    "name": "Plugin Knowledge Engine",
+    "layer": 3,
+    "status": "available",
+    "module": "desktop/src-tauri/src/plugins/knowledge.rs",
+    "description": {
+      "it": "Documentazione ufficiale con fonte e versione (header Apple), knowledge base",
+      "en": "Official documentation with source and version (Apple header), knowledge base"
+    }
+  },
+  {
+    "id": "plugins.host",
+    "name": "Isolated Audio Unit host",
+    "layer": 3,
+    "status": "available",
+    "module": "desktop/src-tauri/auhost/main.swift",
+    "description": {
+      "it": "Carica Audio Unit in un processo separato con limite di tempo: parametri, render, stato",
+      "en": "Loads Audio Units in a separate process with a time limit: parameters, rendering, state"
+    }
+  },
+  {
+    "id": "plugins.parameters",
+    "name": "Parameter Discovery Engine",
+    "layer": 3,
+    "status": "available",
+    "module": "desktop/src-tauri/src/plugins/params.rs",
+    "description": {
+      "it": "Parametri reali del plug-in e ruolo sonoro di ciascuno",
+      "en": "The plug-in's real parameters and the sound role of each"
+    }
+  },
+  {
+    "id": "plugins.presets",
+    "name": "Preset Analyzer",
+    "layer": 3,
+    "status": "available",
+    "module": "desktop/src-tauri/src/plugins/presets.rs",
+    "description": {
+      "it": "Preset di fabbrica, cartelle preset, Smart Library; ricerca semantica; timbro misurato",
+      "en": "Factory presets, preset folders, Smart Library; semantic search; measured timbre"
+    }
+  },
+  {
+    "id": "plugins.design",
+    "name": "Plugin Control Interface + Preset Management",
+    "layer": 3,
+    "status": "available",
+    "module": "desktop/src-tauri/src/plugins/design.rs",
+    "description": {
+      "it": "Proposte di modifica dei parametri, ascolto prima/dopo, nuovi preset, annullamento",
+      "en": "Parameter-change proposals, before/after audition, new presets, undo"
+    }
+  },
+  {
+    "id": "plugins.chains",
+    "name": "Effect Chain Engine",
+    "layer": 3,
+    "status": "available",
+    "module": "desktop/src-tauri/src/plugins/chains.rs",
+    "description": {
+      "it": "Catene di effetti per obiettivo, ordine, materiale misurato, controllo del livello",
+      "en": "Effect chains per goal, order, measured material, level check"
+    }
+  },
+  {
+    "id": "plugins.daw_adapter",
+    "name": "DAW Integration Adapter (plug-ins)",
+    "layer": 3,
+    "status": "available",
+    "module": "desktop/src-tauri/src/plugins/daw.rs",
+    "description": {
+      "it": "Cosa ogni DAW consente con i plug-in e piano per il DAW Controller",
+      "en": "What each DAW allows with plug-ins, and the plan for the DAW Controller"
+    }
   }
 ]

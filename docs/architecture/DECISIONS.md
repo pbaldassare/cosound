@@ -61,5 +61,10 @@ Status: **Accepted** (can be implemented), **Proposed** (needs confirmation), **
 - First case: **Symphonia 0.6.1** (pure-Rust audio decoding for WAV, AIFF, CAF, MP3, AAC/ALAC, FLAC, OGG Vorbis), used by the Smart Library (Prompt 07). Its license notice goes in the app's third-party notices.
 - Alternative if refused: decode through the OS (Core Audio on macOS, Media Foundation on Windows), which means two code paths and more platform testing.
 
+### ADR-013 Plug-in hosting: isolated Audio Unit helper — Accepted (2026-11-26, Prompt 08)
+- COSOUND loads plug-ins only in `cosound-auhost`, a separate Swift process built from `auhost/main.swift` on Apple's public APIs (AVFoundation/AudioToolbox). Every call has a time limit; a crash or hang never reaches the app.
+- Audio Units only, on macOS. VST3 hosting would need a C++ host with the Steinberg SDK (license and effort to weigh); CLAP a custom host; AAX cannot be hosted by third parties (integration-sdks §1.4). JUCE was not used (commercial license, ADR-011).
+- Designed sounds reach DAWs as new preset files (never overwriting); parameter control inside DAWs waits for the connectors (ADR-007, M4).
+
 ### ADR-012 Commercial gating by entitlements — Accepted
 - Feature keys per plan in `plan_features`; trial length in `app_settings`; auto-conversion only with a recorded `consents` row. Payments postponed (Stripe planned).

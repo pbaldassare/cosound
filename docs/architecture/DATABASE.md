@@ -107,6 +107,14 @@ Details: `docs/smart-library/ARCHITECTURE.md` §3.
 | `plugin_gui_maps` | GUI layout for the human hand per plugin version, scale factor and window size |
 | `plugin_control_levels` | per plugin version × DAW: host_params / hand / none, measured_at |
 
+**Implemented (Prompt 08, migration `004_plugins.sql`)** with a simpler shape than the design above:
+- `plugin_products`, `plugin_installs` (one row per format/path or AU unit), `plugin_categories`, `plugin_params`
+  (real parameters with a sound role), `plugin_presets` (factory, preset folders, COSOUND), `plugin_errors`,
+  `plugin_designs` (sound designs and chains, with the files written).
+- Not built yet: per-DAW parameter maps and GUI maps (they need the DAW connectors).
+
+Details: `docs/plugin-intelligence/ARCHITECTURE.md` §4.
+
 ### 2.3b DAW, projects, operations, safety – owner `specs/DAW-CONTROLLER.md` §10 + this file
 | Table | Main columns |
 |---|---|
