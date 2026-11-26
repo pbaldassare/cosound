@@ -66,6 +66,7 @@ const it: Dict = {
   },
   auth: {
     firstName: 'Nome', lastName: 'Cognome', email: 'Email', password: 'Password', confirm: 'Conferma password',
+    showPassword: 'Mostra password', hidePassword: 'Nascondi password',
     pwTooShort: (n: number) => `La password deve avere almeno ${n} caratteri.`, pwMismatch: 'Le password non coincidono.',
     signupTitle: 'Crea il tuo account', haveAccount: 'Hai già un account?', signIn: 'Accedi', creating: 'Creazione account…', create: 'Crea account',
     checkInbox: "Controlla la tua casella: ti abbiamo inviato un link per verificare l'indirizzo email.",

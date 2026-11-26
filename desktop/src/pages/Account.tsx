@@ -5,7 +5,7 @@ import { errText } from '../lib/api'
 import { useStore } from '../lib/store'
 import { siteUrl, supabase, type Plan, type Profile, type Subscription } from '../lib/supabase'
 import { fill, useT } from '../i18n'
-import { Badge, Card, ErrorLine, Note, PageHeader, btnGhost, btnPrimary } from '../components/ui'
+import { Badge, Card, ErrorLine, Note, PageHeader, PasswordInput, btnGhost, btnPrimary } from '../components/ui'
 
 /** Sign in / sign up form. Shared with onboarding. */
 export function AuthForm({ onDone }: { onDone?: () => void }) {
@@ -46,7 +46,7 @@ export function AuthForm({ onDone }: { onDone?: () => void }) {
         </div>
       )}
       <input className="field" type="email" required autoComplete="email" placeholder={t.account.email} aria-label={t.account.email} value={f.email} onChange={(e) => setF({ ...f, email: e.target.value })} />
-      <input className="field" type="password" required minLength={mode === 'up' ? 8 : 1} autoComplete={mode === 'up' ? 'new-password' : 'current-password'} placeholder={t.account.password} aria-label={t.account.password} value={f.password} onChange={(e) => setF({ ...f, password: e.target.value })} />
+      <PasswordInput showLabel={t.account.showPassword} hideLabel={t.account.hidePassword} required minLength={mode === 'up' ? 8 : 1} autoComplete={mode === 'up' ? 'new-password' : 'current-password'} placeholder={t.account.password} aria-label={t.account.password} value={f.password} onChange={(e) => setF({ ...f, password: e.target.value })} />
       <ErrorLine error={error} />
       {msg && <p className="text-sm text-emerald-300">{msg}</p>}
       <div className="flex flex-wrap items-center gap-3">

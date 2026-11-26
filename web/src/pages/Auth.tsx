@@ -1,5 +1,6 @@
 import { useEffect, useState, type FormEvent, type ReactNode } from 'react'
 import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom'
+import { Eye, EyeOff } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../lib/auth'
 import { btnPrimary } from '../components/Layout'
@@ -22,10 +23,24 @@ function AuthCard({ title, subtitle, children }: { title: string; subtitle?: Rea
 }
 
 function Field({ label, ...props }: { label: string } & React.InputHTMLAttributes<HTMLInputElement>) {
+  const { t } = useT()
+  const [shown, setShown] = useState(false)
+  const isPassword = props.type === 'password'
   return (
     <label className="block text-sm">
       <span className="mb-1.5 block text-muted">{label}</span>
-      <input className="field" required {...props} />
+      {isPassword ? (
+        <span className="relative block">
+          <input className="field pr-11" required {...props} type={shown ? 'text' : 'password'} />
+          <button type="button" onClick={() => setShown((s) => !s)} aria-pressed={shown}
+            aria-label={shown ? t.auth.hidePassword : t.auth.showPassword} title={shown ? t.auth.hidePassword : t.auth.showPassword}
+            className="absolute inset-y-0 right-0 flex w-10 items-center justify-center text-muted transition hover:text-white">
+            {shown ? <EyeOff size={17} /> : <Eye size={17} />}
+          </button>
+        </span>
+      ) : (
+        <input className="field" required {...props} />
+      )}
     </label>
   )
 }

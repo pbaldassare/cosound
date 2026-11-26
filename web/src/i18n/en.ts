@@ -64,6 +64,7 @@ const en = {
   },
   auth: {
     firstName: 'First name', lastName: 'Last name', email: 'Email', password: 'Password', confirm: 'Confirm password',
+    showPassword: 'Show password', hidePassword: 'Hide password',
     pwTooShort: (n: number) => `Password must be at least ${n} characters.`, pwMismatch: 'Passwords do not match.',
     signupTitle: 'Create your account', haveAccount: 'Already have one?', signIn: 'Sign in', creating: 'Creating account…', create: 'Create account',
     checkInbox: 'Check your inbox: we sent you a link to verify your email address.',

@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useState, type ReactNode } from 'react'
+import { useCallback, useEffect, useState, type InputHTMLAttributes, type ReactNode } from 'react'
+import { Eye, EyeOff } from 'lucide-react'
 import { errText } from '../lib/api'
 
 export const btnPrimary =
@@ -85,4 +86,18 @@ export function useLoad<T>(fn: () => Promise<T>, deps: unknown[] = []) {
   }, deps)
   useEffect(() => { reload() }, [reload])
   return { data, error, loading, reload, setData }
+}
+
+/** Password field with an eye button to show or hide what is typed. */
+export function PasswordInput({ showLabel, hideLabel, ...props }: { showLabel: string; hideLabel: string } & InputHTMLAttributes<HTMLInputElement>) {
+  const [shown, setShown] = useState(false)
+  return (
+    <span className="relative block">
+      <input className="field pr-11" {...props} type={shown ? 'text' : 'password'} />
+      <button type="button" onClick={() => setShown((v) => !v)} aria-pressed={shown} aria-label={shown ? hideLabel : showLabel} title={shown ? hideLabel : showLabel}
+        className="absolute inset-y-0 right-0 flex w-10 items-center justify-center text-muted transition hover:text-white">
+        {shown ? <EyeOff size={16} /> : <Eye size={16} />}
+      </button>
+    </span>
+  )
 }

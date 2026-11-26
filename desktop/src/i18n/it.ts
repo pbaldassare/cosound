@@ -116,6 +116,7 @@ const it: Dict = {
   },
   account: {
     title: 'Account', signIn: 'Accedi', signUp: 'Crea account', email: 'Email', password: 'Password', firstName: 'Nome', lastName: 'Cognome',
+    showPassword: 'Mostra password', hidePassword: 'Nascondi password',
     signOut: 'Esci', invalidCredentials: 'Email o password non corretti.', notConfigured: 'Account online non configurato in questa build.', checkEmail: 'Controlla la tua email per confermare l\'account, poi accedi.',
     profile: 'Profilo', plan: 'Piano attivo', noPlan: 'Nessun piano attivo', features: 'Funzioni incluse', trial: 'Prova gratuita', trialActive: 'Attiva fino al {date}',
     trialNone: 'Non attiva', trialLength: 'Durata della prova: {n} giorni', expiry: 'Scadenza', renewal: 'Prossimo rinnovo', manage: 'Gestisci abbonamento',

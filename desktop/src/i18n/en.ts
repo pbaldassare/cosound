@@ -114,6 +114,7 @@ const en = {
   },
   account: {
     title: 'Account', signIn: 'Sign in', signUp: 'Create account', email: 'Email', password: 'Password', firstName: 'First name', lastName: 'Last name',
+    showPassword: 'Show password', hidePassword: 'Hide password',
     signOut: 'Sign out', invalidCredentials: 'Wrong email or password.', notConfigured: 'Online account not configured in this build.', checkEmail: 'Check your email to confirm the account, then sign in.',
     profile: 'Profile', plan: 'Active plan', noPlan: 'No active plan', features: 'Included features', trial: 'Free trial', trialActive: 'Active until {date}',
     trialNone: 'Not active', trialLength: 'Trial length: {n} days', expiry: 'Expiry', renewal: 'Next renewal', manage: 'Manage subscription',
