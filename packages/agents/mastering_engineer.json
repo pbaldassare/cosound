@@ -1,0 +1,145 @@
+{
+  "contract_version": "1",
+  "id": "mastering_engineer",
+  "name": "Mastering Engineer",
+  "version": "1.0.0",
+  "role": {
+    "it": "Controllo tecnico del master e destinazioni di pubblicazione",
+    "en": "Technical check of the master and release destinations"
+  },
+  "competencies": {
+    "it": [
+      "Loudness integrata e true peak",
+      "Gamma dinamica (PLR, fattore di cresta)",
+      "Bilanciamento tonale e immagine stereo (indicativi)",
+      "Controllo di clipping",
+      "Confronto con i target delle piattaforme, con affidabilità della fonte",
+      "Proposte per le diverse destinazioni"
+    ],
+    "en": [
+      "Integrated loudness and true peak",
+      "Dynamic range (PLR, crest factor)",
+      "Tonal balance and stereo image (indicative)",
+      "Clipping check",
+      "Comparison with platform targets, with source reliability",
+      "Proposals per destination"
+    ]
+  },
+  "operations": [
+    {
+      "name": "analyze_master",
+      "status": "available",
+      "risk": "read",
+      "requires_approval": false,
+      "summary": {
+        "it": "Misure del master e confronto con le destinazioni",
+        "en": "Master measurements and comparison with destinations"
+      },
+      "input": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string"
+          },
+          "destinations": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "spotify",
+                "apple_music",
+                "youtube",
+                "tidal",
+                "amazon_music",
+                "club",
+                "broadcast_ebu"
+              ]
+            }
+          }
+        },
+        "required": [
+          "path"
+        ]
+      },
+      "output": "measurements, destinations[] with expected gain change, suggestions[]",
+      "tools": [
+        "audio.wav_meter"
+      ],
+      "permissions": [
+        "files.authorized_read"
+      ],
+      "basis": "measured"
+    },
+    {
+      "name": "master_track",
+      "status": "planned",
+      "risk": "high",
+      "requires_approval": true,
+      "summary": {
+        "it": "Elabora ed esporta il master",
+        "en": "Process and export the master"
+      },
+      "input": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string"
+          },
+          "destination": {
+            "type": "string",
+            "enum": [
+              "spotify",
+              "apple_music",
+              "youtube",
+              "tidal",
+              "amazon_music",
+              "club",
+              "broadcast_ebu"
+            ]
+          }
+        },
+        "required": [
+          "path"
+        ]
+      },
+      "output": "file",
+      "tools": [
+        "audio.processing_chain"
+      ],
+      "permissions": [
+        "files.authorized_read",
+        "files.app_write"
+      ],
+      "requires": "processing chain and render (milestone M9)"
+    }
+  ],
+  "tools": [
+    "audio.processing_chain",
+    "audio.wav_meter"
+  ],
+  "permissions": [
+    "files.app_write",
+    "files.authorized_read"
+  ],
+  "limits": {
+    "it": [
+      "Non dichiara mai completato un mastering: l'elaborazione non esiste ancora (M9)",
+      "Solo Spotify pubblica ufficialmente il target (−14 LUFS, ≤ −1 dBTP); gli altri valori sono di fonti secondarie e sono indicati come tali"
+    ],
+    "en": [
+      "Never reports a master as done: processing does not exist yet (M9)",
+      "Only Spotify publishes its target officially (−14 LUFS, ≤ −1 dBTP); other values come from secondary sources and are labelled as such"
+    ]
+  },
+  "input_formats": [
+    "application/json",
+    "audio/wav"
+  ],
+  "output_formats": [
+    "application/json"
+  ],
+  "collaborates_with": [
+    "audio_analysis",
+    "mixing_engineer"
+  ]
+}

@@ -353,23 +353,85 @@ pub fn search(c: &Connection, q: &str, kind: Option<&str>, limit: i64) -> rusqli
          where (f.name like ?1 escape '\\' or f.rel_path like ?1 escape '\\') and (?2 is null or f.kind = ?2)
          order by f.name limit ?3",
     )?;
-    let rows = st.query_map(params![pattern, kind, limit], |r| {
-        let mount: Option<String> = r.get(6)?;
-        let online: bool = r.get(7)?;
-        let root_rel: String = r.get(8)?;
-        let rel: String = r.get(3)?;
-        Ok(FileHit {
-            id: r.get(0)?,
-            root_id: r.get(1)?,
-            name: r.get(2)?,
-            kind: r.get(4)?,
-            size: r.get(5)?,
-            path: mount.filter(|_| online).map(|m| Path::new(&m).join(&root_rel).join(&rel).to_string_lossy().to_string()),
-            rel_path: rel,
-            volume_label: r.get(9)?,
-        })
-    })?;
+    let rows = st.query_map(params![pattern, kind, limit], hit_row)?;
     rows.collect()
+}
+
+fn hit_row(r: &rusqlite::Row) -> rusqlite::Result<FileHit> {
+    let mount: Option<String> = r.get(6)?;
+    let online: bool = r.get(7)?;
+    let root_rel: String = r.get(8)?;
+    let rel: String = r.get(3)?;
+    Ok(FileHit {
+        id: r.get(0)?,
+        root_id: r.get(1)?,
+        name: r.get(2)?,
+        kind: r.get(4)?,
+        size: r.get(5)?,
+        path: mount.filter(|_| online).map(|m| Path::new(&m).join(&root_rel).join(&rel).to_string_lossy().to_string()),
+        rel_path: rel,
+        volume_label: r.get(9)?,
+    })
+}
+
+/// Probable duplicates: same file name (case-insensitive) and same size in different places.
+/// Contents are not compared (files are not hashed while indexing): candidates, not proof.
+pub fn duplicates(c: &Connection, limit: i64) -> rusqlite::Result<Vec<Vec<FileHit>>> {
+    let mut st = c.prepare("select lower(name), size from files group by lower(name), size having count(*) > 1 order by count(*) desc, lower(name) limit ?1")?;
+    let keys: Vec<(String, i64)> = st.query_map([limit], |r| Ok((r.get(0)?, r.get(1)?)))?.collect::<Result<_, _>>()?;
+    let mut q = c.prepare(
+        "select f.id, f.root_id, f.name, f.rel_path, f.kind, f.size, v.mount_point, v.online, r.rel_path, v.label
+         from files f join library_roots r on r.id = f.root_id join volumes v on v.id = r.volume_id
+         where lower(f.name) = ?1 and f.size = ?2 order by v.label, f.rel_path",
+    )?;
+    keys.iter().map(|(n, s)| q.query_map(params![n, s], hit_row)?.collect()).collect()
+}
+
+/// BPM and key written in a file name ("Bass_124_Am.wav", "pad 128bpm F#min"). Read from the name
+/// only: nothing is measured, so callers must label these values as coming from the file name.
+pub fn filename_meta(name: &str) -> (Option<u32>, Option<String>) {
+    let stem = name.rsplit_once('.').map_or(name, |s| s.0);
+    let toks: Vec<&str> = stem.split(|c: char| !(c.is_ascii_alphanumeric() || c == '#')).filter(|t| !t.is_empty()).collect();
+    let mut bpm = None;
+    for (i, t) in toks.iter().enumerate() {
+        let l = t.to_ascii_lowercase();
+        let num = |s: &str| s.parse::<u32>().ok().filter(|b| (60..=200).contains(b));
+        if let Some(b) = l.strip_suffix("bpm").and_then(num).or_else(|| l.strip_prefix("bpm").and_then(num)) {
+            bpm = Some(b);
+            break;
+        }
+        if l == "bpm" {
+            if let Some(b) = i.checked_sub(1).and_then(|j| num(toks[j])).or_else(|| toks.get(i + 1).and_then(|t| num(t))) {
+                bpm = Some(b);
+                break;
+            }
+        }
+        if bpm.is_none() && (2..=3).contains(&t.len()) && t.chars().all(|c| c.is_ascii_digit()) {
+            bpm = t.parse::<u32>().ok().filter(|b| (70..=180).contains(b));
+        }
+    }
+    let mut key = None;
+    for (i, t) in toks.iter().enumerate() {
+        let mut ch = t.chars();
+        let Some(letter) = ch.next().filter(|c| ('A'..='G').contains(c)) else { continue };
+        let rest: String = ch.collect();
+        let (acc, mode) = match rest.strip_prefix('#') {
+            Some(m) => ("#", m.to_string()),
+            None => match rest.strip_prefix('b') {
+                Some(m) if !m.is_empty() || toks.get(i + 1).is_some_and(|n| matches!(n.to_ascii_lowercase().as_str(), "minor" | "major" | "min" | "maj")) => ("b", m.to_string()),
+                _ => ("", rest.clone()),
+            },
+        };
+        let next = toks.get(i + 1).map(|n| n.to_ascii_lowercase()).unwrap_or_default();
+        let m = match (mode.as_str(), next.as_str()) {
+            ("m" | "min" | "minor", _) | ("", "minor" | "min") => "minor",
+            ("maj" | "major", _) | ("", "major" | "maj") => "major",
+            _ => continue,
+        };
+        key = Some(format!("{letter}{acc} {m}"));
+        break;
+    }
+    (bpm, key)
 }
 
 pub fn stats(c: &Connection) -> rusqlite::Result<serde_json::Value> {
@@ -440,5 +502,37 @@ mod tests {
         remove_root(&db.lock().unwrap(), &root).unwrap();
         assert!(mount_b.join("Samples/Drums/Kick 01.wav").exists(), "files untouched");
         assert_eq!(search(&db.lock().unwrap(), "kick", None, 50).unwrap().len(), 0);
+    }
+
+    #[test]
+    fn filename_metadata_and_duplicates() {
+        for (n, bpm, key) in [
+            ("Bass_124_Am.wav", Some(124), Some("A minor")),
+            ("pad 128bpm F#min.wav", Some(128), Some("F# minor")),
+            ("Lead Eb major 126 BPM.mid", Some(126), Some("Eb major")),
+            ("Kick 01.wav", None, None),
+            ("TR-909 Clap.wav", None, None),
+            ("Dream am loop.wav", None, None),
+            ("Bb minor chords.mid", None, Some("Bb minor")),
+        ] {
+            let (b, k) = filename_meta(n);
+            assert_eq!((b, k.as_deref()), (bpm, key), "{n}");
+        }
+        let tmp = tempfile::tempdir().unwrap();
+        let root = tmp.path().canonicalize().unwrap().join("lib");
+        for d in ["A", "B"] {
+            fs::create_dir_all(root.join(d)).unwrap();
+            fs::write(root.join(d).join("Kick.wav"), b"RIFFxxxx").unwrap();
+        }
+        fs::write(root.join("B").join("kick.wav.bak"), b"RIFFxxxx").unwrap();
+        fs::write(root.join("A").join("Snare.wav"), b"RIFF").unwrap();
+        fs::write(root.join("B").join("Snare.wav"), b"RIFFlonger").unwrap();
+        let db: Db = std::sync::Mutex::new(crate::db::open_memory());
+        let id = add_root(&db.lock().unwrap(), &[], root.to_str().unwrap()).unwrap();
+        scan_root(&db, &id, &|_| {}).unwrap();
+        let d = duplicates(&db.lock().unwrap(), 50).unwrap();
+        assert_eq!(d.len(), 1, "same name + same size only");
+        assert_eq!(d[0].len(), 2);
+        assert!(root.join("A/Kick.wav").exists() && root.join("B/Kick.wav").exists(), "nothing moved or deleted");
     }
 }

@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cosound.app/contracts/task-request.schema.json",
+  "title": "TaskRequest",
+  "description": "A task assigned to a specialized agent. Contract v1.",
+  "type": "object",
+  "required": [
+    "request_id",
+    "agent",
+    "operation"
+  ],
+  "properties": {
+    "contract_version": {
+      "type": "string",
+      "enum": [
+        "1"
+      ]
+    },
+    "request_id": {
+      "type": "string"
+    },
+    "task_id": {
+      "type": "string"
+    },
+    "trace_id": {
+      "type": "string"
+    },
+    "session_id": {
+      "type": "string"
+    },
+    "project_id": {
+      "type": "string"
+    },
+    "agent": {
+      "type": "string"
+    },
+    "operation": {
+      "type": "string"
+    },
+    "input": {
+      "type": "object"
+    },
+    "requested_by": {
+      "type": "string",
+      "enum": [
+        "central_agent",
+        "user",
+        "mock",
+        "test"
+      ]
+    },
+    "async": {
+      "type": "boolean",
+      "description": "Run in the background: the reply is RUNNING and the result is polled with task.status."
+    }
+  }
+}

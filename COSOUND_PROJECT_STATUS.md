@@ -10,7 +10,7 @@
 | 03 | Architettura software (15 consegne) | 🟡 **Provvisoria** – completa tranne le parti che dipendono dall'Agent centrale (decisioni D-1…D-6) | `docs/architecture/README.md` |
 | 04 | App desktop macOS/Windows (Tauri 2) | 🟡 **Funzionante nella misura implementata, testata su Linux e macOS (2026-11-25); Windows da verificare (CI pronta, non ancora pubblicata); non distribuibile** | `desktop/`, rapporto `docs/desktop/PROMPT-04-REPORT.md` |
 | 05 | A: verifica del Prompt 04 su macOS · B: motore musicale M2 (teoria, generazione MIDI, export, piano-roll) | ✅ **Completato (2026-11-25)**; restano a mano microfono e accesso con account reale | `desktop/src-tauri/src/music/`, rapporto `docs/desktop/PROMPT-05-REPORT.md` |
-| 06 | Multi-Agent System: agenti specializzati, registry, protocollo, connettore MOCK | ⏳ **Non iniziato** – testo salvato | `docs/prompts/PROMPT-06.md` |
+| 06 | Multi-Agent System: 13 agenti specializzati, registry, protocollo, Agent API, connettore MOCK | ✅ **Completato (2026-11-26)** per la parte che non dipende dall'Agent centrale: 36 operazioni reali su 53, le altre previste con il componente mancante | `docs/agents/`, rapporto `docs/agents/PROMPT-06-REPORT.md` |
 
 ## Verifica del Prompt 02 (eseguita il 2026-11-24)
 - 20 sezioni della knowledge base, ciascuna con `README.md` e registro fonti; tutte le 14 sezioni richieste sono coperte (mappa in `docs/knowledge/README.md`).
@@ -48,8 +48,11 @@
 | DAW Manager (solo rilevamento) e Plugin Manager (solo inventario) | ✅ completato e testato · nessuna DAW collegata |
 | Account in-app (accesso, piano, prova 3/7 giorni configurabile) | 🟡 implementato; Supabase raggiungibile da macOS; accesso con utente reale da provare a mano |
 | Microfono e registrazioni vocali | 🟡 implementato; su macOS permessi e bundle corretti, registrazione reale da provare a mano (finestra di autorizzazione) |
-| Agent Integration Layer (interfaccia, porta "non collegato", Capability Bus con 10 capability reali) | 🟡 provvisorio – adattatore in attesa dell'Agent |
-| Connettore di test temporaneo | ⚠️ **provvisorio**, solo build di sviluppo, da eliminare all'arrivo dell'Agent |
+| Agent Integration Layer (AgentPort, porta "non collegato", Agent API JSON verso gli agenti) | 🟡 provvisorio – adattatore in attesa dell'Agent (D-1…D-6) |
+| Multi-Agent System (Prompt 06): runtime, protocollo con 6 stati, registry di agenti/strumenti/permessi, approvazioni solo dall'utente, annullamento, eventi, registro `ail_tasks` | ✅ completato e testato |
+| 13 agenti specializzati | ✅ 12 con operazioni reali (36) · Voice-to-Music solo dichiarato (motore M5) · 17 operazioni previste |
+| Misuratore audio WAV (BS.1770, true peak, correlazione), template di arrangiamento, catalogo suoni e synth, Music Memory | ✅ completati e testati |
+| Connettore MOCK dell'Agent centrale (ex connettore di test) + script dello scenario | ⚠️ **simulazione**, solo build di sviluppo, da eliminare all'arrivo dell'Agent |
 | Compatibilità macOS/Windows, installer | 🟡 macOS verificato il 2026-11-25 (build, test, avvio, installer .app/.dmg aarch64 generati, non firmati); Windows solo via CI (pronta in `.github/workflows/desktop.yml`, non ancora pubblicata su GitHub: il login usato per il push non ha il permesso `workflow`); installer non firmati, nessun download pubblicato |
 | Motore musicale M2: teoria musicale, generazione MIDI di accordi, basso, melodia e batteria, export Standard MIDI File, pagina "Bozza musicale" con piano-roll e ascolto | ✅ completato e testato (24 test Rust, 2.980 parti generate e verificate, file letti da `file` e `mido`) |
 | Audio Analysis, Voice-to-Music, Reference, Mix/Master, connettori DAW, Plugin Intelligence | 📝 progettati, non implementati (roadmap M4–M9) |
@@ -63,3 +66,10 @@
 - **Database cloud**: migrazione `20261124120000_desktop_app.sql` applicata (solo aggiunte: `profiles.assistant_name`, `app_settings.trial_days = 7`).
 - **Verificato su macOS reale (2026-11-25)**: avvio, test, disco esterno (scollega/ricollega), rilevamento DAW e plug-in nei percorsi reali, Supabase. Vedi `PROMPT-04-REPORT.md` §10.
 - **Ancora da fare a mano**: microfono e accesso con account reale su macOS (richiedono l'utente); tutto su Windows (CI, pronta in `.github/workflows/desktop.yml`, non ancora pubblicata su GitHub: il login usato per il push non ha il permesso `workflow`).
+
+## Prompt 06 – riepilogo (2026-11-26)
+- **Completato**: 13 agenti specializzati in `desktop/src-tauri/src/agents/`. Ognuno ha un manifest in `packages/agents/`; i contratti sono in `packages/contracts/`. Il runtime esegue i task senza pianificare; le approvazioni le concede solo l'utente. Agent API JSON per l'adattatore del socio; pagina Agenti nell'app. Test: 47 superati, di cui 24 nuovi, compresa la collaborazione in sei passi e la sostituibilità del MOCK.
+- **Simulato**: solo il connettore MOCK e il suo script dello scenario, dichiarati come simulazione.
+- **Richiede componenti esterni**: 17 operazioni previste (voce M5, audio M6, plug-in M7, DAW M4, mastering M9, ricerca web e linguaggio naturale tramite Agent centrale o AI Core).
+- **In attesa delle specifiche dell'Agent centrale**: decisioni D-1…D-6; procedura in `docs/agents/INTEGRATION-GUIDE.md`.
+- **Database locale**: migrazione `002_agents.sql` (`ail_tasks`, `memory_facts`).

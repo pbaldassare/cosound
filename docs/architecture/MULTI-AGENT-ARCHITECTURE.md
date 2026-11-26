@@ -1,6 +1,9 @@
 # COSOUND – Multi-agent architecture (proposal, v0.2)
 
 Status: **PROPOSAL** (2026-11-24). Written under `docs/ARCHITECTURE-DIRECTIVE.md`.
+**Implemented in Prompt 06 (2026-11-26)**: see `docs/agents/MULTI-AGENT-SYSTEM.md`. Prompt 06 added a 13th agent, *Adaptive Workflow*
+(user's working habits, stored in the Music Memory), and replaced the §5 result statuses with PENDING / RUNNING / WAITING_APPROVAL /
+COMPLETED / FAILED / CANCELLED (`docs/agents/AGENT-PROTOCOL.md`).
 Part of the Prompt 03 architecture: overview in `ARCHITECTURE.md`, contract and adapter in
 `AGENT-INTEGRATION-LAYER.md` (which supersedes §5 details where they differ, e.g. `basis` field).
 The central Agent is being built by the project partner and has **not been analyzed yet**: every

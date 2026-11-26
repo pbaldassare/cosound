@@ -1,0 +1,164 @@
+{
+  "contract_version": "1",
+  "id": "reference_track",
+  "name": "Reference Track",
+  "version": "1.0.0",
+  "role": {
+    "it": "Profilo di un brano di riferimento per creare un brano originale",
+    "en": "Reference profile to create an original track"
+  },
+  "competencies": {
+    "it": [
+      "Analisi di brani indicati dall'utente",
+      "Uso di informazioni trovate online, sempre etichettate come tali",
+      "Misure audio quando il file è fornito legittimamente",
+      "BPM, tonalità, struttura, loudness",
+      "Indicazioni per un brano originale con caratteristiche stilistiche analoghe"
+    ],
+    "en": [
+      "Analysis of tracks named by the user",
+      "Use of information found online, always labelled as such",
+      "Audio measurements when the file is legitimately provided",
+      "BPM, key, structure, loudness",
+      "Guidance for an original track with similar stylistic traits"
+    ]
+  },
+  "operations": [
+    {
+      "name": "build_profile",
+      "status": "available",
+      "risk": "read",
+      "requires_approval": false,
+      "summary": {
+        "it": "Profilo con fonte di ogni dato (web o misurato) e brief per un brano originale",
+        "en": "Profile with the source of every value (web or measured) and a brief for an original track"
+      },
+      "input": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "artist": {
+            "type": "string"
+          },
+          "genre": {
+            "type": "string",
+            "enum": [
+              "techno",
+              "melodic_techno",
+              "melodic_house",
+              "progressive_house",
+              "progressive_techno",
+              "deep_house",
+              "house",
+              "tech_house",
+              "afro_house",
+              "trance",
+              "minimal",
+              "edm"
+            ]
+          },
+          "web_facts": {
+            "type": "object",
+            "properties": {
+              "bpm": {
+                "type": "number",
+                "minimum": 40,
+                "maximum": 250
+              },
+              "key": {
+                "type": "string"
+              },
+              "genre": {
+                "type": "string"
+              },
+              "sources": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "audio_path": {
+            "type": "string"
+          }
+        }
+      },
+      "output": "profile{field: {value, basis, source}}, brief",
+      "tools": [
+        "audio.wav_meter",
+        "music.arrangement"
+      ],
+      "permissions": [
+        "files.authorized_read"
+      ],
+      "basis": "mixed"
+    },
+    {
+      "name": "research_online",
+      "status": "planned",
+      "risk": "read",
+      "requires_approval": false,
+      "summary": {
+        "it": "Ricerca online su un brano",
+        "en": "Online research about a track"
+      },
+      "input": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "artist": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "title"
+        ]
+      },
+      "output": "web_facts",
+      "tools": [
+        "web.research"
+      ],
+      "permissions": [
+        "network"
+      ],
+      "requires": "web research tool; in this version research is done by the central Agent, which passes the facts in build_profile.web_facts"
+    }
+  ],
+  "tools": [
+    "audio.wav_meter",
+    "music.arrangement",
+    "web.research"
+  ],
+  "permissions": [
+    "files.authorized_read",
+    "network"
+  ],
+  "limits": {
+    "it": [
+      "Non copia melodie, registrazioni, arrangiamenti o altri elementi espressivi",
+      "Non scarica audio da servizi di streaming",
+      "Non ha accesso alla rete: i dati web li fornisce l'Agent centrale"
+    ],
+    "en": [
+      "Never copies melodies, recordings, arrangements or other expressive elements",
+      "Never downloads audio from streaming services",
+      "No network access: web facts are provided by the central Agent"
+    ]
+  },
+  "input_formats": [
+    "application/json",
+    "audio/wav"
+  ],
+  "output_formats": [
+    "application/json"
+  ],
+  "collaborates_with": [
+    "audio_analysis",
+    "music_producer"
+  ]
+}

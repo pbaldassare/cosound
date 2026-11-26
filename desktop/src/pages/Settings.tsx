@@ -81,6 +81,7 @@ export default function SettingsPage() {
           <Toggle label={t.settings.externalDevices} help={t.settings.externalHelp} checked={flag('perm_external_devices')} onChange={setFlag('perm_external_devices')} />
           <Toggle label={t.settings.dawDetection} help={t.settings.dawHelp} checked={flag('perm_daw_detection')} onChange={setFlag('perm_daw_detection')} />
           <Toggle label={t.settings.pluginScan} help={t.settings.pluginHelp} checked={flag('perm_plugin_scan')} onChange={setFlag('perm_plugin_scan')} />
+          <Toggle label={t.settings.workflowMemory} help={t.settings.workflowHelp} checked={flag('perm_workflow_memory', false)} onChange={setFlag('perm_workflow_memory')} />
         </div>
       </Card>
 

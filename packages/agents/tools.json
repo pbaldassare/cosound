@@ -1,0 +1,287 @@
+[
+  {
+    "id": "music.theory",
+    "name": "Music theory engine",
+    "layer": 3,
+    "status": "available",
+    "module": "desktop/src-tauri/src/music/theory.rs",
+    "description": {
+      "it": "Scale, tonalità, accordi, numeri romani, funzioni e cadenze",
+      "en": "Scales, keys, chords, roman numerals, functions and cadences"
+    }
+  },
+  {
+    "id": "music.key_detection",
+    "name": "Key finding (Krumhansl–Schmuckler)",
+    "layer": 3,
+    "status": "available",
+    "module": "desktop/src-tauri/src/music/theory.rs",
+    "description": {
+      "it": "Stima della tonalità da classi di altezza",
+      "en": "Key estimate from pitch classes"
+    }
+  },
+  {
+    "id": "music.generator",
+    "name": "MIDI generator",
+    "layer": 3,
+    "status": "available",
+    "module": "desktop/src-tauri/src/music/generate.rs",
+    "description": {
+      "it": "Accordi, basso, melodia, batteria, transizioni, controlli musicali",
+      "en": "Chords, bass, melody, drums, transitions, musical checks"
+    }
+  },
+  {
+    "id": "music.smf_writer",
+    "name": "Standard MIDI File writer",
+    "layer": 3,
+    "status": "available",
+    "module": "desktop/src-tauri/src/music/smf.rs",
+    "description": {
+      "it": "Scrive file MIDI formato 1",
+      "en": "Writes format-1 MIDI files"
+    }
+  },
+  {
+    "id": "music.arrangement",
+    "name": "Arrangement templates",
+    "layer": 3,
+    "status": "available",
+    "module": "desktop/src-tauri/src/music/arrangement.rs",
+    "description": {
+      "it": "Template per genere dalla knowledge base",
+      "en": "Per-genre templates from the knowledge base"
+    }
+  },
+  {
+    "id": "audio.wav_meter",
+    "name": "WAV meter (BS.1770)",
+    "layer": 3,
+    "status": "available",
+    "module": "desktop/src-tauri/src/audio/wav.rs",
+    "description": {
+      "it": "Loudness, true peak, RMS, correlazione, bande",
+      "en": "Loudness, true peak, RMS, correlation, bands"
+    }
+  },
+  {
+    "id": "library.index",
+    "name": "Smart Library index",
+    "layer": 3,
+    "status": "available",
+    "module": "desktop/src-tauri/src/library.rs",
+    "description": {
+      "it": "Indice locale delle cartelle autorizzate",
+      "en": "Local index of authorized folders"
+    }
+  },
+  {
+    "id": "library.filename_meta",
+    "name": "File-name metadata",
+    "layer": 3,
+    "status": "available",
+    "module": "desktop/src-tauri/src/library.rs",
+    "description": {
+      "it": "BPM e tonalità letti dal nome del file",
+      "en": "BPM and key read from file names"
+    }
+  },
+  {
+    "id": "plugins.scanner",
+    "name": "Plugin scanner",
+    "layer": 3,
+    "status": "available",
+    "module": "desktop/src-tauri/src/plugins.rs",
+    "description": {
+      "it": "Inventario dei plug-in senza caricarli",
+      "en": "Plugin inventory without loading them"
+    }
+  },
+  {
+    "id": "plugins.catalog",
+    "name": "Synth catalog",
+    "layer": 3,
+    "status": "available",
+    "module": "desktop/src-tauri/src/sound.rs",
+    "description": {
+      "it": "Schede dei synth noti dalla knowledge base",
+      "en": "Profiles of well-known synths from the knowledge base"
+    }
+  },
+  {
+    "id": "sound.recipes",
+    "name": "Sound recipes",
+    "layer": 3,
+    "status": "available",
+    "module": "desktop/src-tauri/src/sound.rs",
+    "description": {
+      "it": "Ricette di sintesi in termini generici",
+      "en": "Synthesis recipes in generic terms"
+    }
+  },
+  {
+    "id": "daw.detector",
+    "name": "DAW detector",
+    "layer": 3,
+    "status": "available",
+    "module": "desktop/src-tauri/src/daw.rs",
+    "description": {
+      "it": "DAW installate e versioni",
+      "en": "Installed DAWs and versions"
+    }
+  },
+  {
+    "id": "daw.routes",
+    "name": "DAW routes",
+    "layer": 3,
+    "status": "available",
+    "module": "desktop/src-tauri/src/agents/daw_controller.rs",
+    "description": {
+      "it": "Metodo tecnico verificato per ogni DAW",
+      "en": "Verified technical route per DAW"
+    }
+  },
+  {
+    "id": "files.writer",
+    "name": "COSOUND folder writer",
+    "layer": 3,
+    "status": "available",
+    "module": "desktop/src-tauri/src/agents/mod.rs",
+    "description": {
+      "it": "Scrive solo nella cartella generated/ di COSOUND, con SHA-256",
+      "en": "Writes only into COSOUND's generated/ folder, with SHA-256"
+    }
+  },
+  {
+    "id": "memory.facts",
+    "name": "Music Memory store",
+    "layer": 3,
+    "status": "available",
+    "module": "desktop/src-tauri/src/memory.rs",
+    "description": {
+      "it": "Memoria locale unica di COSOUND (memory_facts)",
+      "en": "COSOUND's single local memory (memory_facts)"
+    }
+  },
+  {
+    "id": "daw.connectors",
+    "name": "DAW connectors",
+    "layer": 3,
+    "status": "planned",
+    "module": null,
+    "description": {
+      "it": "Connettori per eseguire operazioni nelle DAW",
+      "en": "Connectors that execute operations in DAWs"
+    },
+    "requires": "milestone M4 (Logic Pro first)"
+  },
+  {
+    "id": "plugins.param_maps",
+    "name": "Plugin parameter maps",
+    "layer": 3,
+    "status": "planned",
+    "module": null,
+    "description": {
+      "it": "Parametri dei plug-in tramite la DAW",
+      "en": "Plugin parameters through the DAW"
+    },
+    "requires": "milestone M7"
+  },
+  {
+    "id": "voice.pitch_tracker",
+    "name": "Pitch tracker",
+    "layer": 3,
+    "status": "planned",
+    "module": null,
+    "description": {
+      "it": "Pitch e note da voce",
+      "en": "Pitch and notes from voice"
+    },
+    "requires": "milestone M5"
+  },
+  {
+    "id": "voice.speech_to_text",
+    "name": "Speech to text",
+    "layer": 3,
+    "status": "planned",
+    "module": null,
+    "description": {
+      "it": "Trascrizione del parlato",
+      "en": "Speech transcription"
+    },
+    "requires": "milestone M5"
+  },
+  {
+    "id": "audio.tempo_key",
+    "name": "Tempo and key detector",
+    "layer": 3,
+    "status": "planned",
+    "module": null,
+    "description": {
+      "it": "BPM e tonalità da audio",
+      "en": "BPM and key from audio"
+    },
+    "requires": "milestone M6"
+  },
+  {
+    "id": "audio.structure",
+    "name": "Structure detector",
+    "layer": 3,
+    "status": "planned",
+    "module": null,
+    "description": {
+      "it": "Sezioni da audio",
+      "en": "Sections from audio"
+    },
+    "requires": "milestone M6"
+  },
+  {
+    "id": "audio.stem_separator",
+    "name": "Stem separator",
+    "layer": 3,
+    "status": "planned",
+    "module": null,
+    "description": {
+      "it": "Separazione in stem",
+      "en": "Stem separation"
+    },
+    "requires": "milestone M6"
+  },
+  {
+    "id": "audio.processing_chain",
+    "name": "Processing chain",
+    "layer": 3,
+    "status": "planned",
+    "module": null,
+    "description": {
+      "it": "EQ, compressione, limiter e render",
+      "en": "EQ, compression, limiter and render"
+    },
+    "requires": "milestone M9"
+  },
+  {
+    "id": "web.research",
+    "name": "Web research",
+    "layer": 3,
+    "status": "planned",
+    "module": null,
+    "description": {
+      "it": "Ricerca online",
+      "en": "Online research"
+    },
+    "requires": "the central Agent or the AI Core (decision D-2)"
+  },
+  {
+    "id": "ai.core",
+    "name": "AI Core",
+    "layer": 3,
+    "status": "planned",
+    "module": null,
+    "description": {
+      "it": "Ragionamento linguistico",
+      "en": "Language reasoning"
+    },
+    "requires": "ADR-005, decisions D-2/D-3"
+  }
+]

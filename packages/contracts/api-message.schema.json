@@ -1,0 +1,108 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cosound.app/contracts/api-message.schema.json",
+  "title": "AgentApiMessage",
+  "description": "Messages of the Agent API (one JSON in, one JSON out). Transport-independent: the adapter toward the central Agent wraps Runtime::handle. Contract v1.",
+  "$defs": {
+    "request": {
+      "type": "object",
+      "required": [
+        "type"
+      ],
+      "properties": {
+        "contract_version": {
+          "type": "string",
+          "enum": [
+            "1"
+          ]
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "registry.get",
+            "task.submit",
+            "task.status",
+            "task.list",
+            "task.cancel",
+            "approval.respond",
+            "approval.list",
+            "events.poll"
+          ]
+        },
+        "request": {
+          "$ref": "task-request.schema.json"
+        },
+        "task_id": {
+          "type": "string"
+        },
+        "limit": {
+          "type": "integer"
+        },
+        "approval_id": {
+          "type": "string"
+        },
+        "decision": {
+          "type": "string",
+          "enum": [
+            "approve",
+            "reject"
+          ],
+          "description": "The central Agent can only reject: approvals come from the user (Safety Gate)."
+        },
+        "since": {
+          "type": "integer"
+        }
+      }
+    },
+    "response": {
+      "type": "object",
+      "required": [
+        "contract_version",
+        "type",
+        "ok"
+      ],
+      "properties": {
+        "contract_version": {
+          "type": "string",
+          "enum": [
+            "1"
+          ]
+        },
+        "type": {
+          "type": "string"
+        },
+        "ok": {
+          "type": "boolean"
+        },
+        "data": {},
+        "error": {
+          "type": "object",
+          "required": [
+            "code",
+            "message",
+            "retryable"
+          ],
+          "properties": {
+            "code": {
+              "type": "string"
+            },
+            "message": {
+              "type": "string"
+            },
+            "retryable": {
+              "type": "boolean"
+            }
+          }
+        }
+      }
+    }
+  },
+  "oneOf": [
+    {
+      "$ref": "#/$defs/request"
+    },
+    {
+      "$ref": "#/$defs/response"
+    }
+  ]
+}

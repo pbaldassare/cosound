@@ -538,6 +538,41 @@ pub fn cadence(a: &Chord, b: &Chord) -> &'static str {
     }
 }
 
+// Krumhansl–Kessler key profiles (probe-tone ratings), C major / C minor.
+const KK_MAJOR: [f64; 12] = [6.35, 2.23, 3.48, 2.33, 4.38, 4.09, 2.52, 5.19, 2.39, 3.66, 2.29, 2.88];
+const KK_MINOR: [f64; 12] = [6.33, 2.68, 3.52, 5.38, 2.60, 3.53, 2.54, 4.75, 3.98, 2.69, 3.34, 3.17];
+
+fn pearson(a: &[f64; 12], b: &[f64; 12]) -> f64 {
+    let (ma, mb) = (a.iter().sum::<f64>() / 12.0, b.iter().sum::<f64>() / 12.0);
+    let (mut num, mut da, mut db) = (0.0, 0.0, 0.0);
+    for i in 0..12 {
+        num += (a[i] - ma) * (b[i] - mb);
+        da += (a[i] - ma).powi(2);
+        db += (b[i] - mb).powi(2);
+    }
+    if da == 0.0 || db == 0.0 { 0.0 } else { num / (da * db).sqrt() }
+}
+
+/// Tonic spelled with the fewer accidentals in its key signature (Bb major, not A# major).
+fn tonic_for(pc: u8, mode: Mode) -> Key {
+    let [a, b] = [Key { tonic: Note::simple(pc, false), mode }, Key { tonic: Note::simple(pc, true), mode }];
+    if b.signature().abs() < a.signature().abs() { b } else { a }
+}
+
+/// Krumhansl–Schmuckler key finding on pitch-class weights (e.g. total note durations).
+/// Returns the 24 major/minor keys sorted by correlation. An estimate, never a measurement.
+pub fn detect_key(weights: &[f64; 12]) -> Vec<(Key, f64)> {
+    let mut out = Vec::with_capacity(24);
+    for pc in 0..12u8 {
+        for (mode, profile) in [(Major, &KK_MAJOR), (NaturalMinor, &KK_MINOR)] {
+            let rotated: [f64; 12] = std::array::from_fn(|i| profile[(i + 12 - pc as usize) % 12]);
+            out.push((tonic_for(pc, mode), pearson(weights, &rotated)));
+        }
+    }
+    out.sort_by(|a, b| b.1.total_cmp(&a.1));
+    out
+}
+
 /// Progression used when none is given, chosen to suit the mode.
 pub fn default_progression(mode: Mode) -> &'static str {
     match mode.harmonic_base() {
@@ -647,6 +682,20 @@ mod tests {
                 }
             }
         }
+    }
+
+    #[test]
+    fn key_detection_finds_the_scale() {
+        for k in ["A minor", "Eb major", "F# minor", "C major", "Bb minor"] {
+            let key = Key::parse(k).unwrap();
+            let mut w = [0.0; 12];
+            // tonic triad weighted more, as in real melodies
+            for (i, pc) in key.pcs().iter().enumerate() {
+                w[*pc as usize] += if [0, 2, 4].contains(&i) { 3.0 } else { 1.0 };
+            }
+            assert_eq!(detect_key(&w)[0].0.name(), key.name(), "{k}");
+        }
+        assert_eq!(detect_key(&[0.0; 12]).len(), 24);
     }
 
     #[test]

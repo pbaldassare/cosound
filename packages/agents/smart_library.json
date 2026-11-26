@@ -1,0 +1,221 @@
+{
+  "contract_version": "1",
+  "id": "smart_library",
+  "name": "Smart Library",
+  "version": "1.0.0",
+  "role": {
+    "it": "Ricerca nelle librerie autorizzate su dischi interni ed esterni",
+    "en": "Search in authorized libraries on internal and external drives"
+  },
+  "competencies": {
+    "it": [
+      "Ricerca di sample, loop, MIDI, preset e progetti",
+      "Dischi interni, esterni, USB e di rete già autorizzati",
+      "Riconoscimento dei dischi già indicizzati",
+      "Classificazione per tipo",
+      "BPM e tonalità scritti nel nome del file",
+      "Duplicati probabili",
+      "Percorsi originali dei file"
+    ],
+    "en": [
+      "Search for samples, loops, MIDI, presets and projects",
+      "Internal, external, USB and network drives already authorized",
+      "Recognition of previously indexed drives",
+      "Classification by type",
+      "BPM and key written in the file name",
+      "Probable duplicates",
+      "Original file paths"
+    ]
+  },
+  "operations": [
+    {
+      "name": "search",
+      "status": "available",
+      "risk": "read",
+      "requires_approval": false,
+      "summary": {
+        "it": "Ricerca per nome, tipo, BPM e tonalità (dal nome del file)",
+        "en": "Search by name, type, BPM and key (from the file name)"
+      },
+      "input": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "audio",
+              "midi",
+              "project",
+              "preset"
+            ]
+          },
+          "bpm_min": {
+            "type": "number",
+            "minimum": 40,
+            "maximum": 250
+          },
+          "bpm_max": {
+            "type": "number",
+            "minimum": 40,
+            "maximum": 250
+          },
+          "key": {
+            "type": "string"
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 500
+          }
+        },
+        "required": [
+          "query"
+        ]
+      },
+      "output": "hits[] with path (null when the drive is offline)",
+      "tools": [
+        "library.index",
+        "library.filename_meta"
+      ],
+      "permissions": [
+        "files.authorized_read"
+      ],
+      "basis": "file_name"
+    },
+    {
+      "name": "stats",
+      "status": "available",
+      "risk": "read",
+      "requires_approval": false,
+      "summary": {
+        "it": "Conteggio dei file indicizzati per tipo",
+        "en": "Indexed file counts by type"
+      },
+      "input": {
+        "type": "object",
+        "properties": {}
+      },
+      "output": "roots, files_by_kind",
+      "tools": [
+        "library.index"
+      ],
+      "permissions": [],
+      "basis": "measured"
+    },
+    {
+      "name": "find_duplicates",
+      "status": "available",
+      "risk": "read",
+      "requires_approval": false,
+      "summary": {
+        "it": "Duplicati probabili (stesso nome e dimensione)",
+        "en": "Probable duplicates (same name and size)"
+      },
+      "input": {
+        "type": "object",
+        "properties": {
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 500
+          }
+        }
+      },
+      "output": "groups[]",
+      "tools": [
+        "library.index"
+      ],
+      "permissions": [
+        "files.authorized_read"
+      ],
+      "basis": "estimated"
+    },
+    {
+      "name": "volumes",
+      "status": "available",
+      "risk": "read",
+      "requires_approval": false,
+      "summary": {
+        "it": "Dischi e cartelle autorizzate, collegati o scollegati",
+        "en": "Drives and authorized folders, connected or not"
+      },
+      "input": {
+        "type": "object",
+        "properties": {}
+      },
+      "output": "volumes[], roots[]",
+      "tools": [
+        "library.index"
+      ],
+      "permissions": [
+        "external_devices"
+      ],
+      "basis": "measured"
+    },
+    {
+      "name": "analyze_audio_content",
+      "status": "planned",
+      "risk": "read",
+      "requires_approval": false,
+      "summary": {
+        "it": "Indicizzazione per contenuto (BPM/tonalità misurati, somiglianza)",
+        "en": "Content indexing (measured BPM/key, similarity)"
+      },
+      "input": {
+        "type": "object",
+        "properties": {
+          "root_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "root_id"
+        ]
+      },
+      "output": "updated index",
+      "tools": [
+        "audio.tempo_key"
+      ],
+      "permissions": [
+        "files.authorized_read"
+      ],
+      "requires": "tempo/key engine (M6) and embeddings"
+    }
+  ],
+  "tools": [
+    "audio.tempo_key",
+    "library.filename_meta",
+    "library.index"
+  ],
+  "permissions": [
+    "external_devices",
+    "files.authorized_read"
+  ],
+  "limits": {
+    "it": [
+      "Non sposta, modifica o cancella mai i file originali",
+      "Non può autorizzare nuove cartelle: solo l'utente, dal dialogo di sistema",
+      "BPM e tonalità vengono dal nome del file, non da misure",
+      "I duplicati sono candidati (nome e dimensione), il contenuto non è confrontato"
+    ],
+    "en": [
+      "Never moves, modifies or deletes original files",
+      "Cannot authorize new folders: only the user can, from the system dialog",
+      "BPM and key come from file names, not measurements",
+      "Duplicates are candidates (name and size); contents are not compared"
+    ]
+  },
+  "input_formats": [
+    "application/json"
+  ],
+  "output_formats": [
+    "application/json"
+  ],
+  "collaborates_with": [
+    "sound_designer",
+    "music_producer"
+  ]
+}

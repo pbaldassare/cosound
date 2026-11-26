@@ -1,0 +1,177 @@
+{
+  "contract_version": "1",
+  "id": "voice_to_music",
+  "name": "Voice-to-Music",
+  "version": "1.0.0",
+  "role": {
+    "it": "Dalla voce a materiale musicale (canto, fischio, beatbox, parlato)",
+    "en": "From voice to musical material (singing, whistling, beatbox, speech)"
+  },
+  "competencies": {
+    "it": [
+      "Analisi di melodie cantate o fischiate",
+      "Riconoscimento di pitch, intervalli, durate e ritmo",
+      "Stima del BPM quando ricavabile",
+      "Conversione in MIDI",
+      "Vocalizzazioni ritmiche in pattern di batteria",
+      "Distinzione tra parlato, canto, fischio e percussioni vocali"
+    ],
+    "en": [
+      "Analysis of sung or whistled melodies",
+      "Pitch, interval, duration and rhythm recognition",
+      "BPM estimate when possible",
+      "Conversion to MIDI",
+      "Vocal rhythms to drum patterns",
+      "Telling speech, singing, whistling and vocal percussion apart"
+    ]
+  },
+  "operations": [
+    {
+      "name": "transcribe_melody",
+      "status": "planned",
+      "risk": "read",
+      "requires_approval": false,
+      "summary": {
+        "it": "Melodia cantata/fischiata → MIDI con confidenza",
+        "en": "Sung/whistled melody → MIDI with confidence"
+      },
+      "input": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "path"
+        ]
+      },
+      "output": "part, confidence",
+      "tools": [
+        "voice.pitch_tracker",
+        "music.smf_writer"
+      ],
+      "permissions": [
+        "files.authorized_read"
+      ],
+      "requires": "pitch-tracking engine (milestone M5)"
+    },
+    {
+      "name": "transcribe_rhythm",
+      "status": "planned",
+      "risk": "read",
+      "requires_approval": false,
+      "summary": {
+        "it": "Beatbox → pattern di batteria",
+        "en": "Beatbox → drum pattern"
+      },
+      "input": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "path"
+        ]
+      },
+      "output": "part",
+      "tools": [
+        "voice.pitch_tracker"
+      ],
+      "permissions": [
+        "files.authorized_read"
+      ],
+      "requires": "onset/drum-class engine (milestone M5)"
+    },
+    {
+      "name": "transcribe_speech",
+      "status": "planned",
+      "risk": "read",
+      "requires_approval": false,
+      "summary": {
+        "it": "Parlato → testo per l'Agent centrale",
+        "en": "Speech → text for the central Agent"
+      },
+      "input": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "path"
+        ]
+      },
+      "output": "text",
+      "tools": [
+        "voice.speech_to_text"
+      ],
+      "permissions": [
+        "files.authorized_read"
+      ],
+      "requires": "speech-to-text engine (milestone M5)"
+    },
+    {
+      "name": "classify_take",
+      "status": "planned",
+      "risk": "read",
+      "requires_approval": false,
+      "summary": {
+        "it": "Parlato, canto, fischio o percussione vocale?",
+        "en": "Speech, singing, whistling or vocal percussion?"
+      },
+      "input": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "path"
+        ]
+      },
+      "output": "class, confidence",
+      "tools": [
+        "voice.pitch_tracker"
+      ],
+      "permissions": [
+        "files.authorized_read"
+      ],
+      "requires": "voice classifier (milestone M5)"
+    }
+  ],
+  "tools": [
+    "music.smf_writer",
+    "voice.pitch_tracker",
+    "voice.speech_to_text"
+  ],
+  "permissions": [
+    "files.authorized_read"
+  ],
+  "limits": {
+    "it": [
+      "Motore di trascrizione non ancora costruito (M5): nessuna operazione è eseguibile",
+      "Il microfono si usa solo con il consenso esplicito dell'utente (Impostazioni) e solo mentre registra"
+    ],
+    "en": [
+      "Transcription engine not built yet (M5): no operation can run",
+      "The microphone is used only with the user's explicit consent (Settings) and only while recording"
+    ]
+  },
+  "input_formats": [
+    "audio/wav",
+    "audio/webm"
+  ],
+  "output_formats": [
+    "application/json",
+    "audio/midi"
+  ],
+  "collaborates_with": [
+    "music_theory",
+    "rhythm_engineer"
+  ]
+}

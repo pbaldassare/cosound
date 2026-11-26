@@ -25,6 +25,7 @@ Ricevere e comprendere le richieste (chat e voce); interpretare prompt musicali 
 10. Mixing Engineer – analisi e lavorazione del mix
 11. Mastering Engineer – finalizzazione e controllo tecnico
 12. DAW Controller – comunicazione e operazioni sulle DAW
+13. Adaptive Workflow – abitudini operative dell'utente (aggiunto dal Prompt 06, 2026-11-26; usa la Music Memory, nessuna memoria separata)
 
 I sotto-agenti collaborano, ma **ogni decisione di coordinamento passa dall'Agent centrale**. Si possono proporre altri sotto-agenti solo se utili e senza duplicare competenze.
 

@@ -49,12 +49,32 @@ export type SketchInput = Record<string, unknown>
 
 export type PortHealth = { port_id: string; is_temporary: boolean; connected: boolean }
 export type AilError = { code: string; message: string }
+export type TaskStatus = 'PENDING' | 'RUNNING' | 'WAITING_APPROVAL' | 'COMPLETED' | 'FAILED' | 'CANCELLED'
+export type ErrorInfo = { code: string; message: string; retryable: boolean }
+export type FileRef = { path: string; kind: string; bytes: number; sha256: string }
+export type ApprovalRequest = { approval_id: string; task_id: string; agent: string; operation: string; risk: string; summary: string; approvable_by: string; requested_at_ms: number }
+export type TaskResult = {
+  contract_version: string; request_id: string; task_id: string; trace_id: string | null; project_id: string | null
+  agent: string; agent_version: string | null; operation: string; requested_by: string | null; status: TaskStatus
+  result: unknown; basis: string | null; files: FileRef[]; tools_used: string[]; errors: ErrorInfo[]; limitations: string[]
+  needs: { agent: string; operation: string; why: string }[]; proposed_daw_ops: unknown[]; approval: ApprovalRequest | null
+  created_at_ms: number; started_at_ms: number | null; finished_at_ms: number | null
+}
 export type AgentEvent =
   | { kind: 'assistant_text'; text: string }
-  | { kind: 'capability_result'; task_id: string; capability: string; ok: boolean; output: unknown }
+  | { kind: 'task_result'; result: TaskResult }
   | { kind: 'error'; error: AilError }
-export type Task = { task_id: string; capability: string; input: unknown; status: 'done' | 'error'; output: unknown; started_at_ms: number; duration_ms: number }
-export type Registry = { agents: { id: string; name: string; role: { it: string; en: string }; capabilities: { name: string; risk: string; status: 'available' | 'planned' }[] }[] }
+type Bi = { it: string; en: string }
+type BiList = { it: string[]; en: string[] }
+export type OpSpec = { name: string; status: 'available' | 'planned'; risk: 'read' | 'low' | 'medium' | 'high'; requires_approval: boolean; summary: Bi; output: string; tools: string[]; permissions: string[]; basis?: string; requires?: string }
+export type AgentInfo = {
+  id: string; name: string; version: string; role: Bi; competencies: BiList; operations: OpSpec[]; tools: string[]; permissions: string[]; limits: BiList
+  input_formats: string[]; output_formats: string[]; collaborates_with: string[]; enabled: boolean; implemented: boolean; state: 'active' | 'partial' | 'planned'
+}
+export type ToolInfo = { id: string; name: string; layer: number; status: 'available' | 'planned'; module: string | null; description: Bi; requires?: string; used_by: string[] }
+export type PermissionInfo = { id: string; setting: string | null; default: boolean; grantable: boolean; label: Bi; description: Bi; granted: boolean }
+export type Registry = { contract_version: string; agents: AgentInfo[]; tools: ToolInfo[]; permissions: PermissionInfo[] }
+export type Fact = { id: string; category: string; key: string; value: Record<string, unknown>; origin: string; scope: 'standard' | 'custom'; confidence: number; source_ref: string | null; created_at: string; updated_at: string }
 
 export const api = {
   appInfo: () => invoke<AppInfo>('app_info'),
@@ -94,8 +114,14 @@ export const api = {
 
   ailStatus: () => invoke<PortHealth>('ail_status'),
   ailSend: (text: string) => invoke<AgentEvent[]>('ail_send', { text }),
-  ailTasks: () => invoke<Task[]>('ail_tasks'),
   registry: () => invoke<Registry>('agents_registry'),
+  agentTasks: (limit?: number) => invoke<TaskResult[]>('agents_tasks', { limit }),
+  approve: (approvalId: string, approve: boolean) => invoke<TaskResult>('agents_approval_respond', { approvalId, approve }),
+  cancelTask: (taskId: string) => invoke<TaskResult>('agents_cancel', { taskId }),
+  setAgentEnabled: (agent: string, enabled: boolean) => invoke<void>('agents_set_enabled', { agent, enabled }),
+  memory: (category?: string) => invoke<Fact[]>('memory_list', { category }),
+  memoryDelete: (id: string) => invoke<void>('memory_delete', { id }),
+  memoryClear: (category: string) => invoke<number>('memory_clear', { category }),
 }
 
 export const fmtBytes = (n: number | null | undefined) => {

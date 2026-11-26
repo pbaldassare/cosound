@@ -1,0 +1,69 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cosound.app/contracts/event.schema.json",
+  "title": "Event",
+  "description": "Event emitted by the agent runtime, polled with events.poll. Contract v1.",
+  "type": "object",
+  "required": [
+    "seq",
+    "at_ms",
+    "kind",
+    "detail"
+  ],
+  "properties": {
+    "seq": {
+      "type": "integer"
+    },
+    "at_ms": {
+      "type": "integer"
+    },
+    "kind": {
+      "type": "string",
+      "enum": [
+        "task.created",
+        "task.status",
+        "task.cancel_requested",
+        "approval.requested",
+        "approval.resolved",
+        "agent.enabled",
+        "agent.disabled"
+      ]
+    },
+    "task_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "agent": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "operation": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "status": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "enum": [
+        "PENDING",
+        "RUNNING",
+        "WAITING_APPROVAL",
+        "COMPLETED",
+        "FAILED",
+        "CANCELLED",
+        null
+      ]
+    },
+    "detail": {
+      "type": "object"
+    }
+  }
+}

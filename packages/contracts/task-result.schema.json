@@ -1,0 +1,260 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cosound.app/contracts/task-result.schema.json",
+  "title": "TaskResult",
+  "description": "Structured result of a task. A task is COMPLETED only when the operation really ran. Contract v1.",
+  "type": "object",
+  "required": [
+    "contract_version",
+    "request_id",
+    "task_id",
+    "agent",
+    "agent_version",
+    "operation",
+    "status",
+    "result",
+    "basis",
+    "files",
+    "tools_used",
+    "errors",
+    "limitations",
+    "needs",
+    "proposed_daw_ops",
+    "approval",
+    "created_at_ms",
+    "started_at_ms",
+    "finished_at_ms"
+  ],
+  "properties": {
+    "contract_version": {
+      "type": "string",
+      "enum": [
+        "1"
+      ]
+    },
+    "request_id": {
+      "type": "string"
+    },
+    "task_id": {
+      "type": "string"
+    },
+    "trace_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "session_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "project_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "agent": {
+      "type": "string"
+    },
+    "agent_version": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "operation": {
+      "type": "string"
+    },
+    "requested_by": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "PENDING",
+        "RUNNING",
+        "WAITING_APPROVAL",
+        "COMPLETED",
+        "FAILED",
+        "CANCELLED"
+      ]
+    },
+    "result": {
+      "description": "Operation output (object), null unless COMPLETED"
+    },
+    "basis": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "enum": [
+        "measured",
+        "rule_based",
+        "convention",
+        "estimated",
+        "web",
+        "file_name",
+        "mixed",
+        "none",
+        null
+      ]
+    },
+    "files": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "path",
+          "kind",
+          "bytes",
+          "sha256"
+        ],
+        "properties": {
+          "path": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "bytes": {
+            "type": "integer"
+          },
+          "sha256": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "tools_used": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "errors": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "code",
+          "message",
+          "retryable"
+        ],
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "retryable": {
+            "type": "boolean"
+          }
+        }
+      }
+    },
+    "limitations": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "needs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "agent",
+          "operation",
+          "why"
+        ],
+        "properties": {
+          "agent": {
+            "type": "string"
+          },
+          "operation": {
+            "type": "string"
+          },
+          "why": {
+            "type": "string"
+          },
+          "input": {
+            "type": "object"
+          }
+        }
+      }
+    },
+    "proposed_daw_ops": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "approval": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "required": [
+        "approval_id",
+        "task_id",
+        "agent",
+        "operation",
+        "risk",
+        "summary",
+        "approvable_by",
+        "requested_at_ms"
+      ],
+      "properties": {
+        "approval_id": {
+          "type": "string"
+        },
+        "task_id": {
+          "type": "string"
+        },
+        "agent": {
+          "type": "string"
+        },
+        "operation": {
+          "type": "string"
+        },
+        "risk": {
+          "type": "string"
+        },
+        "summary": {
+          "type": "string"
+        },
+        "approvable_by": {
+          "type": "string",
+          "enum": [
+            "user"
+          ]
+        },
+        "requested_at_ms": {
+          "type": "integer"
+        }
+      }
+    },
+    "created_at_ms": {
+      "type": "integer"
+    },
+    "started_at_ms": {
+      "type": [
+        "integer",
+        "null"
+      ]
+    },
+    "finished_at_ms": {
+      "type": [
+        "integer",
+        "null"
+      ]
+    }
+  }
+}

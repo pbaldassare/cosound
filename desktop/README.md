@@ -58,17 +58,21 @@ desktop/
     src/projects.rs          projects, imported material (references + SHA-256)
     src/daw.rs               DAW detection (no connection)
     src/plugins.rs           plugin inventory (files + metadata, plugins never loaded)
-    src/music/               music engine M2: theory.rs, generate.rs (chords, bass, melody, drums + checks), smf.rs (MIDI files), caps.rs (bus capabilities)
-    src/ail/                 Agent Integration Layer + temporary_test_connector (dev only)
+    src/music/               music engine M2: theory.rs, generate.rs (chords, bass, melody, drums, transitions + checks), smf.rs (MIDI files), arrangement.rs, caps.rs
+    src/audio/wav.rs         WAV meter: BS.1770 loudness, true peak, RMS, correlation, bands
+    src/sound.rs             sound recipes and synth catalog (from docs/knowledge)
+    src/memory.rs            Music Memory (memory_facts)
+    src/agents/              Multi-Agent System: protocol, registry, runtime (Agent API), 13 agents, tests (docs/agents/)
+    src/ail/                 Agent Integration Layer + MOCK central-agent connector (dev only)
     migrations/              local DB schema
-packages/agents/registry.json  capability catalog of the 12 sub-agents (available / planned)
+packages/agents/*.json         agent manifests (13), tools.json, permissions.json – the Agent and Tool Registry
+packages/contracts/*.json      JSON Schemas of the Agent Protocol
 ```
-Every engine is its own Rust module with its own tests and no dependency on the UI. Future engines plug in the same way: audio analysis, voice, reference, DAW connectors.
-1. Add a module.
-2. Add its commands.
-3. Mark its capabilities `available` in `registry.json`.
+Every engine is its own Rust module with its own tests and no dependency on the UI. Future engines plug in as level-3 tools:
+1. Add the tool module and list it in `packages/agents/tools.json`.
+2. Use it from an agent operation and mark that operation `available` in the agent's manifest.
 
-A test fails if the registry and the Capability Bus disagree.
+A test fails if a manifest and the code disagree. See `docs/agents/`.
 
 ## Local data
 The SQLite file `cosound.db`, the `takes/` folder (voice recordings) and the `generated/` folder (exported MIDI sketches) live in the app data folder:

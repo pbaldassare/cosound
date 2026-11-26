@@ -133,7 +133,7 @@ fn make(i: &Input, part: &str) -> Result<Part, String> {
     }
 }
 
-fn base64(b: &[u8]) -> String {
+pub fn base64(b: &[u8]) -> String {
     const A: &[u8; 64] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
     let mut s = String::with_capacity(b.len().div_ceil(3) * 4);
     for c in b.chunks(3) {
@@ -201,6 +201,63 @@ pub fn options() -> Value {
         "drum_styles": g::DRUM_STYLES,
         "chord_rhythms": g::CHORD_RHYTHMS,
     })
+}
+
+/// rhythm_engineer.generate_transition: snare build, tom fill or drop impact.
+pub fn transition(input: &Value) -> Result<Value, String> {
+    let kind = input["kind"].as_str().ok_or("kind is required")?;
+    let bars = input["bars"].as_u64().unwrap_or(if kind == "snare_build" { 8 } else { 1 }).clamp(1, 16) as u32;
+    let bpm = number(input, "bpm", 124.0, 40.0, 250.0)?;
+    let seed = input["seed"].as_u64().unwrap_or(1);
+    let part = g::transition(kind, bars, seed)?;
+    let key = t::Key::parse("C major")?;
+    let chords = t::progression(key, "I", false)?;
+    let len_bars = if kind == "snare_build" { bars } else { 1 };
+    let spec = Spec { key, chords: &chords, bars: len_bars, seed, swing: 0 };
+    let checks = g::check(&part, &spec);
+    let ok = g::all_pass(&checks);
+    let midi = smf::write(std::slice::from_ref(&part), bpm, key, &format!("COSOUND {kind} - {bpm} BPM"));
+    Ok(json!({
+        "kind": kind, "bars": len_bars, "bpm": bpm, "ppq": PPQ, "length_ticks": len_bars * BAR, "part": part,
+        "checks": { "transition": checks }, "all_checks_passed": ok,
+        "midi": { "format": 1, "bytes": midi.len(), "base64": base64(&midi) },
+    }))
+}
+
+/// rhythm_engineer.groove_timing
+pub fn groove(input: &Value) -> Result<Value, String> {
+    let bpm = number(input, "bpm", 124.0, 40.0, 250.0)?;
+    let swing = number(input, "swing", 0.0, 0.0, 100.0)? as u32;
+    Ok(g::groove_timing(bpm, swing))
+}
+
+/// music_theory.check_coherence: run the musical checks on parts written elsewhere
+/// (by the user, another tool or a future engine). PPQ must be 480.
+pub fn check_parts(input: &Value) -> Result<Value, String> {
+    if input["ppq"].as_u64().is_some_and(|p| p != PPQ as u64) {
+        return Err(format!("ppq must be {PPQ}"));
+    }
+    let i = parse(input)?;
+    let spec = i.spec();
+    let mut out = Map::new();
+    let mut all = true;
+    for p in input["parts"].as_array().ok_or("parts is required")? {
+        let id: &'static str = match p["id"].as_str() {
+            Some("chords") => "chords",
+            Some("bass") => "bass",
+            Some("melody") => "melody",
+            other => return Err(format!("part id {other:?} must be chords, bass or melody")),
+        };
+        let notes: Vec<g::MidiNote> = serde_json::from_value(p["notes"].clone()).map_err(|e| format!("notes of {id}: {e}"))?;
+        let part = Part { id, name: id, channel: 0, program: 0, notes };
+        let c = g::check(&part, &spec);
+        all &= g::all_pass(&c);
+        out.insert(id.into(), Value::Object(c));
+    }
+    let mut v = header(&i);
+    v["checks"] = Value::Object(out);
+    v["all_checks_passed"] = json!(all);
+    Ok(v)
 }
 
 const ALL_PARTS: [&str; 4] = ["chords", "bass", "melody", "drums"];

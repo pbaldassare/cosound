@@ -1,0 +1,814 @@
+{
+  "contract_version": "1",
+  "id": "music_theory",
+  "name": "Music Theory",
+  "version": "1.0.0",
+  "role": {
+    "it": "Teoria musicale e composizione coerente",
+    "en": "Music theory and coherent composition"
+  },
+  "competencies": {
+    "it": [
+      "Note, diesis, bemolli, toni e semitoni",
+      "Intervalli e scale (maggiori, minori, modali, pentatoniche, blues)",
+      "Tonalità, relative e parallele, armature",
+      "Accordi, rivolti e progressioni in numeri romani",
+      "Melodie, linee di basso e arpeggi",
+      "Tensione, risoluzione e cadenze",
+      "Coerenza musicale tra le parti",
+      "Riconoscimento della tonalità da un insieme di note"
+    ],
+    "en": [
+      "Notes, sharps, flats, tones and semitones",
+      "Intervals and scales (major, minor, modal, pentatonic, blues)",
+      "Keys, relative and parallel keys, key signatures",
+      "Chords, inversions and roman-numeral progressions",
+      "Melodies, basslines and arpeggios",
+      "Tension, resolution and cadences",
+      "Musical coherence between parts",
+      "Key finding from a set of notes"
+    ]
+  },
+  "operations": [
+    {
+      "name": "key_info",
+      "status": "available",
+      "risk": "read",
+      "requires_approval": false,
+      "summary": {
+        "it": "Scala, armatura, relative e accordi diatonici",
+        "en": "Scale, key signature, relative keys and diatonic chords"
+      },
+      "input": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "tonic": {
+            "type": "string"
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "major",
+              "natural_minor",
+              "minor",
+              "harmonic_minor",
+              "melodic_minor",
+              "dorian",
+              "phrygian",
+              "lydian",
+              "mixolydian",
+              "locrian",
+              "major_pentatonic",
+              "minor_pentatonic",
+              "blues"
+            ]
+          }
+        }
+      },
+      "output": "scale, signature, triads[], sevenths[]",
+      "tools": [
+        "music.theory"
+      ],
+      "permissions": [],
+      "basis": "rule_based"
+    },
+    {
+      "name": "progression",
+      "status": "available",
+      "risk": "read",
+      "requires_approval": false,
+      "summary": {
+        "it": "Analisi di una progressione: accordi, funzioni, tensione, cadenze",
+        "en": "Progression analysis: chords, functions, tension, cadences"
+      },
+      "input": {
+        "type": "object",
+        "properties": {
+          "genre": {
+            "type": "string",
+            "enum": [
+              "techno",
+              "melodic_techno",
+              "progressive_house",
+              "house",
+              "edm"
+            ]
+          },
+          "key": {
+            "type": "string"
+          },
+          "tonic": {
+            "type": "string"
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "major",
+              "natural_minor",
+              "minor",
+              "harmonic_minor",
+              "melodic_minor",
+              "dorian",
+              "phrygian",
+              "lydian",
+              "mixolydian",
+              "locrian",
+              "major_pentatonic",
+              "minor_pentatonic",
+              "blues"
+            ]
+          },
+          "progression": {
+            "type": [
+              "string",
+              "array"
+            ],
+            "items": {
+              "type": "string"
+            }
+          },
+          "bpm": {
+            "type": "number",
+            "minimum": 40,
+            "maximum": 250
+          },
+          "bars": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 64
+          },
+          "seed": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "swing": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 100
+          },
+          "sevenths": {
+            "type": "boolean"
+          },
+          "chord_rhythm": {
+            "type": "string",
+            "enum": [
+              "sustain",
+              "stabs",
+              "pulse"
+            ]
+          },
+          "bass_style": {
+            "type": "string",
+            "enum": [
+              "offbeat",
+              "rolling",
+              "pulse",
+              "syncopated",
+              "sustain"
+            ]
+          },
+          "drum_style": {
+            "type": "string",
+            "enum": [
+              "techno",
+              "melodic_techno",
+              "progressive_house",
+              "house",
+              "edm"
+            ]
+          },
+          "fill": {
+            "type": "boolean"
+          }
+        }
+      },
+      "output": "chords[], cadences, tension_curve",
+      "tools": [
+        "music.theory"
+      ],
+      "permissions": [],
+      "basis": "rule_based"
+    },
+    {
+      "name": "generate_chords",
+      "status": "available",
+      "risk": "read",
+      "requires_approval": false,
+      "summary": {
+        "it": "Accordi con condotta delle parti",
+        "en": "Voice-led chords"
+      },
+      "input": {
+        "type": "object",
+        "properties": {
+          "genre": {
+            "type": "string",
+            "enum": [
+              "techno",
+              "melodic_techno",
+              "progressive_house",
+              "house",
+              "edm"
+            ]
+          },
+          "key": {
+            "type": "string"
+          },
+          "tonic": {
+            "type": "string"
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "major",
+              "natural_minor",
+              "minor",
+              "harmonic_minor",
+              "melodic_minor",
+              "dorian",
+              "phrygian",
+              "lydian",
+              "mixolydian",
+              "locrian",
+              "major_pentatonic",
+              "minor_pentatonic",
+              "blues"
+            ]
+          },
+          "progression": {
+            "type": [
+              "string",
+              "array"
+            ],
+            "items": {
+              "type": "string"
+            }
+          },
+          "bpm": {
+            "type": "number",
+            "minimum": 40,
+            "maximum": 250
+          },
+          "bars": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 64
+          },
+          "seed": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "swing": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 100
+          },
+          "sevenths": {
+            "type": "boolean"
+          },
+          "chord_rhythm": {
+            "type": "string",
+            "enum": [
+              "sustain",
+              "stabs",
+              "pulse"
+            ]
+          },
+          "bass_style": {
+            "type": "string",
+            "enum": [
+              "offbeat",
+              "rolling",
+              "pulse",
+              "syncopated",
+              "sustain"
+            ]
+          },
+          "drum_style": {
+            "type": "string",
+            "enum": [
+              "techno",
+              "melodic_techno",
+              "progressive_house",
+              "house",
+              "edm"
+            ]
+          },
+          "fill": {
+            "type": "boolean"
+          }
+        }
+      },
+      "output": "part, checks, midi.base64",
+      "tools": [
+        "music.theory",
+        "music.generator",
+        "music.smf_writer"
+      ],
+      "permissions": [],
+      "basis": "rule_based"
+    },
+    {
+      "name": "generate_bassline",
+      "status": "available",
+      "risk": "read",
+      "requires_approval": false,
+      "summary": {
+        "it": "Linea di basso sulle note degli accordi",
+        "en": "Bassline on chord tones"
+      },
+      "input": {
+        "type": "object",
+        "properties": {
+          "genre": {
+            "type": "string",
+            "enum": [
+              "techno",
+              "melodic_techno",
+              "progressive_house",
+              "house",
+              "edm"
+            ]
+          },
+          "key": {
+            "type": "string"
+          },
+          "tonic": {
+            "type": "string"
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "major",
+              "natural_minor",
+              "minor",
+              "harmonic_minor",
+              "melodic_minor",
+              "dorian",
+              "phrygian",
+              "lydian",
+              "mixolydian",
+              "locrian",
+              "major_pentatonic",
+              "minor_pentatonic",
+              "blues"
+            ]
+          },
+          "progression": {
+            "type": [
+              "string",
+              "array"
+            ],
+            "items": {
+              "type": "string"
+            }
+          },
+          "bpm": {
+            "type": "number",
+            "minimum": 40,
+            "maximum": 250
+          },
+          "bars": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 64
+          },
+          "seed": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "swing": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 100
+          },
+          "sevenths": {
+            "type": "boolean"
+          },
+          "chord_rhythm": {
+            "type": "string",
+            "enum": [
+              "sustain",
+              "stabs",
+              "pulse"
+            ]
+          },
+          "bass_style": {
+            "type": "string",
+            "enum": [
+              "offbeat",
+              "rolling",
+              "pulse",
+              "syncopated",
+              "sustain"
+            ]
+          },
+          "drum_style": {
+            "type": "string",
+            "enum": [
+              "techno",
+              "melodic_techno",
+              "progressive_house",
+              "house",
+              "edm"
+            ]
+          },
+          "fill": {
+            "type": "boolean"
+          }
+        }
+      },
+      "output": "part, checks, midi.base64",
+      "tools": [
+        "music.theory",
+        "music.generator",
+        "music.smf_writer"
+      ],
+      "permissions": [],
+      "basis": "rule_based"
+    },
+    {
+      "name": "generate_melody",
+      "status": "available",
+      "risk": "read",
+      "requires_approval": false,
+      "summary": {
+        "it": "Melodia con note dell'accordo sui tempi forti",
+        "en": "Melody with chord tones on strong beats"
+      },
+      "input": {
+        "type": "object",
+        "properties": {
+          "genre": {
+            "type": "string",
+            "enum": [
+              "techno",
+              "melodic_techno",
+              "progressive_house",
+              "house",
+              "edm"
+            ]
+          },
+          "key": {
+            "type": "string"
+          },
+          "tonic": {
+            "type": "string"
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "major",
+              "natural_minor",
+              "minor",
+              "harmonic_minor",
+              "melodic_minor",
+              "dorian",
+              "phrygian",
+              "lydian",
+              "mixolydian",
+              "locrian",
+              "major_pentatonic",
+              "minor_pentatonic",
+              "blues"
+            ]
+          },
+          "progression": {
+            "type": [
+              "string",
+              "array"
+            ],
+            "items": {
+              "type": "string"
+            }
+          },
+          "bpm": {
+            "type": "number",
+            "minimum": 40,
+            "maximum": 250
+          },
+          "bars": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 64
+          },
+          "seed": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "swing": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 100
+          },
+          "sevenths": {
+            "type": "boolean"
+          },
+          "chord_rhythm": {
+            "type": "string",
+            "enum": [
+              "sustain",
+              "stabs",
+              "pulse"
+            ]
+          },
+          "bass_style": {
+            "type": "string",
+            "enum": [
+              "offbeat",
+              "rolling",
+              "pulse",
+              "syncopated",
+              "sustain"
+            ]
+          },
+          "drum_style": {
+            "type": "string",
+            "enum": [
+              "techno",
+              "melodic_techno",
+              "progressive_house",
+              "house",
+              "edm"
+            ]
+          },
+          "fill": {
+            "type": "boolean"
+          }
+        }
+      },
+      "output": "part, checks, midi.base64",
+      "tools": [
+        "music.theory",
+        "music.generator",
+        "music.smf_writer"
+      ],
+      "permissions": [],
+      "basis": "rule_based"
+    },
+    {
+      "name": "detect_key",
+      "status": "available",
+      "risk": "read",
+      "requires_approval": false,
+      "summary": {
+        "it": "Tonalità più probabile da note o pesi delle classi di altezza",
+        "en": "Most likely key from notes or pitch-class weights"
+      },
+      "input": {
+        "type": "object",
+        "properties": {
+          "notes": {
+            "type": "array",
+            "maxItems": 20000,
+            "items": {
+              "type": "object",
+              "properties": {
+                "pitch": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 127
+                },
+                "dur": {
+                  "type": "number",
+                  "minimum": 0
+                }
+              },
+              "required": [
+                "pitch"
+              ]
+            }
+          },
+          "weights": {
+            "type": "array",
+            "minItems": 12,
+            "maxItems": 12,
+            "items": {
+              "type": "number"
+            }
+          }
+        }
+      },
+      "output": "best, candidates[] with correlation",
+      "tools": [
+        "music.key_detection"
+      ],
+      "permissions": [],
+      "basis": "estimated"
+    },
+    {
+      "name": "check_coherence",
+      "status": "available",
+      "risk": "read",
+      "requires_approval": false,
+      "summary": {
+        "it": "Verifica che parti MIDI date siano coerenti con tonalità e progressione",
+        "en": "Check that given MIDI parts fit the key and progression"
+      },
+      "input": {
+        "type": "object",
+        "properties": {
+          "genre": {
+            "type": "string",
+            "enum": [
+              "techno",
+              "melodic_techno",
+              "progressive_house",
+              "house",
+              "edm"
+            ]
+          },
+          "key": {
+            "type": "string"
+          },
+          "tonic": {
+            "type": "string"
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "major",
+              "natural_minor",
+              "minor",
+              "harmonic_minor",
+              "melodic_minor",
+              "dorian",
+              "phrygian",
+              "lydian",
+              "mixolydian",
+              "locrian",
+              "major_pentatonic",
+              "minor_pentatonic",
+              "blues"
+            ]
+          },
+          "progression": {
+            "type": [
+              "string",
+              "array"
+            ],
+            "items": {
+              "type": "string"
+            }
+          },
+          "bpm": {
+            "type": "number",
+            "minimum": 40,
+            "maximum": 250
+          },
+          "bars": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 64
+          },
+          "seed": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "swing": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 100
+          },
+          "sevenths": {
+            "type": "boolean"
+          },
+          "chord_rhythm": {
+            "type": "string",
+            "enum": [
+              "sustain",
+              "stabs",
+              "pulse"
+            ]
+          },
+          "bass_style": {
+            "type": "string",
+            "enum": [
+              "offbeat",
+              "rolling",
+              "pulse",
+              "syncopated",
+              "sustain"
+            ]
+          },
+          "drum_style": {
+            "type": "string",
+            "enum": [
+              "techno",
+              "melodic_techno",
+              "progressive_house",
+              "house",
+              "edm"
+            ]
+          },
+          "fill": {
+            "type": "boolean"
+          },
+          "ppq": {
+            "type": "integer",
+            "minimum": 480,
+            "maximum": 480
+          },
+          "parts": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 8,
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "enum": [
+                    "chords",
+                    "bass",
+                    "melody"
+                  ]
+                },
+                "notes": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "pitch": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 127
+                      },
+                      "start": {
+                        "type": "integer",
+                        "minimum": 0
+                      },
+                      "dur": {
+                        "type": "integer",
+                        "minimum": 1
+                      },
+                      "vel": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 127
+                      }
+                    },
+                    "required": [
+                      "pitch",
+                      "start",
+                      "dur"
+                    ]
+                  }
+                }
+              },
+              "required": [
+                "id",
+                "notes"
+              ]
+            }
+          }
+        },
+        "required": [
+          "parts"
+        ]
+      },
+      "output": "checks per part",
+      "tools": [
+        "music.theory",
+        "music.generator"
+      ],
+      "permissions": [],
+      "basis": "rule_based"
+    }
+  ],
+  "tools": [
+    "music.generator",
+    "music.key_detection",
+    "music.smf_writer",
+    "music.theory"
+  ],
+  "permissions": [],
+  "limits": {
+    "it": [
+      "Solo 4/4 e un accordo per battuta nella generazione",
+      "Melodie basate su regole, senza sviluppo di motivi",
+      "Il riconoscimento della tonalità è una stima (profili di Krumhansl)"
+    ],
+    "en": [
+      "4/4 only and one chord per bar when generating",
+      "Rule-based melodies, no motif development",
+      "Key finding is an estimate (Krumhansl profiles)"
+    ]
+  },
+  "input_formats": [
+    "application/json"
+  ],
+  "output_formats": [
+    "application/json",
+    "audio/midi"
+  ],
+  "collaborates_with": [
+    "music_producer",
+    "rhythm_engineer",
+    "voice_to_music",
+    "daw_controller"
+  ]
+}

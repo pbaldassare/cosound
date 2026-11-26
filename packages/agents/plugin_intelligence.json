@@ -1,0 +1,182 @@
+{
+  "contract_version": "1",
+  "id": "plugin_intelligence",
+  "name": "Plugin Intelligence",
+  "version": "1.0.0",
+  "role": {
+    "it": "Plug-in installati, categorie e caratteristiche",
+    "en": "Installed plugins, categories and features"
+  },
+  "competencies": {
+    "it": [
+      "Riconoscimento dei plug-in installati (VST3, AU, CLAP, VST2)",
+      "Organizzazione per tipo e produttore",
+      "Caratteristiche dei sintetizzatori noti (Massive, Predator, Serum, Vital, Sylenth1…)",
+      "Strumenti ed effetti adatti a una richiesta",
+      "Documentazione tecnica dalla knowledge base"
+    ],
+    "en": [
+      "Detection of installed plugins (VST3, AU, CLAP, VST2)",
+      "Organization by type and vendor",
+      "Features of well-known synths (Massive, Predator, Serum, Vital, Sylenth1…)",
+      "Instruments and effects suited to a request",
+      "Technical documentation from the knowledge base"
+    ]
+  },
+  "operations": [
+    {
+      "name": "scan",
+      "status": "available",
+      "risk": "read",
+      "requires_approval": false,
+      "summary": {
+        "it": "Inventario dei plug-in installati",
+        "en": "Inventory of installed plugins"
+      },
+      "input": {
+        "type": "object",
+        "properties": {}
+      },
+      "output": "plugins[] by format, kind, vendor",
+      "tools": [
+        "plugins.scanner"
+      ],
+      "permissions": [
+        "plugins.scan"
+      ],
+      "basis": "measured"
+    },
+    {
+      "name": "find_for_role",
+      "status": "available",
+      "risk": "read",
+      "requires_approval": false,
+      "summary": {
+        "it": "Strumenti installati adatti a un ruolo",
+        "en": "Installed instruments suited to a role"
+      },
+      "input": {
+        "type": "object",
+        "properties": {
+          "role": {
+            "type": "string",
+            "enum": [
+              "bass",
+              "sub",
+              "acid",
+              "lead",
+              "pluck",
+              "arp",
+              "pad",
+              "chords",
+              "keys",
+              "texture",
+              "atmosphere"
+            ]
+          }
+        },
+        "required": [
+          "role"
+        ]
+      },
+      "output": "candidates[] (detected only)",
+      "tools": [
+        "plugins.scanner",
+        "plugins.catalog",
+        "sound.recipes"
+      ],
+      "permissions": [
+        "plugins.scan"
+      ],
+      "basis": "rule_based"
+    },
+    {
+      "name": "plugin_info",
+      "status": "available",
+      "risk": "read",
+      "requires_approval": false,
+      "summary": {
+        "it": "Scheda di un synth noto e se è installato",
+        "en": "Profile of a known synth and whether it is installed"
+      },
+      "input": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "output": "catalog entry, installed",
+      "tools": [
+        "plugins.catalog",
+        "plugins.scanner"
+      ],
+      "permissions": [],
+      "basis": "rule_based"
+    },
+    {
+      "name": "map_parameters",
+      "status": "planned",
+      "risk": "read",
+      "requires_approval": false,
+      "summary": {
+        "it": "Mappa dei parametri di un plug-in",
+        "en": "Parameter map of a plugin"
+      },
+      "input": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "output": "parameters[]",
+      "tools": [
+        "plugins.param_maps",
+        "daw.connectors"
+      ],
+      "permissions": [],
+      "requires": "parameter maps through a DAW (milestone M7)"
+    }
+  ],
+  "tools": [
+    "daw.connectors",
+    "plugins.catalog",
+    "plugins.param_maps",
+    "plugins.scanner",
+    "sound.recipes"
+  ],
+  "permissions": [
+    "plugins.scan"
+  ],
+  "limits": {
+    "it": [
+      "Non dichiara mai disponibile un plug-in non rilevato",
+      "Non carica i plug-in: legge solo file e metadati",
+      "Parametri e controllo dei plug-in non ancora disponibili (M7)"
+    ],
+    "en": [
+      "Never reports a plugin as available unless it was detected",
+      "Never loads plugins: reads files and metadata only",
+      "Plugin parameters and control not available yet (M7)"
+    ]
+  },
+  "input_formats": [
+    "application/json"
+  ],
+  "output_formats": [
+    "application/json"
+  ],
+  "collaborates_with": [
+    "sound_designer",
+    "daw_controller"
+  ]
+}

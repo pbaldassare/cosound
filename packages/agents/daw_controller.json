@@ -1,0 +1,211 @@
+{
+  "contract_version": "1",
+  "id": "daw_controller",
+  "name": "DAW Controller",
+  "version": "1.0.0",
+  "role": {
+    "it": "Unico componente che opera sulle DAW, solo con metodi verificati",
+    "en": "The only component that operates DAWs, with verified methods only"
+  },
+  "competencies": {
+    "it": [
+      "Rilevamento delle DAW installate",
+      "Piano delle operazioni: tempo, tracce, import MIDI/audio, marker di sezione",
+      "Metodo tecnico verificato per ogni DAW",
+      "Rischio e conferma per ogni operazione",
+      "Prima fase: Logic Pro; poi Ableton Live, FL Studio, Pro Tools; poi Cubase, REAPER"
+    ],
+    "en": [
+      "Detection of installed DAWs",
+      "Operation plan: tempo, tracks, MIDI/audio import, section markers",
+      "Verified technical route per DAW",
+      "Risk and confirmation for every operation",
+      "First phase: Logic Pro; then Ableton Live, FL Studio, Pro Tools; then Cubase, REAPER"
+    ]
+  },
+  "operations": [
+    {
+      "name": "detect",
+      "status": "available",
+      "risk": "read",
+      "requires_approval": false,
+      "summary": {
+        "it": "DAW installate e versioni",
+        "en": "Installed DAWs and versions"
+      },
+      "input": {
+        "type": "object",
+        "properties": {}
+      },
+      "output": "daws[]",
+      "tools": [
+        "daw.detector"
+      ],
+      "permissions": [
+        "daw.detect"
+      ],
+      "basis": "measured"
+    },
+    {
+      "name": "plan_operations",
+      "status": "available",
+      "risk": "low",
+      "requires_approval": false,
+      "summary": {
+        "it": "Prepara le operazioni nella DAW e i file MIDI da importare (non esegue nulla nella DAW)",
+        "en": "Prepare DAW operations and the MIDI files to import (executes nothing in the DAW)"
+      },
+      "input": {
+        "type": "object",
+        "properties": {
+          "daw": {
+            "type": "string",
+            "enum": [
+              "logic",
+              "ableton",
+              "fl",
+              "protools",
+              "cubase",
+              "reaper"
+            ]
+          },
+          "bpm": {
+            "type": "number",
+            "minimum": 40,
+            "maximum": 250
+          },
+          "key": {
+            "type": "string"
+          },
+          "project_name": {
+            "type": "string",
+            "maxLength": 80
+          },
+          "sections": {
+            "type": "array",
+            "maxItems": 64,
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "start_bar": {
+                  "type": "integer",
+                  "minimum": 1
+                }
+              },
+              "required": [
+                "name",
+                "start_bar"
+              ]
+            }
+          },
+          "parts": {
+            "type": "array",
+            "maxItems": 32,
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "maxLength": 60
+                },
+                "role": {
+                  "type": "string"
+                },
+                "midi_base64": {
+                  "type": "string"
+                },
+                "path": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "name"
+              ]
+            }
+          }
+        }
+      },
+      "output": "operations[] with route, risk, approval; manual_steps[]; files[]",
+      "tools": [
+        "daw.detector",
+        "daw.routes",
+        "files.writer"
+      ],
+      "permissions": [
+        "daw.detect",
+        "files.app_write"
+      ],
+      "basis": "rule_based"
+    },
+    {
+      "name": "execute_plan",
+      "status": "planned",
+      "risk": "medium",
+      "requires_approval": true,
+      "summary": {
+        "it": "Esegue il piano nella DAW",
+        "en": "Execute the plan in the DAW"
+      },
+      "input": {
+        "type": "object",
+        "properties": {
+          "plan_task_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "plan_task_id"
+        ]
+      },
+      "output": "executed operations",
+      "tools": [
+        "daw.connectors"
+      ],
+      "permissions": [
+        "daw.control"
+      ],
+      "requires": "DAW connectors (milestone M4): Logic Pro first"
+    }
+  ],
+  "tools": [
+    "daw.connectors",
+    "daw.detector",
+    "daw.routes",
+    "files.writer"
+  ],
+  "permissions": [
+    "daw.control",
+    "daw.detect",
+    "files.app_write"
+  ],
+  "limits": {
+    "it": [
+      "Nessuna DAW è ancora collegata: il piano non viene eseguito",
+      "Usa solo metodi verificati per ogni DAW (vedi docs/knowledge/daw-integration)",
+      "Ogni operazione di rischio medio o alto richiede la conferma dell'utente"
+    ],
+    "en": [
+      "No DAW is connected yet: plans are not executed",
+      "Uses only verified methods per DAW (see docs/knowledge/daw-integration)",
+      "Every medium or high-risk operation needs the user's confirmation"
+    ]
+  },
+  "input_formats": [
+    "application/json",
+    "audio/midi",
+    "audio/wav"
+  ],
+  "output_formats": [
+    "application/json",
+    "audio/midi"
+  ],
+  "collaborates_with": [
+    "music_theory",
+    "rhythm_engineer",
+    "music_producer",
+    "plugin_intelligence"
+  ]
+}

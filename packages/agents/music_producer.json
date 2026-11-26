@@ -1,0 +1,251 @@
+{
+  "contract_version": "1",
+  "id": "music_producer",
+  "name": "Music Producer",
+  "version": "1.0.0",
+  "role": {
+    "it": "Struttura, arrangiamento e piano di produzione del brano",
+    "en": "Song structure, arrangement and production plan"
+  },
+  "competencies": {
+    "it": [
+      "Comprensione delle richieste musicali strutturate (genere, BPM, tonalità)",
+      "Strutture e arrangiamenti per genere",
+      "Organizzazione delle sezioni e curva di energia",
+      "Scelta degli elementi per sezione",
+      "Varianti creative di progressione e stile",
+      "Piano di produzione: quali lavori chiedere agli altri agenti"
+    ],
+    "en": [
+      "Understanding structured musical requests (genre, BPM, key)",
+      "Per-genre structures and arrangements",
+      "Section layout and energy curve",
+      "Choice of elements per section",
+      "Creative variants of progression and style",
+      "Production plan: which work to request from the other agents"
+    ]
+  },
+  "operations": [
+    {
+      "name": "plan_arrangement",
+      "status": "available",
+      "risk": "read",
+      "requires_approval": false,
+      "summary": {
+        "it": "Mappa delle sezioni con battute, durata, energia ed elementi",
+        "en": "Section map with bars, timing, energy and elements"
+      },
+      "input": {
+        "type": "object",
+        "properties": {
+          "genre": {
+            "type": "string",
+            "enum": [
+              "techno",
+              "melodic_techno",
+              "melodic_house",
+              "progressive_house",
+              "progressive_techno",
+              "deep_house",
+              "house",
+              "tech_house",
+              "afro_house",
+              "trance",
+              "minimal",
+              "edm"
+            ]
+          },
+          "bpm": {
+            "type": "number",
+            "minimum": 40,
+            "maximum": 250
+          }
+        },
+        "required": [
+          "genre"
+        ]
+      },
+      "output": "sections[], total_bars, duration, source",
+      "tools": [
+        "music.arrangement"
+      ],
+      "permissions": [],
+      "basis": "convention"
+    },
+    {
+      "name": "propose_variants",
+      "status": "available",
+      "risk": "read",
+      "requires_approval": false,
+      "summary": {
+        "it": "Varianti di progressione armonica coerenti con genere e tonalità",
+        "en": "Harmonic progression variants that fit the genre and key"
+      },
+      "input": {
+        "type": "object",
+        "properties": {
+          "genre": {
+            "type": "string",
+            "enum": [
+              "techno",
+              "melodic_techno",
+              "progressive_house",
+              "house",
+              "edm"
+            ]
+          },
+          "key": {
+            "type": "string"
+          },
+          "tonic": {
+            "type": "string"
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "major",
+              "natural_minor",
+              "minor",
+              "harmonic_minor",
+              "melodic_minor",
+              "dorian",
+              "phrygian",
+              "lydian",
+              "mixolydian",
+              "locrian",
+              "major_pentatonic",
+              "minor_pentatonic",
+              "blues"
+            ]
+          },
+          "count": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 5
+          },
+          "seed": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "genre"
+        ]
+      },
+      "output": "variants[] with chords, functions, cadence",
+      "tools": [
+        "music.theory"
+      ],
+      "permissions": [],
+      "basis": "rule_based"
+    },
+    {
+      "name": "production_plan",
+      "status": "available",
+      "risk": "read",
+      "requires_approval": false,
+      "summary": {
+        "it": "Piano di produzione: struttura + lavori suggeriti agli altri agenti (needs)",
+        "en": "Production plan: structure + work suggested for the other agents (needs)"
+      },
+      "input": {
+        "type": "object",
+        "properties": {
+          "genre": {
+            "type": "string",
+            "enum": [
+              "techno",
+              "melodic_techno",
+              "melodic_house",
+              "progressive_house",
+              "progressive_techno",
+              "deep_house",
+              "house",
+              "tech_house",
+              "afro_house",
+              "trance",
+              "minimal",
+              "edm"
+            ]
+          },
+          "bpm": {
+            "type": "number",
+            "minimum": 40,
+            "maximum": 250
+          },
+          "key": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "genre"
+        ]
+      },
+      "output": "plan + needs[] for the central Agent",
+      "tools": [
+        "music.arrangement",
+        "music.theory"
+      ],
+      "permissions": [],
+      "basis": "convention"
+    },
+    {
+      "name": "interpret_request",
+      "status": "planned",
+      "risk": "read",
+      "requires_approval": false,
+      "summary": {
+        "it": "Trasforma una richiesta in linguaggio naturale in un brief strutturato",
+        "en": "Turn a natural-language request into a structured brief"
+      },
+      "input": {
+        "type": "object",
+        "properties": {
+          "text": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "text"
+        ]
+      },
+      "output": "brief",
+      "tools": [
+        "ai.core"
+      ],
+      "permissions": [],
+      "requires": "language understanding: done by the central Agent or the AI Core (decisions D-2, D-3)"
+    }
+  ],
+  "tools": [
+    "ai.core",
+    "music.arrangement",
+    "music.theory"
+  ],
+  "permissions": [],
+  "limits": {
+    "it": [
+      "Non scrive note: le chiede a Music Theory e Rhythm Engineer tramite l'Agent centrale",
+      "I template di arrangiamento sono convenzioni da verificare, non misure di brani reali",
+      "Generi con template: techno, melodic techno/house, progressive house/techno, deep house, house, tech house, afro house, trance, minimal, EDM"
+    ],
+    "en": [
+      "Does not write notes: asks Music Theory and Rhythm Engineer through the central Agent",
+      "Arrangement templates are conventions to verify, not measurements of real tracks",
+      "Genres with templates: techno, melodic techno/house, progressive house/techno, deep house, house, tech house, afro house, trance, minimal, EDM"
+    ]
+  },
+  "input_formats": [
+    "application/json"
+  ],
+  "output_formats": [
+    "application/json"
+  ],
+  "collaborates_with": [
+    "music_theory",
+    "rhythm_engineer",
+    "sound_designer",
+    "smart_library",
+    "daw_controller"
+  ]
+}

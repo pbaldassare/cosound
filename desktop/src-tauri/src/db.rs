@@ -7,7 +7,7 @@ use std::path::Path;
 
 pub type Db = std::sync::Mutex<Connection>;
 
-const MIGRATIONS: &[&str] = &[include_str!("../migrations/001_init.sql")];
+const MIGRATIONS: &[&str] = &[include_str!("../migrations/001_init.sql"), include_str!("../migrations/002_agents.sql")];
 
 pub fn open(path: &Path) -> rusqlite::Result<Connection> {
     let c = Connection::open(path)?;
@@ -68,6 +68,7 @@ const LOGGED_SETTINGS: &[&str] = &[
     "perm_daw_detection",
     "perm_plugin_scan",
     "cloud_sync_assistant_name",
+    "perm_workflow_memory",
 ];
 
 // ---------- operation register ----------

@@ -1,0 +1,352 @@
+{
+  "contract_version": "1",
+  "id": "adaptive_workflow",
+  "name": "Adaptive Workflow",
+  "version": "1.0.0",
+  "role": {
+    "it": "Memoria delle abitudini operative dell'utente, sotto il suo controllo",
+    "en": "Memory of the user's working habits, under their control"
+  },
+  "competencies": {
+    "it": [
+      "Scorciatoie da tastiera personali",
+      "Comandi rapidi e sequenze di operazioni ricorrenti",
+      "Workflow nelle DAW",
+      "Preferenze operative",
+      "Recupero delle procedure pertinenti",
+      "Distinzione tra comandi standard e personalizzazioni"
+    ],
+    "en": [
+      "Personal keyboard shortcuts",
+      "Quick commands and recurring operation sequences",
+      "DAW workflows",
+      "Working preferences",
+      "Recall of relevant procedures",
+      "Standard commands vs user customizations"
+    ]
+  },
+  "operations": [
+    {
+      "name": "remember",
+      "status": "available",
+      "risk": "low",
+      "requires_approval": false,
+      "summary": {
+        "it": "Memorizza una scorciatoia, procedura o preferenza dichiarata",
+        "en": "Store a declared shortcut, procedure or preference"
+      },
+      "input": {
+        "type": "object",
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "shortcut",
+              "procedure",
+              "preference"
+            ]
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "daw": {
+            "type": "string",
+            "enum": [
+              "logic",
+              "ableton",
+              "fl",
+              "protools",
+              "cubase",
+              "reaper"
+            ]
+          },
+          "keys": {
+            "type": "string",
+            "maxLength": 60
+          },
+          "steps": {
+            "type": "array",
+            "maxItems": 30,
+            "items": {
+              "type": "string",
+              "maxLength": 200
+            }
+          },
+          "value": {
+            "type": "string",
+            "maxLength": 500
+          },
+          "scope": {
+            "type": "string",
+            "enum": [
+              "standard",
+              "custom"
+            ]
+          },
+          "source": {
+            "type": "string",
+            "maxLength": 200
+          }
+        },
+        "required": [
+          "kind",
+          "name"
+        ]
+      },
+      "output": "fact",
+      "tools": [
+        "memory.facts"
+      ],
+      "permissions": [
+        "memory.workflow"
+      ],
+      "basis": "none"
+    },
+    {
+      "name": "recall",
+      "status": "available",
+      "risk": "read",
+      "requires_approval": false,
+      "summary": {
+        "it": "Procedure pertinenti a una richiesta",
+        "en": "Procedures relevant to a request"
+      },
+      "input": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string"
+          },
+          "daw": {
+            "type": "string",
+            "enum": [
+              "logic",
+              "ableton",
+              "fl",
+              "protools",
+              "cubase",
+              "reaper"
+            ]
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "shortcut",
+              "procedure",
+              "preference"
+            ]
+          }
+        }
+      },
+      "output": "facts[] ranked",
+      "tools": [
+        "memory.facts"
+      ],
+      "permissions": [
+        "memory.workflow"
+      ],
+      "basis": "none"
+    },
+    {
+      "name": "list",
+      "status": "available",
+      "risk": "read",
+      "requires_approval": false,
+      "summary": {
+        "it": "Tutta la memoria dei workflow",
+        "en": "The whole workflow memory"
+      },
+      "input": {
+        "type": "object",
+        "properties": {}
+      },
+      "output": "facts[]",
+      "tools": [
+        "memory.facts"
+      ],
+      "permissions": [
+        "memory.workflow"
+      ],
+      "basis": "none"
+    },
+    {
+      "name": "update",
+      "status": "available",
+      "risk": "low",
+      "requires_approval": false,
+      "summary": {
+        "it": "Modifica un elemento",
+        "en": "Edit an item"
+      },
+      "input": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "keys": {
+            "type": "string",
+            "maxLength": 60
+          },
+          "steps": {
+            "type": "array",
+            "maxItems": 30,
+            "items": {
+              "type": "string",
+              "maxLength": 200
+            }
+          },
+          "value": {
+            "type": "string",
+            "maxLength": 500
+          },
+          "scope": {
+            "type": "string",
+            "enum": [
+              "standard",
+              "custom"
+            ]
+          }
+        },
+        "required": [
+          "id"
+        ]
+      },
+      "output": "fact",
+      "tools": [
+        "memory.facts"
+      ],
+      "permissions": [
+        "memory.workflow"
+      ],
+      "basis": "none"
+    },
+    {
+      "name": "forget",
+      "status": "available",
+      "risk": "low",
+      "requires_approval": false,
+      "summary": {
+        "it": "Cancella un elemento",
+        "en": "Delete an item"
+      },
+      "input": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id"
+        ]
+      },
+      "output": "deleted",
+      "tools": [
+        "memory.facts"
+      ],
+      "permissions": [
+        "memory.workflow"
+      ],
+      "basis": "none"
+    },
+    {
+      "name": "clear",
+      "status": "available",
+      "risk": "high",
+      "requires_approval": true,
+      "summary": {
+        "it": "Cancella tutta la memoria dei workflow (serve la conferma dell'utente)",
+        "en": "Delete the whole workflow memory (needs the user's confirmation)"
+      },
+      "input": {
+        "type": "object",
+        "properties": {}
+      },
+      "output": "deleted count",
+      "tools": [
+        "memory.facts"
+      ],
+      "permissions": [],
+      "basis": "none"
+    },
+    {
+      "name": "status",
+      "status": "available",
+      "risk": "read",
+      "requires_approval": false,
+      "summary": {
+        "it": "Memoria attiva o no e numero di elementi",
+        "en": "Whether memory is on and how many items"
+      },
+      "input": {
+        "type": "object",
+        "properties": {}
+      },
+      "output": "enabled, count",
+      "tools": [
+        "memory.facts"
+      ],
+      "permissions": [],
+      "basis": "none"
+    },
+    {
+      "name": "learn_from_history",
+      "status": "planned",
+      "risk": "read",
+      "requires_approval": false,
+      "summary": {
+        "it": "Propone procedure dalle operazioni ripetute nella DAW",
+        "en": "Propose procedures from repeated DAW operations"
+      },
+      "input": {
+        "type": "object",
+        "properties": {}
+      },
+      "output": "suggestions[]",
+      "tools": [
+        "daw.connectors",
+        "memory.facts"
+      ],
+      "permissions": [
+        "memory.workflow"
+      ],
+      "requires": "a DAW event stream (milestone M4); keystrokes are never recorded"
+    }
+  ],
+  "tools": [
+    "daw.connectors",
+    "memory.facts"
+  ],
+  "permissions": [
+    "memory.workflow"
+  ],
+  "limits": {
+    "it": [
+      "Memorizza solo ciò che viene dichiarato esplicitamente: nessuna registrazione dei tasti",
+      "Rifiuta password, codici, numeri di carta o di conto e chiavi",
+      "Spenta finché l'utente non la attiva; consultabile, modificabile e cancellabile",
+      "Usa la Music Memory di COSOUND (memory_facts): non è una seconda memoria"
+    ],
+    "en": [
+      "Stores only what is declared explicitly: no keystroke logging",
+      "Refuses passwords, codes, card or account numbers and keys",
+      "Off until the user turns it on; viewable, editable and deletable",
+      "Uses COSOUND's Music Memory (memory_facts): not a second memory"
+    ]
+  },
+  "input_formats": [
+    "application/json"
+  ],
+  "output_formats": [
+    "application/json"
+  ],
+  "collaborates_with": [
+    "daw_controller"
+  ]
+}

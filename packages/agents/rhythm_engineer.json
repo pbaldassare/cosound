@@ -1,0 +1,284 @@
+{
+  "contract_version": "1",
+  "id": "rhythm_engineer",
+  "name": "Rhythm Engineer",
+  "version": "1.0.0",
+  "role": {
+    "it": "Batteria, groove, swing, transizioni e tempi",
+    "en": "Drums, groove, swing, transitions and timing"
+  },
+  "competencies": {
+    "it": [
+      "Kick, clap, snare, hi-hat e percussioni",
+      "Pattern ritmici per genere",
+      "Groove e swing",
+      "BPM e suddivisioni (tempi in ms, puntati, terzinati)",
+      "Pattern MIDI General MIDI",
+      "Fill, build di rullante e impatti per drop e transizioni"
+    ],
+    "en": [
+      "Kick, clap, snare, hi-hats and percussion",
+      "Rhythm patterns per genre",
+      "Groove and swing",
+      "BPM and subdivisions (ms, dotted, triplet)",
+      "General MIDI drum patterns",
+      "Fills, snare builds and impacts for drops and transitions"
+    ]
+  },
+  "operations": [
+    {
+      "name": "generate_drums",
+      "status": "available",
+      "risk": "read",
+      "requires_approval": false,
+      "summary": {
+        "it": "Pattern di batteria MIDI con controlli e file MIDI",
+        "en": "MIDI drum pattern with checks and a MIDI file"
+      },
+      "input": {
+        "type": "object",
+        "properties": {
+          "genre": {
+            "type": "string",
+            "enum": [
+              "techno",
+              "melodic_techno",
+              "progressive_house",
+              "house",
+              "edm"
+            ]
+          },
+          "key": {
+            "type": "string"
+          },
+          "tonic": {
+            "type": "string"
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "major",
+              "natural_minor",
+              "minor",
+              "harmonic_minor",
+              "melodic_minor",
+              "dorian",
+              "phrygian",
+              "lydian",
+              "mixolydian",
+              "locrian",
+              "major_pentatonic",
+              "minor_pentatonic",
+              "blues"
+            ]
+          },
+          "progression": {
+            "type": [
+              "string",
+              "array"
+            ],
+            "items": {
+              "type": "string"
+            }
+          },
+          "bpm": {
+            "type": "number",
+            "minimum": 40,
+            "maximum": 250
+          },
+          "bars": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 64
+          },
+          "seed": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "swing": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 100
+          },
+          "sevenths": {
+            "type": "boolean"
+          },
+          "chord_rhythm": {
+            "type": "string",
+            "enum": [
+              "sustain",
+              "stabs",
+              "pulse"
+            ]
+          },
+          "bass_style": {
+            "type": "string",
+            "enum": [
+              "offbeat",
+              "rolling",
+              "pulse",
+              "syncopated",
+              "sustain"
+            ]
+          },
+          "drum_style": {
+            "type": "string",
+            "enum": [
+              "techno",
+              "melodic_techno",
+              "progressive_house",
+              "house",
+              "edm"
+            ]
+          },
+          "fill": {
+            "type": "boolean"
+          }
+        }
+      },
+      "output": "part, checks, midi.base64",
+      "tools": [
+        "music.generator",
+        "music.smf_writer"
+      ],
+      "permissions": [],
+      "basis": "rule_based"
+    },
+    {
+      "name": "generate_transition",
+      "status": "available",
+      "risk": "read",
+      "requires_approval": false,
+      "summary": {
+        "it": "Build di rullante, fill di tom o impatto del drop",
+        "en": "Snare build, tom fill or drop impact"
+      },
+      "input": {
+        "type": "object",
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "snare_build",
+              "drum_fill",
+              "drop_impact"
+            ]
+          },
+          "bars": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 16
+          },
+          "bpm": {
+            "type": "number",
+            "minimum": 40,
+            "maximum": 250
+          },
+          "seed": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "output": "part, checks, midi.base64",
+      "tools": [
+        "music.generator",
+        "music.smf_writer"
+      ],
+      "permissions": [],
+      "basis": "rule_based"
+    },
+    {
+      "name": "groove_timing",
+      "status": "available",
+      "risk": "read",
+      "requires_approval": false,
+      "summary": {
+        "it": "Durate delle note in ms e offset dello swing a un tempo dato",
+        "en": "Note lengths in ms and swing offset at a tempo"
+      },
+      "input": {
+        "type": "object",
+        "properties": {
+          "bpm": {
+            "type": "number",
+            "minimum": 40,
+            "maximum": 250
+          },
+          "swing": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 100
+          }
+        },
+        "required": [
+          "bpm"
+        ]
+      },
+      "output": "beat_ms, bar_ms, note_lengths[], swing_offset_ms",
+      "tools": [
+        "music.generator"
+      ],
+      "permissions": [],
+      "basis": "rule_based"
+    },
+    {
+      "name": "humanize",
+      "status": "planned",
+      "risk": "read",
+      "requires_approval": false,
+      "summary": {
+        "it": "Umanizza un MIDI esistente (timing e dinamica)",
+        "en": "Humanize an existing MIDI part (timing and dynamics)"
+      },
+      "input": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "path"
+        ]
+      },
+      "output": "part",
+      "tools": [
+        "music.generator"
+      ],
+      "permissions": [],
+      "requires": "MIDI file import (reading existing MIDI) is not built yet"
+    }
+  ],
+  "tools": [
+    "music.generator",
+    "music.smf_writer"
+  ],
+  "permissions": [],
+  "limits": {
+    "it": [
+      "Solo 4/4",
+      "Swing solo sui sedicesimi in levare",
+      "Non legge ancora MIDI esistenti"
+    ],
+    "en": [
+      "4/4 only",
+      "Swing on the off-16ths only",
+      "Cannot read existing MIDI yet"
+    ]
+  },
+  "input_formats": [
+    "application/json"
+  ],
+  "output_formats": [
+    "application/json",
+    "audio/midi"
+  ],
+  "collaborates_with": [
+    "music_producer",
+    "daw_controller"
+  ]
+}

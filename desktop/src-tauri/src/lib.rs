@@ -1,13 +1,17 @@
 //! COSOUND desktop core. Each module is independent and tested on its own; this file only exposes
 //! them to the UI as Tauri commands. Engines still to come (audio analysis, voice, reference,
 //! DAW connectors) plug in as new modules + capabilities in packages/agents/registry.json.
+mod agents;
 mod ail;
+mod audio;
 mod daw;
 mod db;
 mod library;
+mod memory;
 mod music;
 mod plugins;
 mod projects;
+mod sound;
 
 use db::Db;
 use serde_json::{json, Value};
@@ -23,6 +27,7 @@ fn e(err: impl ToString) -> String {
 
 struct App {
     db: Arc<Db>,
+    agents: agents::runtime::Runtime,
     ail: Mutex<ail::Ail>,
     data_dir: PathBuf,
 }
@@ -248,18 +253,67 @@ fn ail_status(app: State<App>) -> ail::PortHealth {
 }
 
 #[tauri::command]
-fn ail_send(app: State<App>, text: String) -> Vec<ail::AgentEvent> {
-    app.ail.lock().unwrap().send(&app.db, &text)
+async fn ail_send(app: State<'_, App>, text: String) -> R<Vec<ail::AgentEvent>> {
+    Ok(app.ail.lock().unwrap().send(&app.agents, &text))
+}
+
+// ---------- Multi-Agent System (Prompt 06) ----------
+
+#[tauri::command]
+fn agents_registry(app: State<App>) -> Value {
+    app.agents.registry_view()
 }
 
 #[tauri::command]
-fn ail_tasks(app: State<App>) -> Vec<ail::Task> {
-    app.ail.lock().unwrap().tasks.clone()
+fn agents_tasks(app: State<App>, limit: Option<usize>) -> Vec<agents::protocol::TaskResult> {
+    app.agents.tasks(limit.unwrap_or(100))
 }
 
 #[tauri::command]
-fn agents_registry() -> Value {
-    serde_json::from_str(ail::REGISTRY_JSON).unwrap_or(Value::Null)
+fn agents_events(app: State<App>, since: u64) -> Vec<agents::protocol::Event> {
+    app.agents.events_since(since)
+}
+
+/// The user's answer to an approval request (Safety Gate): only the user can approve.
+#[tauri::command]
+fn agents_approval_respond(app: State<App>, approval_id: String, approve: bool) -> R<agents::protocol::TaskResult> {
+    app.agents.respond(&approval_id, approve, agents::runtime::Actor::User).map_err(|e| format!("{}: {}", e.code, e.message))
+}
+
+#[tauri::command]
+fn agents_cancel(app: State<App>, task_id: String) -> R<agents::protocol::TaskResult> {
+    app.agents.cancel(&task_id, agents::runtime::Actor::User).map_err(|e| format!("{}: {}", e.code, e.message))
+}
+
+#[tauri::command]
+fn agents_set_enabled(app: State<App>, agent: String, enabled: bool) -> R<()> {
+    app.agents.set_enabled(&agent, enabled)
+}
+
+// ---------- Music Memory (workflow memory, user side) ----------
+
+#[tauri::command]
+fn memory_list(app: State<App>, category: Option<String>) -> R<Vec<memory::Fact>> {
+    memory::list(&app.db.lock().unwrap(), category.as_deref())
+}
+
+#[tauri::command]
+fn memory_update(app: State<App>, id: String, key: Option<String>, value: Option<Value>, scope: Option<String>) -> R<memory::Fact> {
+    if scope.as_deref().is_some_and(|s| s != "standard" && s != "custom") {
+        return Err("scope must be standard or custom".into());
+    }
+    memory::update(&app.db.lock().unwrap(), &id, key.as_deref(), value.as_ref(), scope.as_deref())
+}
+
+#[tauri::command]
+fn memory_delete(app: State<App>, id: String) -> R<()> {
+    memory::delete(&app.db.lock().unwrap(), &id)
+}
+
+/// The UI asks the user to confirm before calling this (that confirmation is the approval).
+#[tauri::command]
+fn memory_clear(app: State<App>, category: String) -> R<usize> {
+    memory::clear(&app.db.lock().unwrap(), &category)
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -271,7 +325,9 @@ pub fn run() {
             let data_dir = app.path().app_data_dir()?;
             std::fs::create_dir_all(&data_dir)?;
             let conn = db::open(&data_dir.join("cosound.db"))?;
-            app.manage(App { db: Arc::new(Mutex::new(conn)), ail: Mutex::new(ail::Ail::new()), data_dir });
+            let db = Arc::new(Mutex::new(conn));
+            let agents = agents::runtime::Runtime::new(db.clone(), data_dir.clone());
+            app.manage(App { db, agents, ail: Mutex::new(ail::Ail::new()), data_dir });
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
@@ -307,8 +363,16 @@ pub fn run() {
             music_export_midi,
             ail_status,
             ail_send,
-            ail_tasks,
             agents_registry,
+            agents_tasks,
+            agents_events,
+            agents_approval_respond,
+            agents_cancel,
+            agents_set_enabled,
+            memory_list,
+            memory_update,
+            memory_delete,
+            memory_clear,
         ])
         .run(tauri::generate_context!())
         .expect("error while running COSOUND");

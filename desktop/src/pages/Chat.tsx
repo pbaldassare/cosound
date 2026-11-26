@@ -9,7 +9,7 @@ import { btnPrimary } from '../components/ui'
 type Msg = { id: number; from: 'user' | 'assistant' | 'system'; text: string; tone?: 'ok' | 'err'; detail?: string }
 
 export default function Chat() {
-  const { assistantName } = useStore()
+  const { assistantName, agent } = useStore()
   const { t } = useT()
   const [msgs, setMsgs] = useState<Msg[]>([])
   const [text, setText] = useState('')
@@ -20,9 +20,15 @@ export default function Chat() {
   const toMsg = (e: AgentEvent): Msg => {
     const id = ++n.current
     if (e.kind === 'assistant_text')
-      return e.text === 'TEMP_CONNECTOR_EXPLICIT_ONLY' ? { id, from: 'system', text: t.chat.tempExplicitOnly } : { id, from: 'assistant', text: e.text }
-    if (e.kind === 'capability_result')
-      return { id, from: 'system', tone: e.ok ? 'ok' : 'err', text: fill(e.ok ? t.chat.capOk : t.chat.capErr, { cap: e.capability }), detail: JSON.stringify(e.output, null, 2) }
+      // a temporary (MOCK) port is never presented as the assistant
+      return e.text === 'TEMP_CONNECTOR_EXPLICIT_ONLY' ? { id, from: 'system', text: t.chat.tempExplicitOnly } : { id, from: agent?.is_temporary ? 'system' : 'assistant', text: e.text }
+    if (e.kind === 'task_result') {
+      const r = e.result
+      const tone = r.status === 'COMPLETED' ? 'ok' : r.status === 'FAILED' || r.status === 'CANCELLED' ? 'err' : undefined
+      const err = r.errors[0] ? `\n${r.errors[0].code}: ${r.errors[0].message}` : ''
+      const lim = r.limitations.length ? `\n${t.chat.limits}: ${r.limitations.join(' · ')}` : ''
+      return { id, from: 'system', tone, text: fill(t.chat.task, { cap: `${r.agent}.${r.operation}`, status: t.agents.statuses[r.status] }) + err + lim, detail: r.result ? JSON.stringify(r.result, null, 2) : undefined }
+    }
     if (e.error.code === 'AGENT_UNAVAILABLE') return { id, from: 'system', text: t.chat.agentUnavailable }
     return { id, from: 'system', tone: 'err', text: `${e.error.code}: ${e.error.message}` }
   }

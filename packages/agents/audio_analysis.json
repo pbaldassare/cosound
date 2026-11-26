@@ -1,0 +1,217 @@
+{
+  "contract_version": "1",
+  "id": "audio_analysis",
+  "name": "Audio Analysis",
+  "version": "1.0.0",
+  "role": {
+    "it": "Misure su file audio e stem",
+    "en": "Measurements on audio files and stems"
+  },
+  "competencies": {
+    "it": [
+      "Loudness integrata (ITU-R BS.1770), true peak, picco, RMS, fattore di cresta",
+      "Correlazione stereo e del basso, offset DC, clipping",
+      "Bilanciamento approssimativo delle bande",
+      "Silenzi iniziali e finali",
+      "Confronto tra stem",
+      "Distinzione tra dati misurati e stime"
+    ],
+    "en": [
+      "Integrated loudness (ITU-R BS.1770), true peak, peak, RMS, crest factor",
+      "Stereo and low-band correlation, DC offset, clipping",
+      "Coarse band balance",
+      "Leading and trailing silence",
+      "Comparison between stems",
+      "Clear split between measured data and estimates"
+    ]
+  },
+  "operations": [
+    {
+      "name": "analyze_file",
+      "status": "available",
+      "risk": "read",
+      "requires_approval": false,
+      "summary": {
+        "it": "Misure di un file WAV autorizzato",
+        "en": "Measurements of an authorized WAV file"
+      },
+      "input": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "path"
+        ]
+      },
+      "output": "measurements",
+      "tools": [
+        "audio.wav_meter"
+      ],
+      "permissions": [
+        "files.authorized_read"
+      ],
+      "basis": "measured"
+    },
+    {
+      "name": "analyze_stems",
+      "status": "available",
+      "risk": "read",
+      "requires_approval": false,
+      "summary": {
+        "it": "Misure di più stem e livelli relativi",
+        "en": "Measurements of several stems and relative levels"
+      },
+      "input": {
+        "type": "object",
+        "properties": {
+          "paths": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 32,
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "paths"
+        ]
+      },
+      "output": "stems[], relative_lufs",
+      "tools": [
+        "audio.wav_meter"
+      ],
+      "permissions": [
+        "files.authorized_read"
+      ],
+      "basis": "measured"
+    },
+    {
+      "name": "detect_tempo_key",
+      "status": "planned",
+      "risk": "read",
+      "requires_approval": false,
+      "summary": {
+        "it": "BPM e tonalità di un file audio",
+        "en": "BPM and key of an audio file"
+      },
+      "input": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "path"
+        ]
+      },
+      "output": "bpm, key, confidence",
+      "tools": [
+        "audio.tempo_key"
+      ],
+      "permissions": [
+        "files.authorized_read"
+      ],
+      "requires": "tempo/key engine (milestone M6)"
+    },
+    {
+      "name": "detect_structure",
+      "status": "planned",
+      "risk": "read",
+      "requires_approval": false,
+      "summary": {
+        "it": "Sezioni, breakdown e drop",
+        "en": "Sections, breakdowns and drops"
+      },
+      "input": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "path"
+        ]
+      },
+      "output": "sections[]",
+      "tools": [
+        "audio.structure"
+      ],
+      "permissions": [
+        "files.authorized_read"
+      ],
+      "requires": "structure engine (milestone M6)"
+    },
+    {
+      "name": "separate_stems",
+      "status": "planned",
+      "risk": "low",
+      "requires_approval": false,
+      "summary": {
+        "it": "Separazione in stem",
+        "en": "Stem separation"
+      },
+      "input": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "path"
+        ]
+      },
+      "output": "stems[]",
+      "tools": [
+        "audio.stem_separator"
+      ],
+      "permissions": [
+        "files.authorized_read",
+        "files.app_write"
+      ],
+      "requires": "stem separation engine (milestone M6)"
+    }
+  ],
+  "tools": [
+    "audio.stem_separator",
+    "audio.structure",
+    "audio.tempo_key",
+    "audio.wav_meter"
+  ],
+  "permissions": [
+    "files.app_write",
+    "files.authorized_read"
+  ],
+  "limits": {
+    "it": [
+      "Solo file WAV (PCM 16/24/32 bit, float 32/64 bit)",
+      "Loudness solo per mono e stereo",
+      "BPM, tonalità, struttura e strumenti non ancora misurati (M6)",
+      "Legge solo file nelle cartelle autorizzate, importati o nella cartella di COSOUND"
+    ],
+    "en": [
+      "WAV files only (PCM 16/24/32-bit, float 32/64-bit)",
+      "Loudness for mono and stereo only",
+      "BPM, key, structure and instruments not measured yet (M6)",
+      "Reads only files in authorized folders, imported files or COSOUND's folder"
+    ]
+  },
+  "input_formats": [
+    "application/json",
+    "audio/wav"
+  ],
+  "output_formats": [
+    "application/json"
+  ],
+  "collaborates_with": [
+    "mixing_engineer",
+    "mastering_engineer",
+    "reference_track"
+  ]
+}

@@ -1,0 +1,173 @@
+{
+  "contract_version": "1",
+  "id": "sound_designer",
+  "name": "Sound Designer",
+  "version": "1.0.0",
+  "role": {
+    "it": "Scelta e progettazione dei suoni con gli strumenti installati",
+    "en": "Choosing and designing sounds with the installed instruments"
+  },
+  "competencies": {
+    "it": [
+      "Analisi dei timbri per ruolo (basso, lead, pad, pluck, arpeggio, texture)",
+      "Ricette di sintesi in termini generici (oscillatori, filtro, inviluppi, modulazioni)",
+      "Selezione di synth e preset effettivamente installati",
+      "Varianti sonore (più brillante, più scuro, più incisivo, più largo)",
+      "Collaborazione con Plugin Intelligence e Smart Library"
+    ],
+    "en": [
+      "Timbre analysis per role (bass, lead, pad, pluck, arp, texture)",
+      "Synthesis recipes in generic terms (oscillators, filter, envelopes, modulation)",
+      "Choice of synths and presets that are actually installed",
+      "Sound variants (brighter, darker, punchier, wider)",
+      "Works with Plugin Intelligence and Smart Library"
+    ]
+  },
+  "operations": [
+    {
+      "name": "suggest_sounds",
+      "status": "available",
+      "risk": "read",
+      "requires_approval": false,
+      "summary": {
+        "it": "Ricetta per il ruolo + synth installati + preset in libreria",
+        "en": "Recipe for the role + installed synths + presets in the library"
+      },
+      "input": {
+        "type": "object",
+        "properties": {
+          "role": {
+            "type": "string",
+            "enum": [
+              "bass",
+              "sub",
+              "acid",
+              "lead",
+              "pluck",
+              "arp",
+              "pad",
+              "chords",
+              "keys",
+              "texture",
+              "atmosphere"
+            ]
+          },
+          "genre": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "role"
+        ]
+      },
+      "output": "recipes[], installed_instruments[], presets[]",
+      "tools": [
+        "sound.recipes",
+        "plugins.scanner",
+        "plugins.catalog",
+        "library.index"
+      ],
+      "permissions": [],
+      "basis": "rule_based"
+    },
+    {
+      "name": "patch_variants",
+      "status": "available",
+      "risk": "read",
+      "requires_approval": false,
+      "summary": {
+        "it": "Varianti di una ricetta",
+        "en": "Variants of a recipe"
+      },
+      "input": {
+        "type": "object",
+        "properties": {
+          "recipe_id": {
+            "type": "string",
+            "enum": [
+              "sub_bass",
+              "acid_bass",
+              "supersaw_lead",
+              "pluck_arp",
+              "pad",
+              "fm_bell",
+              "granular_texture"
+            ]
+          }
+        },
+        "required": [
+          "recipe_id"
+        ]
+      },
+      "output": "recipe, variants[]",
+      "tools": [
+        "sound.recipes"
+      ],
+      "permissions": [],
+      "basis": "rule_based"
+    },
+    {
+      "name": "program_synth",
+      "status": "planned",
+      "risk": "medium",
+      "requires_approval": true,
+      "summary": {
+        "it": "Imposta i parametri di un synth nella DAW",
+        "en": "Set a synth's parameters inside the DAW"
+      },
+      "input": {
+        "type": "object",
+        "properties": {
+          "plugin": {
+            "type": "string"
+          },
+          "recipe_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "plugin"
+        ]
+      },
+      "output": "applied parameters",
+      "tools": [
+        "plugins.param_maps",
+        "daw.connectors"
+      ],
+      "permissions": [],
+      "requires": "plugin parameter maps (M7) and a DAW connector (M4)"
+    }
+  ],
+  "tools": [
+    "daw.connectors",
+    "library.index",
+    "plugins.catalog",
+    "plugins.param_maps",
+    "plugins.scanner",
+    "sound.recipes"
+  ],
+  "permissions": [],
+  "limits": {
+    "it": [
+      "Propone solo synth rilevati sul computer; quelli non installati sono indicati come tali",
+      "Le ricette sono in termini generici, non valori specifici di un plug-in",
+      "Non modifica preset né file dei plug-in"
+    ],
+    "en": [
+      "Proposes only synths detected on the computer; others are marked as not installed",
+      "Recipes are in generic terms, not plugin-specific values",
+      "Never edits presets or plugin files"
+    ]
+  },
+  "input_formats": [
+    "application/json"
+  ],
+  "output_formats": [
+    "application/json"
+  ],
+  "collaborates_with": [
+    "plugin_intelligence",
+    "smart_library",
+    "daw_controller"
+  ]
+}

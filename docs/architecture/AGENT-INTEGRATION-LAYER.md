@@ -103,7 +103,23 @@ cannot skip them.
 - Catalog: `packages/agents/registry.json` (one JSON file for the 12 sub-agents instead of one `agent.yaml` each, until packs carry instructions/schemas). A test fails if a capability marked `available` is not wired on the Bus.
 - Not yet: Safety Gate confirmations and backups (no agent-proposed DAW operation exists yet), `op_decision` / `ask_user` events.
 
+## 6c. Implementation status (Prompt 06, 2026-11-26)
+- The Capability Bus `dispatch` and `packages/agents/registry.json` are replaced by the **agent runtime** and the **Agent API**
+  (`desktop/src-tauri/src/agents/`, spec in `docs/agents/AGENT-PROTOCOL.md`). Catalog: one manifest per agent in
+  `packages/agents/<id>.json` + `tools.json` + `permissions.json`; JSON Schemas in `packages/contracts/`.
+- `AgentPort::send(text, api)`: a port reaches the agents only through the JSON Agent API (`Runtime::handle`), the same interface the
+  partner adapter will use. `AgentEvent::TaskResult` carries the full TaskResult.
+- Statuses: PENDING, RUNNING, WAITING_APPROVAL, COMPLETED, FAILED, CANCELLED (they replace the draft `ok/partial/needs_input/error`).
+- Safety Gate for agent operations: medium/high risk waits for approval; only the user approves (the Agent API refuses `approve`).
+- Persistent table `ail_tasks` (migration `002_agents.sql`); events via `events.poll`.
+- Still not done: DAW operations execution (no connector), backups before risky DAW changes (no DAW operation exists yet), `ask_user`.
+
 ## 7. Temporary test connector (directive §2)
+Since Prompt 06 this is the **MOCK central Agent connector** (`ail/temp_test_connector.rs`, port id `mock-central-agent`), labelled
+"MOCK (simulation)" everywhere. Commands: `/call <agent>.<operation> {json}`, `/scenario` (fixed six-step script in `agents/scenario.rs`),
+`/status <task_id>`, `/cancel <task_id>`, `/agents`. It uses only the Agent API, so replacing it does not touch any agent
+(test `mock_is_replaceable_by_a_json_connector`). The original description below still applies.
+
 `ail/adapters/temp_test_connector` – **TEMPORARY, to be removed when the real Agent is integrated.**
 - Purpose: let us develop and test sub-agents, Bus, Safety Gate and UI end to end without the Agent.
 - What it does: the developer (or a scripted test) issues **explicit capability calls**

@@ -1,0 +1,128 @@
+[
+  {
+    "id": "files.authorized_read",
+    "setting": null,
+    "default": true,
+    "grantable": true,
+    "label": {
+      "it": "File autorizzati",
+      "en": "Authorized files"
+    },
+    "description": {
+      "it": "Leggere solo file nelle cartelle autorizzate, file importati e cartella di COSOUND",
+      "en": "Read only files in authorized folders, imported files and COSOUND's folder"
+    }
+  },
+  {
+    "id": "files.app_write",
+    "setting": null,
+    "default": true,
+    "grantable": true,
+    "label": {
+      "it": "Cartella di COSOUND",
+      "en": "COSOUND folder"
+    },
+    "description": {
+      "it": "Scrivere solo nella cartella generated/ di COSOUND",
+      "en": "Write only inside COSOUND's generated/ folder"
+    }
+  },
+  {
+    "id": "microphone",
+    "setting": "perm_microphone",
+    "default": false,
+    "grantable": true,
+    "label": {
+      "it": "Microfono",
+      "en": "Microphone"
+    },
+    "description": {
+      "it": "Registrare la voce, solo mentre l'utente preme Registra",
+      "en": "Record the voice, only while the user presses Record"
+    }
+  },
+  {
+    "id": "external_devices",
+    "setting": "perm_external_devices",
+    "default": true,
+    "grantable": true,
+    "label": {
+      "it": "Dispositivi esterni",
+      "en": "External devices"
+    },
+    "description": {
+      "it": "Vedere dischi esterni, USB e di rete",
+      "en": "See external, USB and network drives"
+    }
+  },
+  {
+    "id": "daw.detect",
+    "setting": "perm_daw_detection",
+    "default": true,
+    "grantable": true,
+    "label": {
+      "it": "Rilevamento DAW",
+      "en": "DAW detection"
+    },
+    "description": {
+      "it": "Cercare le DAW installate",
+      "en": "Look for installed DAWs"
+    }
+  },
+  {
+    "id": "plugins.scan",
+    "setting": "perm_plugin_scan",
+    "default": true,
+    "grantable": true,
+    "label": {
+      "it": "Scansione plug-in",
+      "en": "Plugin scan"
+    },
+    "description": {
+      "it": "Leggere l'elenco dei plug-in installati",
+      "en": "Read the list of installed plugins"
+    }
+  },
+  {
+    "id": "memory.workflow",
+    "setting": "perm_workflow_memory",
+    "default": false,
+    "grantable": true,
+    "label": {
+      "it": "Memoria dei workflow",
+      "en": "Workflow memory"
+    },
+    "description": {
+      "it": "Ricordare scorciatoie e procedure dichiarate dall'utente",
+      "en": "Remember shortcuts and procedures declared by the user"
+    }
+  },
+  {
+    "id": "daw.control",
+    "setting": null,
+    "default": false,
+    "grantable": false,
+    "label": {
+      "it": "Controllo DAW",
+      "en": "DAW control"
+    },
+    "description": {
+      "it": "Eseguire operazioni nelle DAW (connettori non ancora costruiti, M4)",
+      "en": "Execute operations in DAWs (connectors not built yet, M4)"
+    }
+  },
+  {
+    "id": "network",
+    "setting": null,
+    "default": false,
+    "grantable": false,
+    "label": {
+      "it": "Rete",
+      "en": "Network"
+    },
+    "description": {
+      "it": "Gli agenti non hanno accesso alla rete in questa versione",
+      "en": "Agents have no network access in this version"
+    }
+  }
+]

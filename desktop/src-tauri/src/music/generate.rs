@@ -73,12 +73,17 @@ impl Rng {
     }
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, serde::Deserialize)]
 pub struct MidiNote {
     pub pitch: u8,
     pub start: u32,
     pub dur: u32,
+    #[serde(default = "default_velocity")]
     pub vel: u8,
+}
+
+fn default_velocity() -> u8 {
+    100
 }
 
 #[derive(Clone, Debug, Serialize)]
@@ -383,6 +388,71 @@ pub fn drums(spec: &Spec, style: &str, fill: bool) -> Result<Part, String> {
     Ok(Part { id: "drums", name: "Drums", channel: 9, program: 0, notes })
 }
 
+pub const TRANSITIONS: [&str; 3] = ["snare_build", "drum_fill", "drop_impact"];
+const TOM_HIGH: u8 = 50;
+const TOM_MID: u8 = 47;
+const TOM_LOW: u8 = 45;
+
+/// Drum transitions (General MIDI, channel 10): a snare build that speeds up (8ths → 16ths →
+/// 32nds) with rising velocity, a one-bar tom fill, or a drop impact (crash + kick).
+pub fn transition(kind: &str, bars: u32, seed: u64) -> Result<Part, String> {
+    let mut rng = Rng::new(seed.wrapping_add(5));
+    let mut notes = Vec::new();
+    let name = match kind {
+        "snare_build" => {
+            let bars = bars.clamp(1, 16);
+            let mut hits = Vec::new();
+            for b in 0..bars {
+                for beat in 0..4 {
+                    let pos = (b * 4 + beat) as f64 / (bars * 4) as f64; // 0..1 through the build
+                    let step = if bars == 1 { if beat == 3 { S16 / 2 } else { S16 } } else if pos < 0.5 { PPQ / 2 } else if pos < 0.75 { S16 } else { S16 / 2 };
+                    let mut t = 0;
+                    while t < PPQ {
+                        hits.push(b * BAR + beat * PPQ + t);
+                        t += step;
+                    }
+                }
+            }
+            let n = hits.len().max(2) as f64;
+            for (i, at) in hits.into_iter().enumerate() {
+                notes.push(MidiNote { pitch: SNARE, start: at, dur: 30, vel: (50.0 + 70.0 * i as f64 / (n - 1.0)).round() as u8 });
+            }
+            "Snare build"
+        }
+        "drum_fill" => {
+            for (s, d) in [(0, KICK), (4, KICK), (4, CLAP), (8, SNARE), (9, SNARE), (10, TOM_HIGH), (11, TOM_HIGH), (12, TOM_MID), (13, TOM_MID), (14, TOM_LOW), (15, TOM_LOW)] {
+                notes.push(MidiNote { pitch: d, start: s * S16, dur: S16 / 2, vel: rng.jitter(if s >= 8 { 96 + (s - 8) as u8 * 4 } else { 110 }, 4) });
+            }
+            "Drum fill"
+        }
+        "drop_impact" => {
+            notes.push(MidiNote { pitch: CRASH, start: 0, dur: PPQ, vel: 120 });
+            notes.push(MidiNote { pitch: KICK, start: 0, dur: S16 / 2, vel: 127 });
+            "Drop impact"
+        }
+        _ => return Err(format!("unknown transition {kind:?} (use {})", TRANSITIONS.join(", "))),
+    };
+    notes.sort_by_key(|n| (n.start, n.pitch));
+    Ok(Part { id: "transition", name, channel: 9, program: 0, notes })
+}
+
+/// Musical timing at a tempo: note lengths in ms (straight, dotted, triplet) for delays and
+/// envelopes, and the swing offset of the off-16ths.
+pub fn groove_timing(bpm: f64, swing: u32) -> Value {
+    let beat = 60_000.0 / bpm;
+    let r = |x: f64| (x * 100.0).round() / 100.0;
+    let lengths: Vec<Value> = [("1/1", 4.0), ("1/2", 2.0), ("1/4", 1.0), ("1/8", 0.5), ("1/16", 0.25), ("1/32", 0.125)]
+        .iter()
+        .map(|&(n, q)| json!({ "note": n, "straight_ms": r(beat * q), "dotted_ms": r(beat * q * 1.5), "triplet_ms": r(beat * q * 2.0 / 3.0) }))
+        .collect();
+    json!({
+        "bpm": bpm, "beat_ms": r(beat), "bar_ms": r(beat * 4.0), "bars_per_minute": r(bpm / 4.0),
+        "swing": swing, "swing_offset_ms": r(beat / 4.0 / 3.0 * swing.min(100) as f64 / 100.0),
+        "swing_note": "0 = straight, 100 = off-16ths delayed to the triplet position",
+        "note_lengths": lengths,
+    })
+}
+
 /// Musical and technical checks for a generated part. The result goes back to the caller as is:
 /// a part is never reported as valid unless these checks actually pass.
 pub fn check(part: &Part, spec: &Spec) -> Map<String, Value> {
@@ -414,6 +484,14 @@ pub fn check(part: &Part, spec: &Spec) -> Map<String, Value> {
             m.insert("leaps_within_octave".into(), json!(leap <= 12));
             m.insert("monophonic".into(), json!(n.windows(2).all(|w| w[0].start + w[0].dur <= w[1].start)));
             m.insert("in_range_c4_c6".into(), json!(n.iter().all(|x| (MEL_LO..=MEL_HI).contains(&x.pitch))));
+        }
+        "transition" => {
+            m.insert("general_midi_channel_10".into(), json!(part.channel == 9));
+            if part.name == "Snare build" {
+                m.insert("velocity_rises".into(), json!(n.windows(2).all(|w| w[0].vel <= w[1].vel)));
+                let first_half = n.iter().filter(|x| x.start < spec.len() / 2).count();
+                m.insert("density_rises".into(), json!(first_half * 2 <= n.len()));
+            }
         }
         "drums" => {
             let kicks: Vec<u32> = n.iter().filter(|x| x.pitch == KICK).map(|x| x.start).collect();
@@ -503,6 +581,24 @@ mod tests {
             prev = Some(v);
         }
         assert_eq!(voice(&ch[0].pcs(), None), vec![57, 60, 64]); // Am root position A3 C4 E4
+    }
+
+    #[test]
+    fn transitions_and_timing() {
+        let key = Key::parse("A minor").unwrap();
+        let ch = progression(key, "i", false).unwrap();
+        for (kind, bars) in [("snare_build", 8), ("snare_build", 1), ("drum_fill", 1), ("drop_impact", 1)] {
+            let p = transition(kind, bars, 3).unwrap();
+            let spec = Spec { key, chords: &ch, bars: if kind == "snare_build" { bars } else { 1 }, seed: 3, swing: 0 };
+            let c = check(&p, &spec);
+            assert!(all_pass(&c), "{kind}: {c:?}");
+        }
+        let b = transition("snare_build", 4, 1).unwrap();
+        assert_eq!((b.notes[0].vel, b.notes.last().unwrap().vel), (50, 120));
+        assert!(transition("riser", 4, 1).is_err());
+        let g = groove_timing(120.0, 100);
+        assert_eq!((g["beat_ms"].as_f64(), g["bar_ms"].as_f64(), g["swing_offset_ms"].as_f64()), (Some(500.0), Some(2000.0), Some(41.67)));
+        assert_eq!(g["note_lengths"][3]["dotted_ms"].as_f64(), Some(375.0)); // dotted 1/8 at 120 BPM
     }
 
     #[test]
