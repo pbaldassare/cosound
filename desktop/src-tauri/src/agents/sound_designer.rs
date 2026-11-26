@@ -39,7 +39,11 @@ impl Agent for SoundDesigner {
                     cx.limit("plugin scan is disabled in Settings: installed instruments were not checked");
                 }
                 cx.tool("library.index");
-                let presets = crate::library::search(&cx.db.lock().unwrap(), role, Some("preset"), 20).map_err(|e| AgentError::new("EXECUTION_FAILED", e.to_string()))?;
+                let presets = {
+                    let mut q = crate::smartlib::query::parse(role, &[]);
+                    q.kind = Some("preset".into());
+                    crate::smartlib::api::search_structured(&cx.db.lock().unwrap(), &q, 20)["results"].clone()
+                };
                 Ok(Outcome::new(
                     json!({ "role": role, "genre": genre, "recipes": recipes, "installed_instruments": installed, "presets_in_library": presets, "source": sound::SOURCE_RECIPES }),
                     "rule_based",

@@ -70,7 +70,8 @@
       },
       "output": "tracks[] with measurements, suggestions[] (executed: false)",
       "tools": [
-        "audio.wav_meter"
+        "audio.wav_meter",
+        "audio.decoder"
       ],
       "permissions": [
         "files.authorized_read"
@@ -108,6 +109,7 @@
     }
   ],
   "tools": [
+    "audio.decoder",
     "audio.wav_meter",
     "daw.connectors"
   ],
@@ -118,12 +120,12 @@
   "limits": {
     "it": [
       "Solo proposte: nessun intervento viene eseguito",
-      "Le misure richiedono file WAV delle tracce",
+      "Le misure richiedono file audio delle tracce (WAV, AIFF, CAF, MP3, AAC/ALAC (M4A), FLAC, OGG Vorbis (decodificati con Symphonia))",
       "Bande di frequenza approssimative (filtri del 2° ordine), nessuna analisi spettrale fine"
     ],
     "en": [
       "Proposals only: no move is executed",
-      "Measurements need WAV files of the tracks",
+      "Measurements need audio files of the tracks (WAV, AIFF, CAF, MP3, AAC/ALAC (M4A), FLAC, OGG Vorbis (decoded with Symphonia))",
       "Coarse frequency bands (2nd-order filters), no fine spectral analysis"
     ]
   },

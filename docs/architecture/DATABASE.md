@@ -69,6 +69,18 @@ canonical list. Shared tables are defined here.
 
 Duplicates are found by `full_hash` (no separate table).
 
+**Implemented (Prompt 07, migration `003_smartlib.sql`)**. Differences from the design above:
+- `files` keeps `root_id` (the drive comes from the root) and adds `status` (present/modified/moved/missing), `moved_from`,
+  `audio_hash`, analysis state/version/error, format, peak/RMS/LUFS, `loop_bars`, `category`, `details` (JSON) and `vec`
+  (JSON timbre vector, 14 values; no sqlite-vec or CLAP model yet).
+- `file_tags` has a `kind` column (category/type/genre/descriptor/plugin) and sources filename/folder/metadata/analysis/midi/preset/user.
+- New: `file_corrections` (user corrections, re-applied after analysis), `library_exclusions` (excluded subfolders),
+  `volumes.excluded`.
+- `scan_jobs` is standalone (counts per run).
+- Not built: `files_fts`, because SQL prefiltering + scoring is fast enough (≈ 115 ms on 100,000 files), and `file_vec`.
+
+Details: `docs/smart-library/ARCHITECTURE.md` §3.
+
 ### 2.2 Audio, Stems, Voice, Reference – owners `specs/AUDIO-STEMS.md`, `VOICE-TO-MUSIC.md`, `REFERENCE-TRACK.md`
 | Table | Main columns |
 |---|---|

@@ -32,8 +32,8 @@
       "risk": "read",
       "requires_approval": false,
       "summary": {
-        "it": "Misure di un file WAV autorizzato",
-        "en": "Measurements of an authorized WAV file"
+        "it": "Misure di un file audio autorizzato",
+        "en": "Measurements of an authorized audio file"
       },
       "input": {
         "type": "object",
@@ -48,7 +48,8 @@
       },
       "output": "measurements",
       "tools": [
-        "audio.wav_meter"
+        "audio.wav_meter",
+        "audio.decoder"
       ],
       "permissions": [
         "files.authorized_read"
@@ -82,7 +83,8 @@
       },
       "output": "stems[], relative_lufs",
       "tools": [
-        "audio.wav_meter"
+        "audio.wav_meter",
+        "audio.decoder"
       ],
       "permissions": [
         "files.authorized_read"
@@ -179,6 +181,7 @@
     }
   ],
   "tools": [
+    "audio.decoder",
     "audio.stem_separator",
     "audio.structure",
     "audio.tempo_key",
@@ -190,13 +193,13 @@
   ],
   "limits": {
     "it": [
-      "Solo file WAV (PCM 16/24/32 bit, float 32/64 bit)",
+      "Formati: WAV, AIFF, CAF, MP3, AAC/ALAC (M4A), FLAC, OGG Vorbis (decodificati con Symphonia)",
       "Loudness solo per mono e stereo",
       "BPM, tonalità, struttura e strumenti non ancora misurati (M6)",
       "Legge solo file nelle cartelle autorizzate, importati o nella cartella di COSOUND"
     ],
     "en": [
-      "WAV files only (PCM 16/24/32-bit, float 32/64-bit)",
+      "Formats: WAV, AIFF, CAF, MP3, AAC/ALAC (M4A), FLAC, OGG Vorbis (decoded with Symphonia)",
       "Loudness for mono and stereo only",
       "BPM, key, structure and instruments not measured yet (M6)",
       "Reads only files in authorized folders, imported files or COSOUND's folder"
@@ -204,7 +207,12 @@
   },
   "input_formats": [
     "application/json",
-    "audio/wav"
+    "audio/wav",
+    "audio/aiff",
+    "audio/mpeg",
+    "audio/flac",
+    "audio/mp4",
+    "audio/ogg"
   ],
   "output_formats": [
     "application/json"

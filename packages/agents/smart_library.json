@@ -4,27 +4,31 @@
   "name": "Smart Library",
   "version": "1.0.0",
   "role": {
-    "it": "Ricerca nelle librerie autorizzate su dischi interni ed esterni",
-    "en": "Search in authorized libraries on internal and external drives"
+    "it": "Catalogo intelligente delle risorse musicali su tutti i dischi autorizzati",
+    "en": "Smart catalog of the music resources on every authorized drive"
   },
   "competencies": {
     "it": [
-      "Ricerca di sample, loop, MIDI, preset e progetti",
-      "Dischi interni, esterni, USB e di rete già autorizzati",
-      "Riconoscimento dei dischi già indicizzati",
-      "Classificazione per tipo",
-      "BPM e tonalità scritti nel nome del file",
-      "Duplicati probabili",
-      "Percorsi originali dei file"
+      "Ricerca in linguaggio naturale (italiano e inglese) su sample, loop, MIDI e preset",
+      "Dischi interni, esterni, SSD, USB e di rete autorizzati; riconoscimento dei dischi già indicizzati",
+      "Classificazione multipla con fonte e affidabilità",
+      "BPM, tonalità, durata, carattere del suono, genere, formato, dispositivo",
+      "Ricerca per descrizione del suono e per similarità",
+      "Loop compatibili con il BPM e la tonalità del progetto",
+      "Duplicati per hash, stesso audio con nomi diversi, suoni simili (non duplicati)",
+      "Percorsi originali per il DAW Controller",
+      "Aggiornamento incrementale dell'indice"
     ],
     "en": [
-      "Search for samples, loops, MIDI, presets and projects",
-      "Internal, external, USB and network drives already authorized",
-      "Recognition of previously indexed drives",
-      "Classification by type",
-      "BPM and key written in the file name",
-      "Probable duplicates",
-      "Original file paths"
+      "Natural-language search (Italian and English) over samples, loops, MIDI and presets",
+      "Authorized internal, external, SSD, USB and network drives; recognition of previously indexed drives",
+      "Multi-label classification with source and confidence",
+      "BPM, key, duration, sound character, genre, format, device",
+      "Search by sound description and by similarity",
+      "Loops that fit the project tempo and key",
+      "Duplicates by hash, same audio under different names, similar sounds (not duplicates)",
+      "Original paths for the DAW Controller",
+      "Incremental index updates"
     ]
   },
   "operations": [
@@ -34,22 +38,28 @@
       "risk": "read",
       "requires_approval": false,
       "summary": {
-        "it": "Ricerca per nome, tipo, BPM e tonalità (dal nome del file)",
-        "en": "Search by name, type, BPM and key (from the file name)"
+        "it": "Ricerca in linguaggio naturale o per parole chiave, con punteggio e motivi",
+        "en": "Natural-language or keyword search, with score and reasons"
       },
       "input": {
         "type": "object",
         "properties": {
+          "text": {
+            "type": "string",
+            "maxLength": 300
+          },
           "query": {
-            "type": "string"
+            "type": "string",
+            "maxLength": 300
           },
           "kind": {
             "type": "string",
             "enum": [
               "audio",
               "midi",
+              "preset",
               "project",
-              "preset"
+              "instrument"
             ]
           },
           "bpm_min": {
@@ -70,39 +80,243 @@
             "minimum": 1,
             "maximum": 500
           }
-        },
-        "required": [
-          "query"
-        ]
+        }
       },
-      "output": "hits[] with path (null when the drive is offline)",
+      "output": "understood (parsed request), results[] with score, why, bpm/key with source and confidence, path (null when the drive is offline)",
       "tools": [
+        "library.search",
         "library.index",
         "library.filename_meta"
       ],
       "permissions": [
         "files.authorized_read"
       ],
-      "basis": "file_name"
+      "basis": "mixed"
     },
     {
-      "name": "stats",
+      "name": "describe_sound",
       "status": "available",
       "risk": "read",
       "requires_approval": false,
       "summary": {
-        "it": "Conteggio dei file indicizzati per tipo",
-        "en": "Indexed file counts by type"
+        "it": "Trova suoni da una descrizione (es. basso caldo, profondo, aggressivo)",
+        "en": "Find sounds from a description (e.g. warm, deep, aggressive bass)"
       },
       "input": {
         "type": "object",
-        "properties": {}
+        "properties": {
+          "text": {
+            "type": "string",
+            "maxLength": 300
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 200
+          }
+        },
+        "required": [
+          "text"
+        ]
       },
-      "output": "roots, files_by_kind",
+      "output": "results[] ranked by estimated sound character",
+      "tools": [
+        "library.search",
+        "library.audio_analyzer"
+      ],
+      "permissions": [
+        "files.authorized_read"
+      ],
+      "basis": "estimated"
+    },
+    {
+      "name": "find_similar",
+      "status": "available",
+      "risk": "read",
+      "requires_approval": false,
+      "summary": {
+        "it": "Suoni con timbro simile a un file dell'indice",
+        "en": "Sounds with a timbre similar to an indexed file"
+      },
+      "input": {
+        "type": "object",
+        "properties": {
+          "file_id": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100
+          }
+        },
+        "required": [
+          "file_id"
+        ]
+      },
+      "output": "results[] with similarity % (estimate)",
+      "tools": [
+        "library.search"
+      ],
+      "permissions": [
+        "files.authorized_read"
+      ],
+      "basis": "estimated"
+    },
+    {
+      "name": "suggest_loops",
+      "status": "available",
+      "risk": "read",
+      "requires_approval": false,
+      "summary": {
+        "it": "Loop compatibili con BPM (e tonalità) del progetto, senza modificarli",
+        "en": "Loops that fit the project tempo (and key), never modified"
+      },
+      "input": {
+        "type": "object",
+        "properties": {
+          "bpm": {
+            "type": "number",
+            "minimum": 40,
+            "maximum": 250
+          },
+          "key": {
+            "type": "string"
+          },
+          "category": {
+            "type": "string"
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 200
+          }
+        },
+        "required": [
+          "bpm"
+        ]
+      },
+      "output": "results[] with stretch % and key fit",
+      "tools": [
+        "library.search"
+      ],
+      "permissions": [
+        "files.authorized_read"
+      ],
+      "basis": "mixed"
+    },
+    {
+      "name": "find_presets",
+      "status": "available",
+      "risk": "read",
+      "requires_approval": false,
+      "summary": {
+        "it": "Preset effettivamente presenti, anche per un plug-in preciso",
+        "en": "Presets actually present, also for a given plugin"
+      },
+      "input": {
+        "type": "object",
+        "properties": {
+          "text": {
+            "type": "string",
+            "maxLength": 300
+          },
+          "plugin": {
+            "type": "string"
+          },
+          "category": {
+            "type": "string"
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 200
+          }
+        }
+      },
+      "output": "results[] (presets only)",
+      "tools": [
+        "library.search",
+        "library.preset_reader"
+      ],
+      "permissions": [
+        "files.authorized_read"
+      ],
+      "basis": "mixed"
+    },
+    {
+      "name": "find_midi",
+      "status": "available",
+      "risk": "read",
+      "requires_approval": false,
+      "summary": {
+        "it": "File MIDI per tipo di pattern, tonalità, BPM, genere",
+        "en": "MIDI files by pattern type, key, BPM, genre"
+      },
+      "input": {
+        "type": "object",
+        "properties": {
+          "text": {
+            "type": "string",
+            "maxLength": 300
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 200
+          }
+        },
+        "required": [
+          "text"
+        ]
+      },
+      "output": "results[] (MIDI only) with pattern, key, bars",
+      "tools": [
+        "library.search",
+        "library.midi_reader"
+      ],
+      "permissions": [
+        "files.authorized_read"
+      ],
+      "basis": "mixed"
+    },
+    {
+      "name": "file_info",
+      "status": "available",
+      "risk": "read",
+      "requires_approval": false,
+      "summary": {
+        "it": "Dettagli e percorso originale di file dell'indice (per il DAW Controller)",
+        "en": "Details and original path of indexed files (for the DAW Controller)"
+      },
+      "input": {
+        "type": "object",
+        "properties": {
+          "file_ids": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 100,
+            "items": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          "details": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "file_ids"
+        ]
+      },
+      "output": "files[] with path (null when offline), status, device",
       "tools": [
         "library.index"
       ],
-      "permissions": [],
+      "permissions": [
+        "files.authorized_read"
+      ],
       "basis": "measured"
     },
     {
@@ -111,8 +325,103 @@
       "risk": "read",
       "requires_approval": false,
       "summary": {
-        "it": "Duplicati probabili (stesso nome e dimensione)",
-        "en": "Probable duplicates (same name and size)"
+        "it": "Duplicati esatti, stesso audio, suoni simili (non duplicati)",
+        "en": "Exact duplicates, same audio, similar sounds (not duplicates)"
+      },
+      "input": {
+        "type": "object",
+        "properties": {
+          "include_similar": {
+            "type": "boolean"
+          }
+        }
+      },
+      "output": "identical_files[], same_audio[], similar_not_duplicates[]",
+      "tools": [
+        "library.duplicates"
+      ],
+      "permissions": [
+        "files.authorized_read"
+      ],
+      "basis": "measured"
+    },
+    {
+      "name": "stats",
+      "status": "available",
+      "risk": "read",
+      "requires_approval": false,
+      "summary": {
+        "it": "Conteggi per stato, tipo, categoria, analisi",
+        "en": "Counts by status, kind, category, analysis"
+      },
+      "input": {
+        "type": "object",
+        "properties": {}
+      },
+      "output": "stats",
+      "tools": [
+        "library.index"
+      ],
+      "permissions": [],
+      "basis": "measured"
+    },
+    {
+      "name": "volumes",
+      "status": "available",
+      "risk": "read",
+      "requires_approval": false,
+      "summary": {
+        "it": "Dischi e cartelle autorizzate, collegati o no, stato delle scansioni",
+        "en": "Drives and authorized folders, connected or not, scan state"
+      },
+      "input": {
+        "type": "object",
+        "properties": {}
+      },
+      "output": "volumes[], roots[], root_states[]",
+      "tools": [
+        "library.index"
+      ],
+      "permissions": [
+        "external_devices"
+      ],
+      "basis": "measured"
+    },
+    {
+      "name": "scan",
+      "status": "available",
+      "risk": "low",
+      "requires_approval": false,
+      "summary": {
+        "it": "Scansione incrementale delle cartelle autorizzate (scrive solo l'indice)",
+        "en": "Incremental scan of the authorized folders (writes the index only)"
+      },
+      "input": {
+        "type": "object",
+        "properties": {
+          "root_id": {
+            "type": "string"
+          }
+        }
+      },
+      "output": "summary per folder: new, changed, moved, missing, back",
+      "tools": [
+        "library.scanner",
+        "library.index"
+      ],
+      "permissions": [
+        "files.authorized_read"
+      ],
+      "basis": "measured"
+    },
+    {
+      "name": "analyze_now",
+      "status": "available",
+      "risk": "low",
+      "requires_approval": false,
+      "summary": {
+        "it": "Analizza subito i file in attesa (interrompibile)",
+        "en": "Analyze pending files now (can be stopped)"
       },
       "input": {
         "type": "object",
@@ -124,71 +433,49 @@
           }
         }
       },
-      "output": "groups[]",
+      "output": "analyzed count, pending left",
       "tools": [
-        "library.index"
+        "library.audio_analyzer",
+        "library.classifier",
+        "library.midi_reader",
+        "library.preset_reader"
       ],
       "permissions": [
         "files.authorized_read"
       ],
-      "basis": "estimated"
+      "basis": "measured"
     },
     {
-      "name": "volumes",
+      "name": "analysis_status",
       "status": "available",
       "risk": "read",
       "requires_approval": false,
       "summary": {
-        "it": "Dischi e cartelle autorizzate, collegati o scollegati",
-        "en": "Drives and authorized folders, connected or not"
+        "it": "File analizzati, in attesa, con errori",
+        "en": "Files analyzed, pending, with errors"
       },
       "input": {
         "type": "object",
         "properties": {}
       },
-      "output": "volumes[], roots[]",
+      "output": "counts",
       "tools": [
         "library.index"
       ],
-      "permissions": [
-        "external_devices"
-      ],
+      "permissions": [],
       "basis": "measured"
-    },
-    {
-      "name": "analyze_audio_content",
-      "status": "planned",
-      "risk": "read",
-      "requires_approval": false,
-      "summary": {
-        "it": "Indicizzazione per contenuto (BPM/tonalità misurati, somiglianza)",
-        "en": "Content indexing (measured BPM/key, similarity)"
-      },
-      "input": {
-        "type": "object",
-        "properties": {
-          "root_id": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "root_id"
-        ]
-      },
-      "output": "updated index",
-      "tools": [
-        "audio.tempo_key"
-      ],
-      "permissions": [
-        "files.authorized_read"
-      ],
-      "requires": "tempo/key engine (M6) and embeddings"
     }
   ],
   "tools": [
-    "audio.tempo_key",
+    "library.audio_analyzer",
+    "library.classifier",
+    "library.duplicates",
     "library.filename_meta",
-    "library.index"
+    "library.index",
+    "library.midi_reader",
+    "library.preset_reader",
+    "library.scanner",
+    "library.search"
   ],
   "permissions": [
     "external_devices",
@@ -196,16 +483,20 @@
   ],
   "limits": {
     "it": [
-      "Non sposta, modifica o cancella mai i file originali",
+      "Non sposta, modifica, rinomina o cancella mai i file originali",
       "Non può autorizzare nuove cartelle: solo l'utente, dal dialogo di sistema",
-      "BPM e tonalità vengono dal nome del file, non da misure",
-      "I duplicati sono candidati (nome e dimensione), il contenuto non è confrontato"
+      "BPM, tonalità, categorie e carattere del suono sono stime con fonte e affidabilità; ciò che non è determinabile resta sconosciuto",
+      "La similarità è una stima del timbro, non una corrispondenza certa; la somiglianza non rende due file duplicati",
+      "I file lunghi sono analizzati sui primi 90 secondi",
+      "Preset: letti solo i formati documentati (Vital, VST3, AU, FXP/FXB); gli altri sono riconosciuti ma non letti"
     ],
     "en": [
-      "Never moves, modifies or deletes original files",
+      "Never moves, modifies, renames or deletes original files",
       "Cannot authorize new folders: only the user can, from the system dialog",
-      "BPM and key come from file names, not measurements",
-      "Duplicates are candidates (name and size); contents are not compared"
+      "BPM, key, categories and sound character are estimates with source and confidence; what cannot be determined stays unknown",
+      "Similarity is a timbre estimate, not a certain match; similarity never makes two files duplicates",
+      "Long files are analyzed on their first 90 seconds",
+      "Presets: only documented formats are read (Vital, VST3, AU, FXP/FXB); others are recognized but not read"
     ]
   },
   "input_formats": [
@@ -216,6 +507,9 @@
   ],
   "collaborates_with": [
     "sound_designer",
-    "music_producer"
+    "music_producer",
+    "rhythm_engineer",
+    "plugin_intelligence",
+    "daw_controller"
   ]
 }

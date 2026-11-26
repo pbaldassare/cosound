@@ -139,14 +139,36 @@ impl<'a> Ctx<'a> {
         }
     }
 
-    /// Tool `audio.wav_meter` on an authorized file (shared by every agent that measures audio).
+    /// Tools `audio.wav_meter` (+ `audio.decoder` for non-WAV formats) on an authorized file
+    /// (shared by every agent that measures audio).
     pub fn measure_wav(&mut self, raw: &str) -> Result<(PathBuf, crate::audio::wav::Measurements), AgentError> {
         let path = self.authorized_file(raw)?;
-        if !path.extension().is_some_and(|e| e.eq_ignore_ascii_case("wav")) {
-            return Err(AgentError::new("UNSUPPORTED_FORMAT", format!("{raw}: only WAV files can be measured in this version")));
-        }
+        let ext = path.extension().map(|e| e.to_string_lossy().to_lowercase()).unwrap_or_default();
         self.tool("audio.wav_meter");
         let cancel = self.cancel;
+        if ext != "wav" && ext != "wave" {
+            if !crate::smartlib::decode::AUDIO_EXTS.contains(&ext.as_str()) {
+                return Err(AgentError::new("UNSUPPORTED_FORMAT", format!("{raw}: format not supported (WAV, AIFF, CAF, MP3, M4A, FLAC, OGG)")));
+            }
+            self.tool("audio.decoder");
+            let mut meter: Option<crate::audio::wav::Meter> = None;
+            let mut frame = Vec::new();
+            let d = crate::smartlib::decode::decode(&path, None, &|| cancel.load(Ordering::SeqCst), &mut |buf, ch, rate| {
+                let m = meter.get_or_insert_with(|| crate::audio::wav::Meter::new(rate, ch));
+                frame.resize(ch, 0.0);
+                for f in buf.chunks_exact(ch) {
+                    for (o, v) in frame.iter_mut().zip(f) {
+                        *o = *v as f64;
+                    }
+                    m.push(&frame);
+                }
+            });
+            return match d {
+                Ok(d) => meter.map(|m| (path, m.finish("decoded", d.bit_depth.unwrap_or(0) as u16))).ok_or_else(|| AgentError::new("UNSUPPORTED_FORMAT", format!("{raw}: no audio decoded"))),
+                Err(crate::smartlib::decode::DecodeError::Cancelled) => Err(AgentError::new("CANCELLED", "analysis stopped")),
+                Err(crate::smartlib::decode::DecodeError::Unsupported(e)) | Err(crate::smartlib::decode::DecodeError::Io(e)) => Err(AgentError::new("UNSUPPORTED_FORMAT", format!("{raw}: {e}"))),
+            };
+        }
         match crate::audio::wav::analyze(&path, &|| cancel.load(Ordering::SeqCst)) {
             Ok(m) => Ok((path, m)),
             Err(crate::audio::wav::MeterError::Cancelled) => Err(AgentError::new("CANCELLED", "analysis stopped")),

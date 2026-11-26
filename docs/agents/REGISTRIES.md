@@ -1,7 +1,8 @@
 # COSOUND – Agent Registry, Tool Registry, permissions
 
-Generated from `packages/agents/` (`<agent>.json`, `tools.json`, `permissions.json`). At runtime the same data, with live state
-(agent enabled, permission granted, which agents use a tool), is returned by the Agent API message `registry.get`.
+Generated from `packages/agents/` (`<agent>.json`, `tools.json`, `permissions.json`) by `packages/agents/render_docs.py`.
+At runtime the same data, with live state (agent enabled, permission granted, which agents use a tool), is returned by the
+Agent API message `registry.get`.
 
 ## 1. Agent Registry
 
@@ -17,14 +18,16 @@ limits, input/output formats, the agents whose outputs it can use. A test fails 
 | `sound_designer` | 1.0.0 | partial | 2/3 | daw.connectors, library.index, plugins.catalog, plugins.param_maps, plugins.scanner, sound.recipes |
 | `music_theory` | 1.0.0 | active | 7/7 | music.generator, music.key_detection, music.smf_writer, music.theory |
 | `voice_to_music` | 1.0.0 | planned | 0/4 | music.smf_writer, voice.pitch_tracker, voice.speech_to_text |
-| `audio_analysis` | 1.0.0 | partial | 2/5 | audio.stem_separator, audio.structure, audio.tempo_key, audio.wav_meter |
+| `audio_analysis` | 1.0.0 | partial | 2/5 | audio.decoder, audio.stem_separator, audio.structure, audio.tempo_key, audio.wav_meter |
 | `reference_track` | 1.0.0 | partial | 1/2 | audio.wav_meter, music.arrangement, web.research |
-| `smart_library` | 1.0.0 | partial | 4/5 | audio.tempo_key, library.filename_meta, library.index |
-| `plugin_intelligence` | 1.0.0 | partial | 3/4 | daw.connectors, plugins.catalog, plugins.param_maps, plugins.scanner, sound.recipes |
-| `mixing_engineer` | 1.0.0 | partial | 1/2 | audio.wav_meter, daw.connectors |
-| `mastering_engineer` | 1.0.0 | partial | 1/2 | audio.processing_chain, audio.wav_meter |
-| `daw_controller` | 1.0.0 | partial | 2/3 | daw.connectors, daw.detector, daw.routes, files.writer |
+| `smart_library` | 1.0.0 | active | 13/13 | library.audio_analyzer, library.classifier, library.duplicates, library.filename_meta, library.index, library.midi_reader, library.preset_reader, library.scanner, library.search |
+| `plugin_intelligence` | 1.0.0 | partial | 3/4 | daw.connectors, library.index, plugins.catalog, plugins.param_maps, plugins.scanner, sound.recipes |
+| `mixing_engineer` | 1.0.0 | partial | 1/2 | audio.decoder, audio.wav_meter, daw.connectors |
+| `mastering_engineer` | 1.0.0 | partial | 1/2 | audio.decoder, audio.processing_chain, audio.wav_meter |
+| `daw_controller` | 1.0.0 | partial | 2/3 | daw.connectors, daw.detector, daw.routes, files.writer, library.index |
 | `adaptive_workflow` | 1.0.0 | partial | 7/8 | daw.connectors, memory.facts |
+
+Total: 45 of 61 operations available.
 
 Enable/disable: per agent, by the user (setting `agent_enabled.<id>`, logged). A disabled agent answers `AGENT_DISABLED`.
 
@@ -40,7 +43,15 @@ Agents never call each other: they only use these tools, through the execution c
 | `music.smf_writer` | available | `desktop/src-tauri/src/music/smf.rs` | Writes format-1 MIDI files | rhythm_engineer, music_theory, voice_to_music |
 | `music.arrangement` | available | `desktop/src-tauri/src/music/arrangement.rs` | Per-genre templates from the knowledge base | music_producer, reference_track |
 | `audio.wav_meter` | available | `desktop/src-tauri/src/audio/wav.rs` | Loudness, true peak, RMS, correlation, bands | audio_analysis, reference_track, mixing_engineer, mastering_engineer |
-| `library.index` | available | `desktop/src-tauri/src/library.rs` | Local index of authorized folders | sound_designer, smart_library |
+| `library.index` | available | `desktop/src-tauri/src/library.rs` | Local index of authorized folders | sound_designer, smart_library, plugin_intelligence, daw_controller |
+| `library.scanner` | available | `desktop/src-tauri/src/smartlib/scan.rs` | Incremental scan: new, changed, moved, missing files | smart_library |
+| `library.audio_analyzer` | available | `desktop/src-tauri/src/smartlib/features.rs` | Spectrum, transients, BPM, key, sound character, similarity vector | smart_library |
+| `library.classifier` | available | `desktop/src-tauri/src/smartlib/classify.rs` | Multiple categories from name, folders, metadata, audio, MIDI, presets | smart_library |
+| `library.search` | available | `desktop/src-tauri/src/smartlib/search.rs` | Natural-language search, scoring, similarity, fitting loops | smart_library |
+| `library.midi_reader` | available | `desktop/src-tauri/src/smartlib/midi.rs` | Tracks, notes, intervals, key, BPM, pattern type | smart_library |
+| `library.preset_reader` | available | `desktop/src-tauri/src/smartlib/presets.rs` | Vital, VST3, AU, FXP/FXB presets | smart_library |
+| `library.duplicates` | available | `desktop/src-tauri/src/smartlib/dupes.rs` | Full hash, audio hash, similar sounds | smart_library |
+| `audio.decoder` | available | `desktop/src-tauri/src/smartlib/decode.rs` | WAV, AIFF, CAF, MP3, AAC/ALAC, FLAC, OGG Vorbis | audio_analysis, mixing_engineer, mastering_engineer |
 | `library.filename_meta` | available | `desktop/src-tauri/src/library.rs` | BPM and key read from file names | smart_library |
 | `plugins.scanner` | available | `desktop/src-tauri/src/plugins.rs` | Plugin inventory without loading them | sound_designer, plugin_intelligence |
 | `plugins.catalog` | available | `desktop/src-tauri/src/sound.rs` | Profiles of well-known synths from the knowledge base | sound_designer, plugin_intelligence |
@@ -53,7 +64,7 @@ Agents never call each other: they only use these tools, through the execution c
 | `plugins.param_maps` | planned – milestone M7 | — | Plugin parameters through the DAW | sound_designer, plugin_intelligence |
 | `voice.pitch_tracker` | planned – milestone M5 | — | Pitch and notes from voice | voice_to_music |
 | `voice.speech_to_text` | planned – milestone M5 | — | Speech transcription | voice_to_music |
-| `audio.tempo_key` | planned – milestone M6 | — | BPM and key from audio | audio_analysis, smart_library |
+| `audio.tempo_key` | planned – milestone M6 | — | BPM and key from audio | audio_analysis |
 | `audio.structure` | planned – milestone M6 | — | Sections from audio | audio_analysis |
 | `audio.stem_separator` | planned – milestone M6 | — | Stem separation | audio_analysis |
 | `audio.processing_chain` | planned – milestone M9 | — | EQ, compression, limiter and render | mastering_engineer |

@@ -65,8 +65,13 @@ impl Agent for PluginIntelligence {
                 if known.is_none() {
                     cx.limit(format!("{name} is not in COSOUND's synth catalog"));
                 }
+                cx.tool("library.index");
+                let presets = known.map(|k| {
+                    let q = crate::smartlib::query::Query { kind: Some("preset".into()), plugin: Some(k.id.to_string()), ..Default::default() };
+                    crate::smartlib::api::search_structured(&cx.db.lock().unwrap(), &q, 50)["count"].clone()
+                });
                 Ok(Outcome::new(
-                    json!({ "name": name, "catalog": known, "source": known.map(|_| sound::SOURCE_SYNTHS), "installed": installed.as_ref().map(|v| !v.is_empty()), "installed_versions": installed }),
+                    json!({ "name": name, "catalog": known, "source": known.map(|_| sound::SOURCE_SYNTHS), "installed": installed.as_ref().map(|v| !v.is_empty()), "installed_versions": installed, "presets_in_library": presets }),
                     "rule_based",
                 ))
             }

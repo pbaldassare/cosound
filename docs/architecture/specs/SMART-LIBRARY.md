@@ -1,6 +1,11 @@
 # Spec – Smart Library Multidrive (Prompt 03 §5, deliverable 8)
 
-Version 0.1 · 2026-11-24 · Status: PROVISIONAL (design; nothing implemented).
+Version 0.1 · 2026-11-24 · Status: design document.
+
+> **Implemented on 2026-11-26 (Prompt 07)**, with differences from this design: Symphonia instead of lofty/libsndfile,
+> SHA-256 instead of XXH3, no file watcher (rescans at start, on reconnection, scheduled or manual), no FTS5 table and no
+> CLAP embeddings (a 14-value timbre vector instead). Current architecture: `docs/smart-library/ARCHITECTURE.md`; report:
+> `docs/smart-library/PROMPT-07-REPORT.md`. The sections below remain the original design.
 Knowledge: `docs/knowledge/smart-library/` (cited below as *KB §n*), permissions:
 `docs/knowledge/security-permissions/` §1, §3.
 

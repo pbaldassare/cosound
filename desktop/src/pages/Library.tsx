@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react'
-import { FolderPlus, HardDrive, RefreshCw, ScanLine, Search, Trash2, Usb, Network, Folder } from 'lucide-react'
+import { Ban, FolderMinus, FolderPlus, HardDrive, RefreshCw, ScanLine, Trash2, Usb, Network, Folder } from 'lucide-react'
 import { open } from '@tauri-apps/plugin-dialog'
 import { listen } from '@tauri-apps/api/event'
-import { api, errText, fmtBytes, fmtDate, type FileHit, type FileKind } from '../lib/api'
+import { api, errText, fmtBytes, fmtDate, type LibOverview } from '../lib/api'
 import { useStore } from '../lib/store'
 import { useT } from '../i18n'
 import { Badge, Card, Dot, Empty, ErrorLine, Note, PageHeader, btnGhost, btnIcon, btnPrimary, useLoad } from '../components/ui'
+import { DuplicatesCard, IndexStatus, LoopsCard, SmartSearch } from '../components/SmartLibrary'
 
 const kindIcon = { internal: HardDrive, external: Usb, network: Network, folder: Folder }
 
@@ -17,43 +18,37 @@ export async function authorizeFolder(): Promise<string | null> {
 }
 
 export default function Library() {
-  const { settings } = useStore()
+  const { settings, setSetting } = useStore()
   const { t, lang } = useT()
   const showExternal = settings.perm_external_devices !== '0'
   const volumes = useLoad(() => api.volumes(), [])
   const roots = useLoad(() => api.roots(), [])
   const [progress, setProgress] = useState<Record<string, number>>({})
   const [error, setError] = useState<string | null>(null)
-  const [q, setQ] = useState('')
-  const [kind, setKind] = useState<FileKind | ''>('')
-  const [hits, setHits] = useState<FileHit[] | null>(null)
+  const [ov, setOv] = useState<LibOverview | null>(null)
+  const [excl, setExcl] = useState<Record<string, string>>({})
+  const loadOv = () => api.libOverview().then(setOv, () => {})
 
   // Plug/unplug detection: poll the mounted volumes while the page is open.
   useEffect(() => {
-    const h = setInterval(() => { volumes.reload(); roots.reload() }, 5000)
+    loadOv()
+    const h = setInterval(() => { volumes.reload(); roots.reload(); loadOv() }, 5000)
     return () => clearInterval(h)
   }, [volumes.reload, roots.reload]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     const un = listen<{ root_id: string; count: number; done: boolean; error: string | null }>('library-scan', (e) => {
       setProgress((p) => ({ ...p, [e.payload.root_id]: e.payload.count }))
-      if (e.payload.done) { roots.reload(); volumes.reload(); if (e.payload.error) setError(e.payload.error) }
+      if (e.payload.done) { roots.reload(); volumes.reload(); loadOv(); if (e.payload.error) setError(e.payload.error) }
     })
-    return () => { un.then((f) => f()) }
+    const un2 = listen('library-analysis', () => loadOv())
+    return () => { un.then((f) => f()); un2.then((f) => f()) }
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
-
-  useEffect(() => {
-    const h = setTimeout(() => {
-      if (!q.trim() && !kind) { setHits(null); return }
-      api.search(q.trim(), kind || null).then(setHits, (e) => setError(errText(e)))
-    }, 200)
-    return () => clearTimeout(h)
-  }, [q, kind])
 
   const act = async (fn: () => Promise<unknown>) => {
     setError(null)
     try { await fn() } catch (e) { setError(errText(e)) }
-    roots.reload(); volumes.reload()
+    roots.reload(); volumes.reload(); loadOv()
   }
 
   const scan = (id: string) => act(async () => { setProgress((p) => ({ ...p, [id]: 0 })); await api.scan(id); setTimeout(roots.reload, 100) })
@@ -66,6 +61,8 @@ export default function Library() {
         <button className={btnPrimary} onClick={() => act(authorizeFolder)}><FolderPlus size={15} />{t.library.addFolder}</button>
       </PageHeader>
       <ErrorLine error={error ?? volumes.error ?? roots.error} />
+      <SmartSearch />
+      <IndexStatus ov={ov} paused={settings.library_analysis === 'paused'} onPause={(p) => act(() => setSetting('library_analysis', p ? 'paused' : 'on'))} onScanAll={() => act(() => api.scan(''))} onStop={() => act(() => api.libCancel())} />
 
       <Card title={t.library.devices}>
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
@@ -84,6 +81,7 @@ export default function Library() {
                   {v.disk_type && v.disk_type !== 'unknown' && <Badge>{v.disk_type}</Badge>}
                   {v.fs_type && <Badge>{v.fs_type}</Badge>}
                   <Badge tone={v.online ? 'ok' : 'warn'}>{v.online ? t.common.online : t.common.offline}</Badge>
+                  {v.excluded && <Badge tone="err">{t.smart.deviceExcluded}</Badge>}
                 </div>
                 {used != null && (
                   <div className="mt-2">
@@ -91,7 +89,10 @@ export default function Library() {
                     <div className="mt-1 text-[11px] text-muted">{fmtBytes(v.available_bytes)} {t.library.free} {t.library.of} {fmtBytes(v.total_bytes)}</div>
                   </div>
                 )}
-                <div className="mt-1 text-[11px] text-muted">{v.root_count} · {v.file_count} {t.library.files}{!v.online && v.last_seen_at ? ` · ${fmtDate(v.last_seen_at, lang)}` : ''}</div>
+                <div className="mt-1 flex items-center gap-2 text-[11px] text-muted">
+                  <span className="flex-1">{v.root_count} · {v.file_count} {t.library.files}{!v.online && v.last_seen_at ? ` · ${fmtDate(v.last_seen_at, lang)}` : ''}</span>
+                  {v.root_count > 0 && <button className="inline-flex items-center gap-1 hover:text-white" onClick={() => act(() => api.libExcludeDevice(v.id, !v.excluded))}><Ban size={11} />{v.excluded ? t.smart.includeDevice : t.smart.excludeDevice}</button>}
+                </div>
               </div>
             )
           })}
@@ -116,6 +117,16 @@ export default function Library() {
                   <span className="w-28 text-right text-xs text-muted">{(scanning ? progress[r.id] ?? 0 : r.file_count).toLocaleString(lang)} {t.library.files}</span>
                   <button className={btnGhost + ' !px-3 !py-1 !text-xs'} disabled={!r.online || scanning} onClick={() => scan(r.id)}><ScanLine size={13} />{scanning ? t.library.scanning : t.library.scan}</button>
                   <button className={btnIcon} title={t.common.remove} aria-label={t.common.remove} onClick={() => confirm(t.library.revokeConfirm) && act(() => api.removeRoot(r.id))}><Trash2 size={14} /></button>
+                  <div className="flex w-full flex-wrap items-center gap-2 pl-5 text-xs">
+                    {ov?.exclusions.filter((x) => x.root_id === r.id).map((x) => (
+                      <Badge key={x.folder} tone="off"><FolderMinus size={11} />{x.folder}<button className="ml-1 hover:text-white" aria-label={t.common.remove} onClick={() => act(() => api.libExclude(r.id, x.folder, false))}>×</button></Badge>
+                    ))}
+                    <form className="flex gap-1" onSubmit={(e) => { e.preventDefault(); const f = (excl[r.id] ?? '').trim(); if (f) act(async () => { await api.libExclude(r.id, f, true); setExcl({ ...excl, [r.id]: '' }) }) }}>
+                      <input className="field !w-56 !py-0.5 !text-xs" placeholder={t.smart.excludePlaceholder} aria-label={t.smart.exclude} value={excl[r.id] ?? ''} onChange={(e) => setExcl({ ...excl, [r.id]: e.target.value })} />
+                      <button className={btnGhost + ' !px-2 !py-0.5 !text-xs'}>{t.smart.exclude}</button>
+                    </form>
+                    {(ov?.root_states.find((x) => x.root_id === r.id)?.missing_files ?? 0) > 0 && <Badge tone="err">{ov?.root_states.find((x) => x.root_id === r.id)?.missing_files} {t.smart.missing}</Badge>}
+                  </div>
                 </li>
               )
             })}
@@ -124,31 +135,10 @@ export default function Library() {
         <div className="mt-3"><Note>{t.library.readOnly}</Note></div>
       </Card>
 
-      <Card title={t.library.results}>
-        <div className="mb-3 flex gap-2">
-          <div className="relative flex-1">
-            <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted" />
-            <input className="field !pl-9" value={q} onChange={(e) => setQ(e.target.value)} placeholder={t.library.search} aria-label={t.library.search} />
-          </div>
-          <select className="field !w-40" value={kind} onChange={(e) => setKind(e.target.value as FileKind | '')} aria-label={t.imports.role}>
-            <option value="">{t.common.all}</option>
-            {(['audio', 'midi', 'preset', 'project'] as const).map((k) => <option key={k} value={k}>{t.library.fileKinds[k]}</option>)}
-          </select>
-        </div>
-        {hits && (hits.length === 0 ? <Empty>{t.library.noResults}</Empty> : (
-          <ul className="max-h-[420px] divide-y divide-line/50 overflow-y-auto text-sm">
-            {hits.map((h) => (
-              <li key={h.id} className="flex items-center gap-3 py-1.5">
-                <Badge tone="info">{t.library.fileKinds[h.kind]}</Badge>
-                <span className="min-w-0 flex-1 truncate selectable" title={h.path ?? h.rel_path}>{h.name}<span className="ml-2 text-xs text-muted">{h.rel_path}</span></span>
-                <span className="text-xs text-muted">{h.volume_label}</span>
-                {!h.path && <Badge tone="warn">{t.library.offlineFile}</Badge>}
-                <span className="w-16 text-right text-xs text-muted">{fmtBytes(h.size)}</span>
-              </li>
-            ))}
-          </ul>
-        ))}
-      </Card>
+      <div className="grid gap-5 lg:grid-cols-2">
+        <LoopsCard />
+        <DuplicatesCard />
+      </div>
     </div>
   )
 }

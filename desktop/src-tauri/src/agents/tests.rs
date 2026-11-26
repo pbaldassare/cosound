@@ -40,6 +40,19 @@ impl Env {
         write_test_wav(&p, 48000, if stereo { 2 } else { 1 }, 24, false, &data);
         p.to_string_lossy().to_string()
     }
+    /// A small authorized library (kick + 124 BPM drum loop) on a test drive; returns the kick's id.
+    fn library(&self) -> i64 {
+        use crate::smartlib::features::fixtures::{drum_loop, kick};
+        let root = self.dir.join("Drive").join("Lib");
+        std::fs::create_dir_all(&root).unwrap();
+        write_test_wav(&root.join("Kick Deep.wav"), 44100, 1, 16, false, &kick(44100));
+        write_test_wav(&root.join("Drum Loop.wav"), 44100, 1, 16, false, &drum_loop(44100, 124.0, 2));
+        let disk = crate::library::Disk { label: "TESTDRIVE".into(), mount: self.dir.join("Drive"), fs: "apfs".into(), total: 1 << 30, available: 1 << 20, removable: true, disk_type: "SSD".into() };
+        let rid = crate::library::add_root(&self.db.lock().unwrap(), &[disk], root.to_str().unwrap()).unwrap();
+        crate::smartlib::scan::scan_root(&self.db, &rid, &std::sync::atomic::AtomicBool::new(false), &|_| {});
+        while crate::smartlib::analyze::run_batch(&self.db, 20, &std::sync::atomic::AtomicBool::new(false), 0) > 0 {}
+        self.db.lock().unwrap().query_row("select id from files where name = 'Kick Deep.wav'", [], |r| r.get(0)).unwrap()
+    }
     fn set(&self, k: &str, v: &str) {
         db::set_setting(&self.db.lock().unwrap(), k, v).unwrap();
     }
@@ -92,6 +105,7 @@ fn every_available_operation_runs() {
     let bass = e.wav("bass.wav", 1.0, 0.5, true);
     let mixdown = e.wav("mix.wav", 2.0, 0.7, true);
     let midi = e.run("music_theory", "generate_bassline", json!({ "genre": "techno", "bars": 2 })).result.unwrap()["midi"]["base64"].as_str().unwrap().to_string();
+    let lib_kick = e.library();
     let a_minor = json!([{ "pitch": 57, "dur": 4 }, { "pitch": 60, "dur": 2 }, { "pitch": 64, "dur": 3 }, { "pitch": 62, "dur": 1 }, { "pitch": 65, "dur": 1 }, { "pitch": 67, "dur": 1 }, { "pitch": 59, "dur": 1 }]);
     let cases: Vec<(&str, &str, Value)> = vec![
         ("music_producer", "plan_arrangement", json!({ "genre": "techno" })),
@@ -112,10 +126,19 @@ fn every_available_operation_runs() {
         ("audio_analysis", "analyze_file", json!({ "path": kick })),
         ("audio_analysis", "analyze_stems", json!({ "paths": [kick, bass] })),
         ("reference_track", "build_profile", json!({ "title": "Ref", "genre": "melodic_techno", "web_facts": { "bpm": 124, "key": "A minor", "sources": ["https://example.org/ref"] }, "audio_path": mixdown })),
-        ("smart_library", "search", json!({ "query": "kick" })),
+        ("smart_library", "search", json!({ "text": "kick 124 bpm" })),
+        ("smart_library", "describe_sound", json!({ "text": "deep punchy kick" })),
+        ("smart_library", "find_similar", json!({ "file_id": lib_kick })),
+        ("smart_library", "suggest_loops", json!({ "bpm": 126 })),
+        ("smart_library", "find_presets", json!({ "text": "pad", "plugin": "Massive" })),
+        ("smart_library", "find_midi", json!({ "text": "bassline" })),
+        ("smart_library", "file_info", json!({ "file_ids": [lib_kick], "details": true })),
+        ("smart_library", "find_duplicates", json!({ "include_similar": true })),
         ("smart_library", "stats", json!({})),
-        ("smart_library", "find_duplicates", json!({})),
         ("smart_library", "volumes", json!({})),
+        ("smart_library", "scan", json!({})),
+        ("smart_library", "analyze_now", json!({ "limit": 5 })),
+        ("smart_library", "analysis_status", json!({})),
         ("plugin_intelligence", "scan", json!({})),
         ("plugin_intelligence", "find_for_role", json!({ "role": "lead" })),
         ("plugin_intelligence", "plugin_info", json!({ "name": "Massive X" })),
@@ -376,4 +399,27 @@ fn mock_is_replaceable_by_a_json_connector() {
     assert!(b.rt.handle(&json!({ "type": "events.poll", "since": 0 }))["data"].as_array().unwrap().len() >= 12);
     assert_eq!(b.rt.handle(&json!({ "type": "nope" }))["error"]["code"], "MESSAGE_UNKNOWN");
     assert_eq!(b.rt.handle(&json!({ "type": "registry.get", "contract_version": "9" }))["error"]["code"], "PROTOCOL_VERSION");
+}
+
+#[test]
+fn daw_controller_uses_library_paths() {
+    let e = env();
+    let kick = e.library();
+    let loop_id: i64 = e.db.lock().unwrap().query_row("select id from files where name = 'Drum Loop.wav'", [], |r| r.get(0)).unwrap();
+    // the Smart Library Agent finds the loop from a sentence, the DAW Controller gets its original path
+    let found = e.run("smart_library", "search", json!({ "text": "loop a 124 BPM" }));
+    let res = found.result.clone().unwrap();
+    assert_eq!(res["results"][0]["id"], loop_id, "{res}");
+    let plan = e.run("daw_controller", "plan_operations", json!({ "daw": "logic", "bpm": 124, "parts": [{ "name": "Drums", "library_file_id": loop_id }, { "name": "Kick", "library_file_id": kick }] }));
+    assert_eq!(plan.status, Status::Completed, "{:?}", plan.errors);
+    let imports: Vec<&Value> = plan.proposed_daw_ops.iter().filter(|o| o["op"] == "import_audio").collect();
+    assert_eq!(imports.len(), 2);
+    assert!(imports[0]["args"]["file"].as_str().unwrap().ends_with("Drive/Lib/Drum Loop.wav"));
+    assert!(plan.files.is_empty(), "library files are referenced in place, never copied");
+    // drive unplugged: the plan refuses instead of inventing a path
+    crate::library::refresh_volumes(&e.db.lock().unwrap(), &[]).unwrap();
+    let r = e.run("daw_controller", "plan_operations", json!({ "parts": [{ "name": "Kick", "library_file_id": kick }] }));
+    assert_eq!(r.errors[0].code, "FILE_NOT_AVAILABLE", "{:?}", r.errors);
+    let info = e.run("smart_library", "file_info", json!({ "file_ids": [kick] }));
+    assert_eq!(info.result.unwrap()["files"][0]["usable"], false);
 }

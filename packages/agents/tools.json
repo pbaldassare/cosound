@@ -77,6 +77,94 @@
     }
   },
   {
+    "id": "library.scanner",
+    "name": "Incremental scanner",
+    "layer": 3,
+    "status": "available",
+    "module": "desktop/src-tauri/src/smartlib/scan.rs",
+    "description": {
+      "it": "Scansione incrementale: nuovi, modificati, spostati, mancanti",
+      "en": "Incremental scan: new, changed, moved, missing files"
+    }
+  },
+  {
+    "id": "library.audio_analyzer",
+    "name": "Library audio analyzer",
+    "layer": 3,
+    "status": "available",
+    "module": "desktop/src-tauri/src/smartlib/features.rs",
+    "description": {
+      "it": "Spettro, transienti, BPM, tonalità, carattere del suono, vettore di similarità",
+      "en": "Spectrum, transients, BPM, key, sound character, similarity vector"
+    }
+  },
+  {
+    "id": "library.classifier",
+    "name": "Library classifier",
+    "layer": 3,
+    "status": "available",
+    "module": "desktop/src-tauri/src/smartlib/classify.rs",
+    "description": {
+      "it": "Categorie multiple da nome, cartelle, metadati, audio, MIDI, preset",
+      "en": "Multiple categories from name, folders, metadata, audio, MIDI, presets"
+    }
+  },
+  {
+    "id": "library.search",
+    "name": "Library search",
+    "layer": 3,
+    "status": "available",
+    "module": "desktop/src-tauri/src/smartlib/search.rs",
+    "description": {
+      "it": "Ricerca in linguaggio naturale, punteggio, similarità, loop compatibili",
+      "en": "Natural-language search, scoring, similarity, fitting loops"
+    }
+  },
+  {
+    "id": "library.midi_reader",
+    "name": "MIDI reader",
+    "layer": 3,
+    "status": "available",
+    "module": "desktop/src-tauri/src/smartlib/midi.rs",
+    "description": {
+      "it": "Tracce, note, intervalli, tonalità, BPM, tipo di pattern",
+      "en": "Tracks, notes, intervals, key, BPM, pattern type"
+    }
+  },
+  {
+    "id": "library.preset_reader",
+    "name": "Preset reader",
+    "layer": 3,
+    "status": "available",
+    "module": "desktop/src-tauri/src/smartlib/presets.rs",
+    "description": {
+      "it": "Preset Vital, VST3, AU, FXP/FXB",
+      "en": "Vital, VST3, AU, FXP/FXB presets"
+    }
+  },
+  {
+    "id": "library.duplicates",
+    "name": "Duplicate finder",
+    "layer": 3,
+    "status": "available",
+    "module": "desktop/src-tauri/src/smartlib/dupes.rs",
+    "description": {
+      "it": "Hash completo, hash dell'audio, suoni simili",
+      "en": "Full hash, audio hash, similar sounds"
+    }
+  },
+  {
+    "id": "audio.decoder",
+    "name": "Audio decoder (Symphonia)",
+    "layer": 3,
+    "status": "available",
+    "module": "desktop/src-tauri/src/smartlib/decode.rs",
+    "description": {
+      "it": "WAV, AIFF, CAF, MP3, AAC/ALAC, FLAC, OGG Vorbis",
+      "en": "WAV, AIFF, CAF, MP3, AAC/ALAC, FLAC, OGG Vorbis"
+    }
+  },
+  {
     "id": "library.filename_meta",
     "name": "File-name metadata",
     "layer": 3,

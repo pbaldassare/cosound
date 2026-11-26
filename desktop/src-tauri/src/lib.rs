@@ -11,6 +11,7 @@ mod memory;
 mod music;
 mod plugins;
 mod projects;
+mod smartlib;
 mod sound;
 
 use db::Db;
@@ -27,6 +28,7 @@ fn e(err: impl ToString) -> String {
 
 struct App {
     db: Arc<Db>,
+    library: Arc<smartlib::service::Service>,
     agents: agents::runtime::Runtime,
     ail: Mutex<ail::Ail>,
     data_dir: PathBuf,
@@ -93,24 +95,74 @@ fn library_remove_root(app: State<App>, id: String) -> R<()> {
     library::remove_root(&app.db.lock().unwrap(), &id)
 }
 
-/// Starts a scan in the background; progress arrives as `library-scan` events.
+/// Queues an incremental scan (one folder, or all when `id` is empty); progress arrives as
+/// `library-scan` events from the Smart Library service.
 #[tauri::command]
-fn library_scan(handle: tauri::AppHandle, app: State<App>, id: String) {
-    let db = app.db.clone();
-    std::thread::spawn(move || {
-        let emit = |count: usize, done: bool, error: Option<String>| {
-            let _ = handle.emit("library-scan", json!({"root_id": id, "count": count, "done": done, "error": error}));
-        };
-        match library::scan_root(&db, &id, &|n| emit(n, false, None)) {
-            Ok(n) => emit(n, true, None),
-            Err(err) => {
-                if let Ok(c) = db.lock() {
-                    let _ = c.execute("update library_roots set scan_state = case when scan_state = 'offline' then 'offline' else 'error' end, error = ?2 where id = ?1", rusqlite::params![id, err]);
-                }
-                emit(0, true, Some(err))
-            }
-        }
-    });
+fn library_scan(app: State<App>, id: String) {
+    app.library.request_scan(if id.is_empty() { None } else { Some(id) });
+}
+
+#[tauri::command]
+fn library_cancel(app: State<App>) {
+    app.library.cancel();
+}
+
+// ---------- Smart Library System (Prompt 07) ----------
+
+#[tauri::command]
+async fn library_query(app: State<'_, App>, text: String, kind: Option<String>, limit: Option<usize>) -> R<Value> {
+    Ok(smartlib::api::search_text(&app.db.lock().unwrap(), &text, limit.unwrap_or(100).min(500), kind.as_deref()))
+}
+
+#[tauri::command]
+fn library_detail(app: State<App>, id: i64) -> R<Value> {
+    smartlib::api::detail(&app.db.lock().unwrap(), id)
+}
+
+#[tauri::command]
+async fn library_similar(app: State<'_, App>, id: i64) -> R<Value> {
+    smartlib::api::similar(&app.db.lock().unwrap(), id, 30)
+}
+
+#[tauri::command]
+async fn library_loops(app: State<'_, App>, bpm: f64, key: Option<String>, category: Option<String>) -> R<Value> {
+    if !(40.0..=250.0).contains(&bpm) {
+        return Err("BPM must be between 40 and 250".into());
+    }
+    let key = key.filter(|k| !k.is_empty()).map(|k| music::theory::Key::parse(&k).map(|k| k.name())).transpose()?;
+    Ok(smartlib::api::loops(&app.db.lock().unwrap(), bpm, key.as_deref(), category.as_deref().filter(|c| !c.is_empty()), 100))
+}
+
+#[tauri::command]
+async fn library_duplicates(app: State<'_, App>, similar: bool) -> R<Value> {
+    Ok(smartlib::api::duplicates(&app.db, &std::sync::atomic::AtomicBool::new(false), similar))
+}
+
+#[tauri::command]
+fn library_overview(app: State<App>) -> Value {
+    let c = app.db.lock().unwrap();
+    let mut v = smartlib::api::overview(&c);
+    v["service"] = app.library.status();
+    v["analysis"] = smartlib::api::analysis_status(&c);
+    v["formats"] = smartlib::api::formats();
+    v
+}
+
+#[tauri::command]
+fn library_correct(app: State<App>, id: i64, field: String, value: String) -> R<Value> {
+    let c = app.db.lock().unwrap();
+    smartlib::index::correct(&c, id, &field, &value)?;
+    smartlib::api::detail(&c, id)
+}
+
+#[tauri::command]
+fn library_exclude(app: State<App>, root_id: String, folder: String, excluded: bool) -> R<()> {
+    smartlib::index::set_exclusion(&app.db.lock().unwrap(), &root_id, &folder, excluded)
+}
+
+#[tauri::command]
+fn library_exclude_device(app: State<App>, volume_id: String, excluded: bool) -> R<()> {
+    smartlib::index::set_volume_excluded(&app.db.lock().unwrap(), &volume_id, excluded)
 }
 
 #[tauri::command]
@@ -327,7 +379,11 @@ pub fn run() {
             let conn = db::open(&data_dir.join("cosound.db"))?;
             let db = Arc::new(Mutex::new(conn));
             let agents = agents::runtime::Runtime::new(db.clone(), data_dir.clone());
-            app.manage(App { db, agents, ail: Mutex::new(ail::Ail::new()), data_dir });
+            let handle = app.handle().clone();
+            let library = smartlib::service::Service::start(db.clone(), Box::new(move |ev, payload| {
+                let _ = handle.emit(ev, payload);
+            }));
+            app.manage(App { db, library, agents, ail: Mutex::new(ail::Ail::new()), data_dir });
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
@@ -341,6 +397,16 @@ pub fn run() {
             library_add_root,
             library_remove_root,
             library_scan,
+            library_cancel,
+            library_query,
+            library_detail,
+            library_similar,
+            library_loops,
+            library_duplicates,
+            library_overview,
+            library_correct,
+            library_exclude,
+            library_exclude_device,
             library_search,
             library_stats,
             projects_list,

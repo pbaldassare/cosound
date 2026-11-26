@@ -1,5 +1,7 @@
 //! Smart Library v1: volumes, authorized folders, scan, search. Never copies, moves or writes user files.
-use crate::db::{log_op, new_id, Db};
+use crate::db::{log_op, new_id};
+#[cfg(test)]
+use crate::db::Db;
 use rusqlite::{params, Connection, OptionalExtension};
 use serde::Serialize;
 use std::path::{Path, PathBuf};
@@ -103,6 +105,8 @@ pub struct VolumeView {
     pub root_count: i64,
     pub file_count: i64,
     pub last_seen_at: Option<String>,
+    /// The user excluded this device: never scanned or analyzed.
+    pub excluded: bool,
 }
 
 /// Online volumes plus offline volumes that still hold authorized folders.
@@ -110,7 +114,7 @@ pub fn volumes(c: &Connection, disks: &[Disk]) -> rusqlite::Result<Vec<VolumeVie
     let mut st = c.prepare(
         "select v.id, v.label, v.kind, v.disk_type, v.fs_type, v.mount_point, v.online, v.total_bytes, v.last_seen_at, v.fingerprint,
            (select count(*) from library_roots r where r.volume_id = v.id),
-           (select coalesce(sum(r.file_count), 0) from library_roots r where r.volume_id = v.id)
+           (select coalesce(sum(r.file_count), 0) from library_roots r where r.volume_id = v.id), v.excluded
          from volumes v
          where v.online = 1 or exists (select 1 from library_roots r where r.volume_id = v.id)
          order by v.online desc, v.kind, v.label",
@@ -130,6 +134,7 @@ pub fn volumes(c: &Connection, disks: &[Disk]) -> rusqlite::Result<Vec<VolumeVie
             available_bytes: disks.iter().find(|d| fingerprint(d) == fp).map(|d| d.available),
             root_count: r.get(10)?,
             file_count: r.get(11)?,
+            excluded: r.get(12)?,
         })
     })?;
     rows.collect()
@@ -252,85 +257,26 @@ pub fn roots(c: &Connection) -> rusqlite::Result<Vec<RootView>> {
 /// File kind by extension; None = not indexed.
 pub fn kind_of(ext: &str) -> Option<&'static str> {
     Some(match ext.to_ascii_lowercase().as_str() {
-        "wav" | "aif" | "aiff" | "mp3" | "flac" | "ogg" | "m4a" | "caf" | "wave" => "audio",
+        "wav" | "wave" | "aif" | "aiff" | "aifc" | "caf" | "mp3" | "m4a" | "aac" | "flac" | "ogg" => "audio",
         "mid" | "midi" => "midi",
         "logicx" | "als" | "flp" | "ptx" | "cpr" | "rpp" | "dawproject" => "project",
-        "fxp" | "fxb" | "vstpreset" | "aupreset" | "nmsv" | "h2p" | "serumpreset" | "vital" | "adg" | "adv" => "preset",
+        "fxp" | "fxb" | "vstpreset" | "aupreset" | "nmsv" | "nksf" | "h2p" | "serumpreset" | "vital" | "adg" | "adv" | "pst" | "patch" => "preset",
+        "nki" | "nkm" | "nkc" | "exs" | "sfz" | "sf2" => "instrument",
         _ => return None,
     })
 }
 
-fn ext_of(p: &Path) -> String {
-    p.extension().map(|e| e.to_string_lossy().to_ascii_lowercase()).unwrap_or_default()
-}
 
 /// Walk a root and replace its index. Hidden entries are skipped; package folders (.logicx) count as one project file.
+/// Test shortcut over the Smart Library scanner (the app uses smartlib::service).
+#[cfg(test)]
 pub fn scan_root(db: &Db, id: &str, progress: &dyn Fn(usize)) -> Result<usize, String> {
-    let path = {
-        let c = db.lock().unwrap();
-        match root_path(&c, id).map_err(|e| e.to_string())? {
-            Some(p) => {
-                c.execute("update library_roots set scan_state = 'scanning', error = null where id = ?1", [id]).map_err(|e| e.to_string())?;
-                p
-            }
-            None => {
-                c.execute("update library_roots set scan_state = 'offline' where id = ?1", [id]).map_err(|e| e.to_string())?;
-                return Err("folder offline: drive not connected".into());
-            }
-        }
-    };
-    let mut found = Vec::new();
-    let mut it = walkdir::WalkDir::new(&path).follow_links(false).into_iter();
-    while let Some(entry) = it.next() {
-        let Ok(e) = entry else { continue }; // unreadable entries are skipped
-        if e.depth() > 0 && e.file_name().to_string_lossy().starts_with('.') {
-            if e.file_type().is_dir() {
-                it.skip_current_dir();
-            }
-            continue;
-        }
-        let ext = ext_of(e.path());
-        let is_package = e.file_type().is_dir() && ext == "logicx";
-        if !(e.file_type().is_file() || is_package) {
-            continue;
-        }
-        if is_package {
-            it.skip_current_dir();
-        }
-        let Some(kind) = kind_of(&ext) else { continue };
-        let meta = e.metadata().ok();
-        found.push((
-            e.path().strip_prefix(&path).unwrap().to_string_lossy().to_string(),
-            e.file_name().to_string_lossy().to_string(),
-            ext,
-            kind,
-            meta.as_ref().map(|m| m.len()).unwrap_or(0) as i64,
-            meta.and_then(|m| m.modified().ok()).and_then(|t| t.duration_since(std::time::UNIX_EPOCH).ok()).map(|d| d.as_secs() as i64),
-        ));
-        if found.len() % 500 == 0 {
-            progress(found.len());
-        }
+    // Incremental since Prompt 07 (smartlib::scan): rows keep their ids, missing files are kept.
+    let s = crate::smartlib::scan::scan_root(db, id, &std::sync::atomic::AtomicBool::new(false), progress);
+    match s.state.as_str() {
+        "done" => Ok(s.present),
+        _ => Err(s.error.unwrap_or(s.state)),
     }
-    // ponytail: full replace per scan; switch to incremental upsert (mtime/size) for very large libraries.
-    let mut c = db.lock().unwrap();
-    let tx = c.transaction().map_err(|e| e.to_string())?;
-    tx.execute("delete from files where root_id = ?1", [id]).map_err(|e| e.to_string())?;
-    {
-        let mut ins = tx
-            .prepare("insert into files(root_id, rel_path, name, ext, kind, size, mtime) values (?1, ?2, ?3, ?4, ?5, ?6, ?7)")
-            .map_err(|e| e.to_string())?;
-        for f in &found {
-            ins.execute(params![id, f.0, f.1, f.2, f.3, f.4, f.5]).map_err(|e| e.to_string())?;
-        }
-    }
-    tx.execute(
-        "update library_roots set scan_state = 'done', file_count = ?2, last_scan_at = datetime('now') where id = ?1",
-        params![id, found.len() as i64],
-    )
-    .map_err(|e| e.to_string())?;
-    tx.commit().map_err(|e| e.to_string())?;
-    progress(found.len());
-    Ok(found.len())
 }
 
 #[derive(Serialize)]
@@ -350,7 +296,7 @@ pub fn search(c: &Connection, q: &str, kind: Option<&str>, limit: i64) -> rusqli
     let mut st = c.prepare(
         "select f.id, f.root_id, f.name, f.rel_path, f.kind, f.size, v.mount_point, v.online, r.rel_path, v.label
          from files f join library_roots r on r.id = f.root_id join volumes v on v.id = r.volume_id
-         where (f.name like ?1 escape '\\' or f.rel_path like ?1 escape '\\') and (?2 is null or f.kind = ?2)
+         where f.status != 'missing' and (f.name like ?1 escape '\\' or f.rel_path like ?1 escape '\\') and (?2 is null or f.kind = ?2)
          order by f.name limit ?3",
     )?;
     let rows = st.query_map(params![pattern, kind, limit], hit_row)?;
@@ -372,19 +318,6 @@ fn hit_row(r: &rusqlite::Row) -> rusqlite::Result<FileHit> {
         rel_path: rel,
         volume_label: r.get(9)?,
     })
-}
-
-/// Probable duplicates: same file name (case-insensitive) and same size in different places.
-/// Contents are not compared (files are not hashed while indexing): candidates, not proof.
-pub fn duplicates(c: &Connection, limit: i64) -> rusqlite::Result<Vec<Vec<FileHit>>> {
-    let mut st = c.prepare("select lower(name), size from files group by lower(name), size having count(*) > 1 order by count(*) desc, lower(name) limit ?1")?;
-    let keys: Vec<(String, i64)> = st.query_map([limit], |r| Ok((r.get(0)?, r.get(1)?)))?.collect::<Result<_, _>>()?;
-    let mut q = c.prepare(
-        "select f.id, f.root_id, f.name, f.rel_path, f.kind, f.size, v.mount_point, v.online, r.rel_path, v.label
-         from files f join library_roots r on r.id = f.root_id join volumes v on v.id = r.volume_id
-         where lower(f.name) = ?1 and f.size = ?2 order by v.label, f.rel_path",
-    )?;
-    keys.iter().map(|(n, s)| q.query_map(params![n, s], hit_row)?.collect()).collect()
 }
 
 /// BPM and key written in a file name ("Bass_124_Am.wav", "pad 128bpm F#min"). Read from the name
@@ -505,7 +438,7 @@ mod tests {
     }
 
     #[test]
-    fn filename_metadata_and_duplicates() {
+    fn filename_metadata() {
         for (n, bpm, key) in [
             ("Bass_124_Am.wav", Some(124), Some("A minor")),
             ("pad 128bpm F#min.wav", Some(128), Some("F# minor")),
@@ -518,21 +451,5 @@ mod tests {
             let (b, k) = filename_meta(n);
             assert_eq!((b, k.as_deref()), (bpm, key), "{n}");
         }
-        let tmp = tempfile::tempdir().unwrap();
-        let root = tmp.path().canonicalize().unwrap().join("lib");
-        for d in ["A", "B"] {
-            fs::create_dir_all(root.join(d)).unwrap();
-            fs::write(root.join(d).join("Kick.wav"), b"RIFFxxxx").unwrap();
-        }
-        fs::write(root.join("B").join("kick.wav.bak"), b"RIFFxxxx").unwrap();
-        fs::write(root.join("A").join("Snare.wav"), b"RIFF").unwrap();
-        fs::write(root.join("B").join("Snare.wav"), b"RIFFlonger").unwrap();
-        let db: Db = std::sync::Mutex::new(crate::db::open_memory());
-        let id = add_root(&db.lock().unwrap(), &[], root.to_str().unwrap()).unwrap();
-        scan_root(&db, &id, &|_| {}).unwrap();
-        let d = duplicates(&db.lock().unwrap(), 50).unwrap();
-        assert_eq!(d.len(), 1, "same name + same size only");
-        assert_eq!(d[0].len(), 2);
-        assert!(root.join("A/Kick.wav").exists() && root.join("B/Kick.wav").exists(), "nothing moved or deleted");
     }
 }

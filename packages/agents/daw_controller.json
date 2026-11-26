@@ -119,6 +119,10 @@
                 },
                 "path": {
                   "type": "string"
+                },
+                "library_file_id": {
+                  "type": "integer",
+                  "minimum": 1
                 }
               },
               "required": [
@@ -132,7 +136,8 @@
       "tools": [
         "daw.detector",
         "daw.routes",
-        "files.writer"
+        "files.writer",
+        "library.index"
       ],
       "permissions": [
         "daw.detect",
@@ -174,7 +179,8 @@
     "daw.connectors",
     "daw.detector",
     "daw.routes",
-    "files.writer"
+    "files.writer",
+    "library.index"
   ],
   "permissions": [
     "daw.control",

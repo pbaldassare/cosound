@@ -110,10 +110,11 @@
           "name"
         ]
       },
-      "output": "catalog entry, installed",
+      "output": "catalog entry, installed, presets in the library",
       "tools": [
         "plugins.catalog",
-        "plugins.scanner"
+        "plugins.scanner",
+        "library.index"
       ],
       "permissions": [],
       "basis": "rule_based"
@@ -149,6 +150,7 @@
   ],
   "tools": [
     "daw.connectors",
+    "library.index",
     "plugins.catalog",
     "plugins.param_maps",
     "plugins.scanner",

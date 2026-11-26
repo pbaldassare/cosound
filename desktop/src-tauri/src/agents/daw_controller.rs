@@ -65,18 +65,26 @@ impl Agent for DawController {
                 let mut files = Vec::new();
                 for (i, p) in input["parts"].as_array().into_iter().flatten().enumerate() {
                     let name = s(p, "name").unwrap_or("Part");
-                    let path = if let Some(b) = s(p, "midi_base64") {
+                    let path = if let Some(fid) = p["library_file_id"].as_i64() {
+                        cx.tool("library.index");
+                        let r = crate::smartlib::api::resolve(&cx.db.lock().unwrap(), &[fid]).remove(0);
+                        let Some(raw) = r["path"].as_str().map(String::from) else {
+                            return Err(AgentError::new("FILE_NOT_AVAILABLE", format!("part {name}: library file {fid} is not available ({})", if r["error"].is_string() { "not in the library".to_string() } else { format!("drive {} not connected or file {}", r["device"], r["status"]) })));
+                        };
+                        cx.authorized_file(&raw)?.to_string_lossy().to_string()
+                    } else if let Some(b) = s(p, "midi_base64") {
                         let bytes = b64decode(b).filter(|b| b.starts_with(b"MThd")).ok_or_else(|| AgentError::input(format!("part {name}: midi_base64 is not a MIDI file")))?;
                         cx.tool("files.writer");
                         cx.write_file(&sub, &format!("{:02}-{name}.mid", i + 1), &bytes, "midi")?.path
                     } else if let Some(raw) = s(p, "path") {
                         let pb = cx.authorized_file(raw)?;
-                        if !pb.extension().is_some_and(|e| e.eq_ignore_ascii_case("mid") || e.eq_ignore_ascii_case("midi") || e.eq_ignore_ascii_case("wav")) {
-                            return Err(AgentError::input(format!("part {name}: only .mid or .wav files can be imported")));
+                        let ext = pb.extension().map(|e| e.to_string_lossy().to_lowercase()).unwrap_or_default();
+                        if !(ext == "mid" || ext == "midi" || crate::smartlib::decode::AUDIO_EXTS.contains(&ext.as_str())) {
+                            return Err(AgentError::input(format!("part {name}: only MIDI or audio files can be imported")));
                         }
                         pb.to_string_lossy().to_string()
                     } else {
-                        return Err(AgentError::input(format!("part {name}: give midi_base64 or path")));
+                        return Err(AgentError::input(format!("part {name}: give library_file_id, midi_base64 or path")));
                     };
                     files.push((name.to_string(), s(p, "role").unwrap_or("").to_string(), path));
                 }

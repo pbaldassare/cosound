@@ -29,7 +29,7 @@ npx tauri dev             # same, without the test connector (as a release build
 
 ## Tests
 ```bash
-cd src-tauri && cargo test --features temp-connector   # Rust core: library, projects, imports, DAW, plugins, AIL
+cd src-tauri && cargo test --features temp-connector   # Rust core: Smart Library, projects, imports, DAW, plugins, agents, AIL
 cd .. && npx tsc -p .                                    # UI type check
 ```
 
@@ -48,13 +48,16 @@ They are not for distribution. CI (`.github/workflows/desktop.yml`) builds them 
 desktop/
   src/                       UI (React). Talks to the core only through src/lib/api.ts
     pages/                   Chat, Production, Sketch (music sketch + piano roll), Library, Imports, Plugins, Daws, Agents, Settings, Account, Onboarding
-    components/              Shell (sidebar/topbar), Voice (mic + takes), OpList (history/undo), ui
+    components/              Shell (sidebar/topbar), Voice (mic + takes), OpList (history/undo), SmartLibrary (search, detail, loops, duplicates, index), ui
     i18n/                    it.ts / en.ts (every string bilingual)
     lib/                     api.ts (commands), store.tsx (app state), supabase.ts (account), preview.ts (Web Audio preview of a sketch)
   src-tauri/
     src/lib.rs               Tauri commands only (thin layer)
     src/db.rs                local SQLite, settings, operation register, undo
-    src/library.rs           Smart Library v1: volumes, authorized folders, scan, search
+    src/library.rs           drives (identity, kind, online) and authorized folders
+    src/smartlib/            Smart Library engine (Prompt 07): incremental scan, Symphonia decoding, audio features, MIDI and
+                             preset readers, classification, IT/EN search, similarity, loops, duplicates, background service
+                             (docs/smart-library/)
     src/projects.rs          projects, imported material (references + SHA-256)
     src/daw.rs               DAW detection (no connection)
     src/plugins.rs           plugin inventory (files + metadata, plugins never loaded)
@@ -66,6 +69,7 @@ desktop/
     src/ail/                 Agent Integration Layer + MOCK central-agent connector (dev only)
     migrations/              local DB schema
 packages/agents/*.json         agent manifests (13), tools.json, permissions.json – the Agent and Tool Registry
+packages/agents/render_docs.py regenerates docs/agents/AGENTS.md and REGISTRIES.md from the manifests
 packages/contracts/*.json      JSON Schemas of the Agent Protocol
 ```
 Every engine is its own Rust module with its own tests and no dependency on the UI. Future engines plug in as level-3 tools:

@@ -56,5 +56,10 @@ Status: **Accepted** (can be implemented), **Proposed** (needs confirmation), **
 ### ADR-011 Licensing policy — Accepted
 - Only permissive or LGPL (dynamically linked) dependencies in the shipped app. Excluded: Essentia (AGPL), madmom/ADTOF models (non-commercial), Chordino (GPL), aubio (GPL), pedalboard (GPL), JUCE without commercial license, openWakeWord bundled models. Every model's weights license is checked before bundling.
 
+### ADR-011a Licensing: MPL-2.0 for unmodified libraries — Proposed (to confirm, 2026-11-26)
+- Allow MPL-2.0 dependencies used unmodified. MPL-2.0 is file-level copyleft: the app can stay closed-source; only changes to the MPL files themselves would have to be published.
+- First case: **Symphonia 0.6.1** (pure-Rust audio decoding for WAV, AIFF, CAF, MP3, AAC/ALAC, FLAC, OGG Vorbis), used by the Smart Library (Prompt 07). Its license notice goes in the app's third-party notices.
+- Alternative if refused: decode through the OS (Core Audio on macOS, Media Foundation on Windows), which means two code paths and more platform testing.
+
 ### ADR-012 Commercial gating by entitlements — Accepted
 - Feature keys per plan in `plan_features`; trial length in `app_settings`; auto-conversion only with a recorded `consents` row. Payments postponed (Stripe planned).

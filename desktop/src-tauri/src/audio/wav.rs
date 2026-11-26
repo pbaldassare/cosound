@@ -211,45 +211,196 @@ fn round2(x: f64) -> f64 {
     (x * 100.0).round() / 100.0
 }
 
+/// Streaming meter: feed frames (one value per channel, −1..1) and get the measurements.
+/// Shared by the WAV reader below and by the multi-format decoder of the Smart Library.
+pub struct Meter {
+    nch: usize,
+    fs: f64,
+    kw: Vec<(Biquad, Biquad)>,
+    lp: Vec<Biquad>,
+    hp: Vec<Biquad>,
+    tpf: [f64; TP_TAPS],
+    hist: Vec<[f64; TP_HIST]>,
+    hpos: usize,
+    peak: Vec<f64>,
+    tp: f64,
+    sumsq: Vec<f64>,
+    dc: Vec<f64>,
+    low_e: f64,
+    high_e: f64,
+    all_e: f64,
+    clipped: u64,
+    corr: [f64; 6],
+    first_loud: Option<u64>,
+    last_loud: u64,
+    hop: u64,
+    sub_acc: f64,
+    sub_n: u64,
+    subs: Vec<f64>,
+    frame: u64,
+    low: Vec<f64>,
+}
+
+impl Meter {
+    pub fn new(rate: u32, channels: usize) -> Meter {
+        let fs = rate as f64;
+        let nch = channels.max(1);
+        let (k1, k2) = Biquad::k_weighting(fs);
+        Meter {
+            nch,
+            fs,
+            kw: vec![(k1, k2); nch],
+            lp: vec![Biquad::pass(fs, 120.0, false); nch],
+            hp: vec![Biquad::pass(fs, 5000.0, true); nch],
+            tpf: tp_filter(),
+            hist: vec![[0.0; TP_HIST]; nch],
+            hpos: 0,
+            peak: vec![0.0; nch],
+            tp: 0.0,
+            sumsq: vec![0.0; nch],
+            dc: vec![0.0; nch],
+            low_e: 0.0,
+            high_e: 0.0,
+            all_e: 0.0,
+            clipped: 0,
+            corr: [0.0; 6],
+            first_loud: None,
+            last_loud: 0,
+            hop: (fs / 10.0).round().max(1.0) as u64, // 100 ms sub-blocks
+            sub_acc: 0.0,
+            sub_n: 0,
+            subs: Vec::new(),
+            frame: 0,
+            low: vec![0.0; nch],
+        }
+    }
+
+    /// One frame: `x.len()` must equal the channel count.
+    pub fn push(&mut self, x: &[f64]) {
+        let silence = 0.001; // −60 dBFS
+        self.hpos = (self.hpos + 1) % TP_HIST;
+        let mut loud = false;
+        let mut block_power = 0.0;
+        for c in 0..self.nch {
+            let v = x[c];
+            let a = v.abs();
+            self.peak[c] = self.peak[c].max(a);
+            self.sumsq[c] += v * v;
+            self.dc[c] += v;
+            if a >= 0.999 {
+                self.clipped += 1;
+            }
+            if a > silence {
+                loud = true;
+            }
+            let (s1, s2) = &mut self.kw[c];
+            let k = s2.run(s1.run(v));
+            block_power += k * k;
+            self.low[c] = self.lp[c].run(v);
+            let hi = self.hp[c].run(v);
+            self.low_e += self.low[c] * self.low[c];
+            self.high_e += hi * hi;
+            self.all_e += v * v;
+            // 4x oversampled true peak: phases 1..3 interpolate between samples
+            self.hist[c][self.hpos] = v;
+            for p in 1..4 {
+                let mut y = 0.0;
+                let mut k = 0;
+                while p + 4 * k < TP_TAPS {
+                    y += self.tpf[p + 4 * k] * self.hist[c][(self.hpos + TP_HIST - k) % TP_HIST];
+                    k += 1;
+                }
+                self.tp = self.tp.max(y.abs());
+            }
+        }
+        if self.nch == 2 {
+            let (l, r, ll, lr) = (x[0], x[1], self.low[0], self.low[1]);
+            for (acc, v) in self.corr.iter_mut().zip([l * r, l * l, r * r, ll * lr, ll * ll, lr * lr]) {
+                *acc += v;
+            }
+        }
+        if loud {
+            self.first_loud.get_or_insert(self.frame);
+            self.last_loud = self.frame;
+        }
+        self.sub_acc += block_power;
+        self.sub_n += 1;
+        if self.sub_n == self.hop {
+            self.subs.push(self.sub_acc / self.hop as f64);
+            self.sub_acc = 0.0;
+            self.sub_n = 0;
+        }
+        self.frame += 1;
+    }
+
+    pub fn finish(&self, encoding: &'static str, bits: u16) -> Measurements {
+        let (nch, fs, total_frames) = (self.nch, self.fs, self.frame);
+        let frames = total_frames.max(1) as f64;
+        let sample_peak = self.peak.iter().cloned().fold(0.0, f64::max);
+        let mean_sq = self.sumsq.iter().sum::<f64>() / (frames * nch as f64);
+        let rms = db(mean_sq.sqrt());
+        let integrated = if nch <= 2 && self.subs.len() >= 4 {
+            let blocks: Vec<f64> = self.subs.windows(4).map(|w| w.iter().sum::<f64>() / 4.0).collect();
+            let lk = |p: f64| -0.691 + 10.0 * p.log10();
+            let abs: Vec<f64> = blocks.iter().copied().filter(|&p| p > 0.0 && lk(p) > -70.0).collect();
+            if abs.is_empty() {
+                None
+            } else {
+                let rel = lk(abs.iter().sum::<f64>() / abs.len() as f64) - 10.0;
+                let gated: Vec<f64> = abs.into_iter().filter(|&p| lk(p) > rel).collect();
+                Some(lk(gated.iter().sum::<f64>() / gated.len() as f64))
+            }
+        } else {
+            None
+        };
+        let true_peak = db(self.tp.max(sample_peak));
+        let corr = |a: f64, b: f64, ab: f64| if a > 0.0 && b > 0.0 { Some(round2(ab / (a * b).sqrt())) } else { None };
+        let sec = |f: u64| f as f64 / fs;
+        let [lr, ll, rr, llr, lll, lrr] = self.corr;
+        Measurements {
+            analyzer: VERSION,
+            encoding,
+            sample_rate: fs as u32,
+            channels: nch as u16,
+            bits,
+            frames: total_frames,
+            duration_s: (sec(total_frames) * 1000.0).round() / 1000.0,
+            sample_peak_dbfs: round2(db(sample_peak)),
+            channel_peaks_dbfs: self.peak.iter().map(|&p| round2(db(p))).collect(),
+            true_peak_dbtp: round2(true_peak),
+            rms_dbfs: round2(rms),
+            crest_factor_db: round2(db(sample_peak) - rms),
+            integrated_lufs: integrated.map(round2),
+            plr_db: integrated.map(|l| round2(true_peak - l)),
+            dc_offset: self.dc.iter().map(|&d| (d / frames * 1e5).round() / 1e5).collect(),
+            clipped_samples: self.clipped,
+            stereo_correlation: if nch == 2 { corr(ll, rr, lr) } else { None },
+            low_band_correlation: if nch == 2 { corr(lll, lrr, llr) } else { None },
+            band_energy: (self.all_e > 0.0).then(|| {
+                let (l, hi) = ((self.low_e / self.all_e * 100.0).min(100.0), (self.high_e / self.all_e * 100.0).min(100.0));
+                BandEnergy { low_pct: round2(l), mid_pct: round2((100.0 - l - hi).max(0.0)), high_pct: round2(hi) }
+            }),
+            leading_silence_s: round2(sec(self.first_loud.unwrap_or(total_frames))),
+            trailing_silence_s: round2(self.first_loud.map_or(0.0, |_| sec(total_frames.saturating_sub(1 + self.last_loud)))),
+        }
+    }
+}
+
 /// Measure a WAV file. `cancelled` is polled regularly so long analyses can be stopped.
 pub fn analyze(path: &Path, cancelled: &dyn Fn() -> bool) -> Result<Measurements, MeterError> {
     let file = File::open(path)?;
     let len = file.metadata()?.len();
     let mut r = BufReader::with_capacity(1 << 16, file);
     let h = header(&mut r, len)?;
-    let (nch, fs) = (h.channels as usize, h.rate as f64);
+    let nch = h.channels as usize;
     let bps = (h.bits / 8) as usize;
     let frame_bytes = bps * nch;
     let total_frames = h.data_bytes / frame_bytes as u64;
-
-    let (k1, k2) = Biquad::k_weighting(fs);
-    let mut kw: Vec<(Biquad, Biquad)> = vec![(k1, k2); nch];
-    let mut lp: Vec<Biquad> = vec![Biquad::pass(fs, 120.0, false); nch];
-    let mut hp: Vec<Biquad> = vec![Biquad::pass(fs, 5000.0, true); nch];
-    let tpf = tp_filter();
-    let mut hist = vec![[0.0f64; TP_HIST]; nch];
-    let mut hpos = 0usize;
-
-    let mut peak = vec![0.0f64; nch];
-    let mut tp = 0.0f64;
-    let mut sumsq = vec![0.0f64; nch];
-    let mut dc = vec![0.0f64; nch];
-    let (mut low_e, mut high_e, mut all_e) = (0.0, 0.0, 0.0);
-    let mut clipped = 0u64;
-    let (mut lr, mut ll, mut rr, mut llr, mut lll, mut lrr) = (0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
-    let (mut first_loud, mut last_loud) = (None::<u64>, 0u64);
-    let silence = 10f64.powf(-60.0 / 20.0);
-
-    let hop = (fs / 10.0).round() as u64; // 100 ms sub-blocks
-    let mut sub_acc = 0.0f64;
-    let mut sub_n = 0u64;
-    let mut subs: Vec<f64> = Vec::new();
-
+    let mut meter = Meter::new(h.rate, nch);
     let chunk_frames = 8192usize;
     let mut buf = vec![0u8; chunk_frames * frame_bytes];
     let mut frame = 0u64;
     let mut x = vec![0.0f64; nch];
-    let mut low = vec![0.0f64; nch];
     while frame < total_frames {
         if cancelled() {
             return Err(MeterError::Cancelled);
@@ -269,111 +420,11 @@ pub fn analyze(path: &Path, cancelled: &dyn Fn() -> bool) -> Result<Measurements
                     _ => f64::from_le_bytes([s[0], s[1], s[2], s[3], s[4], s[5], s[6], s[7]]),
                 };
             }
-            hpos = (hpos + 1) % TP_HIST;
-            let mut loud = false;
-            let mut block_power = 0.0;
-            for c in 0..nch {
-                let v = x[c];
-                let a = v.abs();
-                peak[c] = peak[c].max(a);
-                sumsq[c] += v * v;
-                dc[c] += v;
-                if a >= 0.999 {
-                    clipped += 1;
-                }
-                if a > silence {
-                    loud = true;
-                }
-                let (s1, s2) = &mut kw[c];
-                let k = s2.run(s1.run(v));
-                block_power += k * k;
-                low[c] = lp[c].run(v);
-                let hi = hp[c].run(v);
-                low_e += low[c] * low[c];
-                high_e += hi * hi;
-                all_e += v * v;
-                // 4x oversampled true peak: phases 1..3 interpolate between samples
-                hist[c][hpos] = v;
-                for p in 1..4 {
-                    let mut y = 0.0;
-                    let mut k = 0;
-                    while p + 4 * k < TP_TAPS {
-                        y += tpf[p + 4 * k] * hist[c][(hpos + TP_HIST - k) % TP_HIST];
-                        k += 1;
-                    }
-                    tp = tp.max(y.abs());
-                }
-            }
-            if nch == 2 {
-                lr += x[0] * x[1];
-                ll += x[0] * x[0];
-                rr += x[1] * x[1];
-                llr += low[0] * low[1];
-                lll += low[0] * low[0];
-                lrr += low[1] * low[1];
-            }
-            if loud {
-                first_loud.get_or_insert(frame + f as u64);
-                last_loud = frame + f as u64;
-            }
-            sub_acc += block_power;
-            sub_n += 1;
-            if sub_n == hop {
-                subs.push(sub_acc / hop as f64);
-                sub_acc = 0.0;
-                sub_n = 0;
-            }
+            meter.push(&x);
         }
         frame += n as u64;
     }
-
-    let frames = total_frames.max(1) as f64;
-    let sample_peak = peak.iter().cloned().fold(0.0, f64::max);
-    let mean_sq = sumsq.iter().sum::<f64>() / (frames * nch as f64);
-    let rms = db(mean_sq.sqrt());
-    let integrated = if nch <= 2 && subs.len() >= 4 {
-        let blocks: Vec<f64> = subs.windows(4).map(|w| w.iter().sum::<f64>() / 4.0).collect();
-        let lk = |p: f64| -0.691 + 10.0 * p.log10();
-        let abs: Vec<f64> = blocks.iter().copied().filter(|&p| p > 0.0 && lk(p) > -70.0).collect();
-        if abs.is_empty() {
-            None
-        } else {
-            let rel = lk(abs.iter().sum::<f64>() / abs.len() as f64) - 10.0;
-            let gated: Vec<f64> = abs.into_iter().filter(|&p| lk(p) > rel).collect();
-            Some(lk(gated.iter().sum::<f64>() / gated.len() as f64))
-        }
-    } else {
-        None
-    };
-    let true_peak = db(tp.max(sample_peak));
-    let corr = |a: f64, b: f64, ab: f64| if a > 0.0 && b > 0.0 { Some(round2(ab / (a * b).sqrt())) } else { None };
-    let sec = |f: u64| f as f64 / fs;
-    Ok(Measurements {
-        analyzer: VERSION,
-        encoding: if h.enc == Enc::Int { "pcm_int" } else { "float" },
-        sample_rate: h.rate,
-        channels: h.channels,
-        bits: h.bits,
-        frames: total_frames,
-        duration_s: (sec(total_frames) * 1000.0).round() / 1000.0,
-        sample_peak_dbfs: round2(db(sample_peak)),
-        channel_peaks_dbfs: peak.iter().map(|&p| round2(db(p))).collect(),
-        true_peak_dbtp: round2(true_peak),
-        rms_dbfs: round2(rms),
-        crest_factor_db: round2(db(sample_peak) - rms),
-        integrated_lufs: integrated.map(round2),
-        plr_db: integrated.map(|l| round2(true_peak - l)),
-        dc_offset: dc.iter().map(|&d| (d / frames * 1e5).round() / 1e5).collect(),
-        clipped_samples: clipped,
-        stereo_correlation: if nch == 2 { corr(ll, rr, lr) } else { None },
-        low_band_correlation: if nch == 2 { corr(lll, lrr, llr) } else { None },
-        band_energy: (all_e > 0.0).then(|| {
-            let (l, hi) = ((low_e / all_e * 100.0).min(100.0), (high_e / all_e * 100.0).min(100.0));
-            BandEnergy { low_pct: round2(l), mid_pct: round2((100.0 - l - hi).max(0.0)), high_pct: round2(hi) }
-        }),
-        leading_silence_s: round2(sec(first_loud.unwrap_or(total_frames))),
-        trailing_silence_s: round2(first_loud.map_or(0.0, |_| sec(total_frames - 1 - last_loud))),
-    })
+    Ok(meter.finish(if h.enc == Enc::Int { "pcm_int" } else { "float" }, h.bits))
 }
 
 /// Test helper: write a WAV file (16/24-bit int or 32-bit float) from interleaved samples.

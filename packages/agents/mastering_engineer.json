@@ -63,7 +63,8 @@
       },
       "output": "measurements, destinations[] with expected gain change, suggestions[]",
       "tools": [
-        "audio.wav_meter"
+        "audio.wav_meter",
+        "audio.decoder"
       ],
       "permissions": [
         "files.authorized_read"
@@ -114,6 +115,7 @@
     }
   ],
   "tools": [
+    "audio.decoder",
     "audio.processing_chain",
     "audio.wav_meter"
   ],

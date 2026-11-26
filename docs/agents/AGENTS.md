@@ -1,8 +1,9 @@
-# COSOUND – Specialized agents: responsibilities (Prompt 06)
+# COSOUND – Specialized agents: responsibilities (Prompt 06, updated by Prompt 07)
 
-Generated from `packages/agents/<id>.json` (the source of truth, compiled into the app and checked by tests).
+Generated from `packages/agents/<id>.json` by `packages/agents/render_docs.py` (the manifests are the source of truth,
+compiled into the app and checked by tests).
 Status: **available** = runs today on real engines; **planned** = declared with the missing component, the runtime answers `NOT_IMPLEMENTED` (never simulated).
-Fields marked * are required. All agents: contract version 1, agent version 1.0.0.
+Fields marked * are required. All agents: contract version 1.
 
 | | Agent | Role | Operations available | Permissions |
 |---|---|---|---|---|
@@ -13,7 +14,7 @@ Fields marked * are required. All agents: contract version 1, agent version 1.0.
 | E | [Voice-to-Music](#e-voice-to-music) | From voice to musical material (singing, whistling, beatbox, speech) | 0/4 | files.authorized_read |
 | F | [Audio Analysis](#f-audio-analysis) | Measurements on audio files and stems | 2/5 | files.app_write, files.authorized_read |
 | G | [Reference Track](#g-reference-track) | Reference profile to create an original track | 1/2 | files.authorized_read, network |
-| H | [Smart Library](#h-smart-library) | Search in authorized libraries on internal and external drives | 4/5 | external_devices, files.authorized_read |
+| H | [Smart Library](#h-smart-library) | Smart catalog of the music resources on every authorized drive | 13/13 | external_devices, files.authorized_read |
 | I | [Plugin Intelligence](#i-plugin-intelligence) | Installed plugins, categories and features | 3/4 | plugins.scan |
 | J | [Mixing Engineer](#j-mixing-engineer) | Mix diagnosis from measurements and proposed moves | 1/2 | daw.control, files.authorized_read |
 | K | [Mastering Engineer](#k-mastering-engineer) | Technical check of the master and release destinations | 1/2 | files.app_write, files.authorized_read |
@@ -73,7 +74,7 @@ Fields marked * are required. All agents: contract version 1, agent version 1.0.
 
 | Operation | Status | Risk | Basis | Input | Output |
 |---|---|---|---|---|---|
-| `generate_drums` – MIDI drum pattern with checks and a MIDI file | available | read | rule_based | `genre`: string (techno, melodic_techno, progressive_house, house, edm); `key`: string; `tonic`: string; `mode`: string (enum); `progression`: string/array; `bpm`: number; `bars`: integer; `seed`: integer; `swing`: number; `sevenths`: boolean; `chord_rhythm`: string (sustain, stabs, pulse); `bass_style`: string (offbeat, rolling, pulse, syncopated, sustain); `drum_style`: string (techno, melodic_techno, progressive_house, house, edm); `fill`: boolean | part, checks, midi.base64 |
+| `generate_drums` – MIDI drum pattern with checks and a MIDI file | available | read | rule_based | `genre`: string (techno, melodic_techno, progressive_house, house, edm); `key`: string; `tonic`: string; `mode`: string (enum); `progression`: ['string', 'array']; `bpm`: number; `bars`: integer; `seed`: integer; `swing`: number; `sevenths`: boolean; `chord_rhythm`: string (sustain, stabs, pulse); `bass_style`: string (offbeat, rolling, pulse, syncopated, sustain); `drum_style`: string (techno, melodic_techno, progressive_house, house, edm); `fill`: boolean | part, checks, midi.base64 |
 | `generate_transition` – Snare build, tom fill or drop impact | available | read | rule_based | `kind`*: string (snare_build, drum_fill, drop_impact); `bars`: integer; `bpm`: number; `seed`: integer | part, checks, midi.base64 |
 | `groove_timing` – Note lengths in ms and swing offset at a tempo | available | read | rule_based | `bpm`*: number; `swing`: number | beat_ms, bar_ms, note_lengths[], swing_offset_ms |
 | `humanize` – Humanize an existing MIDI part (timing and dynamics) | planned – requires MIDI file import (reading existing MIDI) is not built yet | read | — | `path`*: string | part |
@@ -109,8 +110,8 @@ Fields marked * are required. All agents: contract version 1, agent version 1.0.
 | Operation | Status | Risk | Basis | Input | Output |
 |---|---|---|---|---|---|
 | `suggest_sounds` – Recipe for the role + installed synths + presets in the library | available | read | rule_based | `role`*: string (enum); `genre`: string | recipes[], installed_instruments[], presets[] |
-| `patch_variants` – Variants of a recipe | available | read | rule_based | `recipe_id`*: string (sub_bass, acid_bass, supersaw_lead, pluck_arp, pad, fm_bell, granular_texture) | recipe, variants[] |
-| `program_synth` – Set a synth's parameters inside the DAW | planned – requires plugin parameter maps (M7) and a DAW connector (M4) | medium · user confirmation | — | `plugin`*: string; `recipe_id`: string | applied parameters |
+| `patch_variants` – Variants of a recipe | available | read | rule_based | `recipe_id`*: string (enum) | recipe, variants[] |
+| `program_synth` – Set a synth's parameters inside the DAW | planned – requires plugin parameter maps (M7) and a DAW connector (M4) | medium (approval) | — | `plugin`*: string; `recipe_id`: string | applied parameters |
 
 **Tools (level 3):** `daw.connectors`, `library.index`, `plugins.catalog`, `plugins.param_maps`, `plugins.scanner`, `sound.recipes`
 
@@ -146,12 +147,12 @@ Fields marked * are required. All agents: contract version 1, agent version 1.0.
 | Operation | Status | Risk | Basis | Input | Output |
 |---|---|---|---|---|---|
 | `key_info` – Scale, key signature, relative keys and diatonic chords | available | read | rule_based | `key`: string; `tonic`: string; `mode`: string (enum) | scale, signature, triads[], sevenths[] |
-| `progression` – Progression analysis: chords, functions, tension, cadences | available | read | rule_based | `genre`: string (techno, melodic_techno, progressive_house, house, edm); `key`: string; `tonic`: string; `mode`: string (enum); `progression`: string/array; `bpm`: number; `bars`: integer; `seed`: integer; `swing`: number; `sevenths`: boolean; `chord_rhythm`: string (sustain, stabs, pulse); `bass_style`: string (offbeat, rolling, pulse, syncopated, sustain); `drum_style`: string (techno, melodic_techno, progressive_house, house, edm); `fill`: boolean | chords[], cadences, tension_curve |
-| `generate_chords` – Voice-led chords | available | read | rule_based | `genre`: string (techno, melodic_techno, progressive_house, house, edm); `key`: string; `tonic`: string; `mode`: string (enum); `progression`: string/array; `bpm`: number; `bars`: integer; `seed`: integer; `swing`: number; `sevenths`: boolean; `chord_rhythm`: string (sustain, stabs, pulse); `bass_style`: string (offbeat, rolling, pulse, syncopated, sustain); `drum_style`: string (techno, melodic_techno, progressive_house, house, edm); `fill`: boolean | part, checks, midi.base64 |
-| `generate_bassline` – Bassline on chord tones | available | read | rule_based | `genre`: string (techno, melodic_techno, progressive_house, house, edm); `key`: string; `tonic`: string; `mode`: string (enum); `progression`: string/array; `bpm`: number; `bars`: integer; `seed`: integer; `swing`: number; `sevenths`: boolean; `chord_rhythm`: string (sustain, stabs, pulse); `bass_style`: string (offbeat, rolling, pulse, syncopated, sustain); `drum_style`: string (techno, melodic_techno, progressive_house, house, edm); `fill`: boolean | part, checks, midi.base64 |
-| `generate_melody` – Melody with chord tones on strong beats | available | read | rule_based | `genre`: string (techno, melodic_techno, progressive_house, house, edm); `key`: string; `tonic`: string; `mode`: string (enum); `progression`: string/array; `bpm`: number; `bars`: integer; `seed`: integer; `swing`: number; `sevenths`: boolean; `chord_rhythm`: string (sustain, stabs, pulse); `bass_style`: string (offbeat, rolling, pulse, syncopated, sustain); `drum_style`: string (techno, melodic_techno, progressive_house, house, edm); `fill`: boolean | part, checks, midi.base64 |
-| `detect_key` – Most likely key from notes or pitch-class weights | available | read | estimated | `notes`: array; `weights`: array | best, candidates[] with correlation |
-| `check_coherence` – Check that given MIDI parts fit the key and progression | available | read | rule_based | `genre`: string (techno, melodic_techno, progressive_house, house, edm); `key`: string; `tonic`: string; `mode`: string (enum); `progression`: string/array; `bpm`: number; `bars`: integer; `seed`: integer; `swing`: number; `sevenths`: boolean; `chord_rhythm`: string (sustain, stabs, pulse); `bass_style`: string (offbeat, rolling, pulse, syncopated, sustain); `drum_style`: string (techno, melodic_techno, progressive_house, house, edm); `fill`: boolean; `ppq`: integer; `parts`*: array | checks per part |
+| `progression` – Progression analysis: chords, functions, tension, cadences | available | read | rule_based | `genre`: string (techno, melodic_techno, progressive_house, house, edm); `key`: string; `tonic`: string; `mode`: string (enum); `progression`: ['string', 'array']; `bpm`: number; `bars`: integer; `seed`: integer; `swing`: number; `sevenths`: boolean; `chord_rhythm`: string (sustain, stabs, pulse); `bass_style`: string (offbeat, rolling, pulse, syncopated, sustain); `drum_style`: string (techno, melodic_techno, progressive_house, house, edm); `fill`: boolean | chords[], cadences, tension_curve |
+| `generate_chords` – Voice-led chords | available | read | rule_based | `genre`: string (techno, melodic_techno, progressive_house, house, edm); `key`: string; `tonic`: string; `mode`: string (enum); `progression`: ['string', 'array']; `bpm`: number; `bars`: integer; `seed`: integer; `swing`: number; `sevenths`: boolean; `chord_rhythm`: string (sustain, stabs, pulse); `bass_style`: string (offbeat, rolling, pulse, syncopated, sustain); `drum_style`: string (techno, melodic_techno, progressive_house, house, edm); `fill`: boolean | part, checks, midi.base64 |
+| `generate_bassline` – Bassline on chord tones | available | read | rule_based | `genre`: string (techno, melodic_techno, progressive_house, house, edm); `key`: string; `tonic`: string; `mode`: string (enum); `progression`: ['string', 'array']; `bpm`: number; `bars`: integer; `seed`: integer; `swing`: number; `sevenths`: boolean; `chord_rhythm`: string (sustain, stabs, pulse); `bass_style`: string (offbeat, rolling, pulse, syncopated, sustain); `drum_style`: string (techno, melodic_techno, progressive_house, house, edm); `fill`: boolean | part, checks, midi.base64 |
+| `generate_melody` – Melody with chord tones on strong beats | available | read | rule_based | `genre`: string (techno, melodic_techno, progressive_house, house, edm); `key`: string; `tonic`: string; `mode`: string (enum); `progression`: ['string', 'array']; `bpm`: number; `bars`: integer; `seed`: integer; `swing`: number; `sevenths`: boolean; `chord_rhythm`: string (sustain, stabs, pulse); `bass_style`: string (offbeat, rolling, pulse, syncopated, sustain); `drum_style`: string (techno, melodic_techno, progressive_house, house, edm); `fill`: boolean | part, checks, midi.base64 |
+| `detect_key` – Most likely key from notes or pitch-class weights | available | read | estimated | `notes`: array of object; `weights`: array of number | best, candidates[] with correlation |
+| `check_coherence` – Check that given MIDI parts fit the key and progression | available | read | rule_based | `genre`: string (techno, melodic_techno, progressive_house, house, edm); `key`: string; `tonic`: string; `mode`: string (enum); `progression`: ['string', 'array']; `bpm`: number; `bars`: integer; `seed`: integer; `swing`: number; `sevenths`: boolean; `chord_rhythm`: string (sustain, stabs, pulse); `bass_style`: string (offbeat, rolling, pulse, syncopated, sustain); `drum_style`: string (techno, melodic_techno, progressive_house, house, edm); `fill`: boolean; `ppq`: integer; `parts`*: array of object | checks per part |
 
 **Tools (level 3):** `music.generator`, `music.key_detection`, `music.smf_writer`, `music.theory`
 
@@ -219,23 +220,23 @@ Fields marked * are required. All agents: contract version 1, agent version 1.0.
 
 | Operation | Status | Risk | Basis | Input | Output |
 |---|---|---|---|---|---|
-| `analyze_file` – Measurements of an authorized WAV file | available | read | measured | `path`*: string | measurements |
-| `analyze_stems` – Measurements of several stems and relative levels | available | read | measured | `paths`*: array | stems[], relative_lufs |
+| `analyze_file` – Measurements of an authorized audio file | available | read | measured | `path`*: string | measurements |
+| `analyze_stems` – Measurements of several stems and relative levels | available | read | measured | `paths`*: array of string | stems[], relative_lufs |
 | `detect_tempo_key` – BPM and key of an audio file | planned – requires tempo/key engine (milestone M6) | read | — | `path`*: string | bpm, key, confidence |
 | `detect_structure` – Sections, breakdowns and drops | planned – requires structure engine (milestone M6) | read | — | `path`*: string | sections[] |
 | `separate_stems` – Stem separation | planned – requires stem separation engine (milestone M6) | low | — | `path`*: string | stems[] |
 
-**Tools (level 3):** `audio.stem_separator`, `audio.structure`, `audio.tempo_key`, `audio.wav_meter`
+**Tools (level 3):** `audio.decoder`, `audio.stem_separator`, `audio.structure`, `audio.tempo_key`, `audio.wav_meter`
 
 **Permissions:** `files.app_write`, `files.authorized_read`
 
-**Input formats:** application/json, audio/wav · **Output formats:** application/json
+**Input formats:** application/json, audio/wav, audio/aiff, audio/mpeg, audio/flac, audio/mp4, audio/ogg · **Output formats:** application/json
 
 **Works with (through the central Agent, never directly):** mixing_engineer, mastering_engineer, reference_track
 
 **Limits**
 
-- WAV files only (PCM 16/24/32-bit, float 32/64-bit)
+- Formats: WAV, AIFF, CAF, MP3, AAC/ALAC (M4A), FLAC, OGG Vorbis (decoded with Symphonia)
 - Loudness for mono and stereo only
 - BPM, key, structure and instruments not measured yet (M6)
 - Reads only files in authorized folders, imported files or COSOUND's folder
@@ -275,42 +276,54 @@ Fields marked * are required. All agents: contract version 1, agent version 1.0.
 
 ## H. Smart Library
 
-`smart_library` · v1.0.0 · Search in authorized libraries on internal and external drives
+`smart_library` · v1.0.0 · Smart catalog of the music resources on every authorized drive
 
 **Competencies**
 
-- Search for samples, loops, MIDI, presets and projects
-- Internal, external, USB and network drives already authorized
-- Recognition of previously indexed drives
-- Classification by type
-- BPM and key written in the file name
-- Probable duplicates
-- Original file paths
+- Natural-language search (Italian and English) over samples, loops, MIDI and presets
+- Authorized internal, external, SSD, USB and network drives; recognition of previously indexed drives
+- Multi-label classification with source and confidence
+- BPM, key, duration, sound character, genre, format, device
+- Search by sound description and by similarity
+- Loops that fit the project tempo and key
+- Duplicates by hash, same audio under different names, similar sounds (not duplicates)
+- Original paths for the DAW Controller
+- Incremental index updates
 
 **Operations**
 
 | Operation | Status | Risk | Basis | Input | Output |
 |---|---|---|---|---|---|
-| `search` – Search by name, type, BPM and key (from the file name) | available | read | file_name | `query`*: string; `kind`: string (audio, midi, project, preset); `bpm_min`: number; `bpm_max`: number; `key`: string; `limit`: integer | hits[] with path (null when the drive is offline) |
-| `stats` – Indexed file counts by type | available | read | measured | — | roots, files_by_kind |
-| `find_duplicates` – Probable duplicates (same name and size) | available | read | estimated | `limit`: integer | groups[] |
-| `volumes` – Drives and authorized folders, connected or not | available | read | measured | — | volumes[], roots[] |
-| `analyze_audio_content` – Content indexing (measured BPM/key, similarity) | planned – requires tempo/key engine (M6) and embeddings | read | — | `root_id`*: string | updated index |
+| `search` – Natural-language or keyword search, with score and reasons | available | read | mixed | `text`: string; `query`: string; `kind`: string (audio, midi, preset, project, instrument); `bpm_min`: number; `bpm_max`: number; `key`: string; `limit`: integer | understood (parsed request), results[] with score, why, bpm/key with source and confidence, path (null when the drive is offline) |
+| `describe_sound` – Find sounds from a description (e.g. warm, deep, aggressive bass) | available | read | estimated | `text`*: string; `limit`: integer | results[] ranked by estimated sound character |
+| `find_similar` – Sounds with a timbre similar to an indexed file | available | read | estimated | `file_id`*: integer; `limit`: integer | results[] with similarity % (estimate) |
+| `suggest_loops` – Loops that fit the project tempo (and key), never modified | available | read | mixed | `bpm`*: number; `key`: string; `category`: string; `limit`: integer | results[] with stretch % and key fit |
+| `find_presets` – Presets actually present, also for a given plugin | available | read | mixed | `text`: string; `plugin`: string; `category`: string; `limit`: integer | results[] (presets only) |
+| `find_midi` – MIDI files by pattern type, key, BPM, genre | available | read | mixed | `text`*: string; `limit`: integer | results[] (MIDI only) with pattern, key, bars |
+| `file_info` – Details and original path of indexed files (for the DAW Controller) | available | read | measured | `file_ids`*: array of integer; `details`: boolean | files[] with path (null when offline), status, device |
+| `find_duplicates` – Exact duplicates, same audio, similar sounds (not duplicates) | available | read | measured | `include_similar`: boolean | identical_files[], same_audio[], similar_not_duplicates[] |
+| `stats` – Counts by status, kind, category, analysis | available | read | measured | — | stats |
+| `volumes` – Drives and authorized folders, connected or not, scan state | available | read | measured | — | volumes[], roots[], root_states[] |
+| `scan` – Incremental scan of the authorized folders (writes the index only) | available | low | measured | `root_id`: string | summary per folder: new, changed, moved, missing, back |
+| `analyze_now` – Analyze pending files now (can be stopped) | available | low | measured | `limit`: integer | analyzed count, pending left |
+| `analysis_status` – Files analyzed, pending, with errors | available | read | measured | — | counts |
 
-**Tools (level 3):** `audio.tempo_key`, `library.filename_meta`, `library.index`
+**Tools (level 3):** `library.audio_analyzer`, `library.classifier`, `library.duplicates`, `library.filename_meta`, `library.index`, `library.midi_reader`, `library.preset_reader`, `library.scanner`, `library.search`
 
 **Permissions:** `external_devices`, `files.authorized_read`
 
 **Input formats:** application/json · **Output formats:** application/json
 
-**Works with (through the central Agent, never directly):** sound_designer, music_producer
+**Works with (through the central Agent, never directly):** sound_designer, music_producer, rhythm_engineer, plugin_intelligence, daw_controller
 
 **Limits**
 
-- Never moves, modifies or deletes original files
+- Never moves, modifies, renames or deletes original files
 - Cannot authorize new folders: only the user can, from the system dialog
-- BPM and key come from file names, not measurements
-- Duplicates are candidates (name and size); contents are not compared
+- BPM, key, categories and sound character are estimates with source and confidence; what cannot be determined stays unknown
+- Similarity is a timbre estimate, not a certain match; similarity never makes two files duplicates
+- Long files are analyzed on their first 90 seconds
+- Presets: only documented formats are read (Vital, VST3, AU, FXP/FXB); others are recognized but not read
 
 ## I. Plugin Intelligence
 
@@ -330,10 +343,10 @@ Fields marked * are required. All agents: contract version 1, agent version 1.0.
 |---|---|---|---|---|---|
 | `scan` – Inventory of installed plugins | available | read | measured | — | plugins[] by format, kind, vendor |
 | `find_for_role` – Installed instruments suited to a role | available | read | rule_based | `role`*: string (enum) | candidates[] (detected only) |
-| `plugin_info` – Profile of a known synth and whether it is installed | available | read | rule_based | `name`*: string | catalog entry, installed |
+| `plugin_info` – Profile of a known synth and whether it is installed | available | read | rule_based | `name`*: string | catalog entry, installed, presets in the library |
 | `map_parameters` – Parameter map of a plugin | planned – requires parameter maps through a DAW (milestone M7) | read | — | `name`*: string | parameters[] |
 
-**Tools (level 3):** `daw.connectors`, `plugins.catalog`, `plugins.param_maps`, `plugins.scanner`, `sound.recipes`
+**Tools (level 3):** `daw.connectors`, `library.index`, `plugins.catalog`, `plugins.param_maps`, `plugins.scanner`, `sound.recipes`
 
 **Permissions:** `plugins.scan`
 
@@ -364,10 +377,10 @@ Fields marked * are required. All agents: contract version 1, agent version 1.0.
 
 | Operation | Status | Risk | Basis | Input | Output |
 |---|---|---|---|---|---|
-| `analyze_mix` – Per-track measurements and mix proposals (never executed) | available | read | measured | `tracks`*: array; `genre`: string | tracks[] with measurements, suggestions[] (executed: false) |
-| `apply_moves` – Apply the moves in the DAW | planned – requires DAW connector (milestone M4) | medium · user confirmation | — | `moves`*: array | applied moves |
+| `analyze_mix` – Per-track measurements and mix proposals (never executed) | available | read | measured | `tracks`*: array of object; `genre`: string | tracks[] with measurements, suggestions[] (executed: false) |
+| `apply_moves` – Apply the moves in the DAW | planned – requires DAW connector (milestone M4) | medium (approval) | — | `moves`*: array | applied moves |
 
-**Tools (level 3):** `audio.wav_meter`, `daw.connectors`
+**Tools (level 3):** `audio.decoder`, `audio.wav_meter`, `daw.connectors`
 
 **Permissions:** `daw.control`, `files.authorized_read`
 
@@ -378,7 +391,7 @@ Fields marked * are required. All agents: contract version 1, agent version 1.0.
 **Limits**
 
 - Proposals only: no move is executed
-- Measurements need WAV files of the tracks
+- Measurements need audio files of the tracks (WAV, AIFF, CAF, MP3, AAC/ALAC (M4A), FLAC, OGG Vorbis (decoded with Symphonia))
 - Coarse frequency bands (2nd-order filters), no fine spectral analysis
 
 ## K. Mastering Engineer
@@ -398,10 +411,10 @@ Fields marked * are required. All agents: contract version 1, agent version 1.0.
 
 | Operation | Status | Risk | Basis | Input | Output |
 |---|---|---|---|---|---|
-| `analyze_master` – Master measurements and comparison with destinations | available | read | measured | `path`*: string; `destinations`: array | measurements, destinations[] with expected gain change, suggestions[] |
-| `master_track` – Process and export the master | planned – requires processing chain and render (milestone M9) | high · user confirmation | — | `path`*: string; `destination`: string (spotify, apple_music, youtube, tidal, amazon_music, club, broadcast_ebu) | file |
+| `analyze_master` – Master measurements and comparison with destinations | available | read | measured | `path`*: string; `destinations`: array of string (enum) | measurements, destinations[] with expected gain change, suggestions[] |
+| `master_track` – Process and export the master | planned – requires processing chain and render (milestone M9) | high (approval) | — | `path`*: string; `destination`: string (enum) | file |
 
-**Tools (level 3):** `audio.processing_chain`, `audio.wav_meter`
+**Tools (level 3):** `audio.decoder`, `audio.processing_chain`, `audio.wav_meter`
 
 **Permissions:** `files.app_write`, `files.authorized_read`
 
@@ -431,10 +444,10 @@ Fields marked * are required. All agents: contract version 1, agent version 1.0.
 | Operation | Status | Risk | Basis | Input | Output |
 |---|---|---|---|---|---|
 | `detect` – Installed DAWs and versions | available | read | measured | — | daws[] |
-| `plan_operations` – Prepare DAW operations and the MIDI files to import (executes nothing in the DAW) | available | low | rule_based | `daw`: string (logic, ableton, fl, protools, cubase, reaper); `bpm`: number; `key`: string; `project_name`: string; `sections`: array; `parts`: array | operations[] with route, risk, approval; manual_steps[]; files[] |
-| `execute_plan` – Execute the plan in the DAW | planned – requires DAW connectors (milestone M4): Logic Pro first | medium · user confirmation | — | `plan_task_id`*: string | executed operations |
+| `plan_operations` – Prepare DAW operations and the MIDI files to import (executes nothing in the DAW) | available | low | rule_based | `daw`: string (logic, ableton, fl, protools, cubase, reaper); `bpm`: number; `key`: string; `project_name`: string; `sections`: array of object; `parts`: array of object | operations[] with route, risk, approval; manual_steps[]; files[] |
+| `execute_plan` – Execute the plan in the DAW | planned – requires DAW connectors (milestone M4): Logic Pro first | medium (approval) | — | `plan_task_id`*: string | executed operations |
 
-**Tools (level 3):** `daw.connectors`, `daw.detector`, `daw.routes`, `files.writer`
+**Tools (level 3):** `daw.connectors`, `daw.detector`, `daw.routes`, `files.writer`, `library.index`
 
 **Permissions:** `daw.control`, `daw.detect`, `files.app_write`
 
@@ -465,12 +478,12 @@ Fields marked * are required. All agents: contract version 1, agent version 1.0.
 
 | Operation | Status | Risk | Basis | Input | Output |
 |---|---|---|---|---|---|
-| `remember` – Store a declared shortcut, procedure or preference | available | low | none | `kind`*: string (shortcut, procedure, preference); `name`*: string; `daw`: string (logic, ableton, fl, protools, cubase, reaper); `keys`: string; `steps`: array; `value`: string; `scope`: string (standard, custom); `source`: string | fact |
+| `remember` – Store a declared shortcut, procedure or preference | available | low | none | `kind`*: string (shortcut, procedure, preference); `name`*: string; `daw`: string (logic, ableton, fl, protools, cubase, reaper); `keys`: string; `steps`: array of string; `value`: string; `scope`: string (standard, custom); `source`: string | fact |
 | `recall` – Procedures relevant to a request | available | read | none | `query`: string; `daw`: string (logic, ableton, fl, protools, cubase, reaper); `kind`: string (shortcut, procedure, preference) | facts[] ranked |
 | `list` – The whole workflow memory | available | read | none | — | facts[] |
-| `update` – Edit an item | available | low | none | `id`*: string; `name`: string; `keys`: string; `steps`: array; `value`: string; `scope`: string (standard, custom) | fact |
+| `update` – Edit an item | available | low | none | `id`*: string; `name`: string; `keys`: string; `steps`: array of string; `value`: string; `scope`: string (standard, custom) | fact |
 | `forget` – Delete an item | available | low | none | `id`*: string | deleted |
-| `clear` – Delete the whole workflow memory (needs the user's confirmation) | available | high · user confirmation | none | — | deleted count |
+| `clear` – Delete the whole workflow memory (needs the user's confirmation) | available | high (approval) | none | — | deleted count |
 | `status` – Whether memory is on and how many items | available | read | none | — | enabled, count |
 | `learn_from_history` – Propose procedures from repeated DAW operations | planned – requires a DAW event stream (milestone M4); keystrokes are never recorded | read | — | — | suggestions[] |
 
