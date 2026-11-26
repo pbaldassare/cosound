@@ -281,7 +281,7 @@ fn resolves_original_paths_for_the_daw_controller() {
         [id(&c, "Arp Loop Am.wav"), id(&c, "Arp minor.mid"), 999_999]
     };
     let r = api::resolve(&l.db.lock().unwrap(), &ids);
-    assert_eq!(r[0]["path"].as_str().unwrap(), l.root.join("Loops/Arp Loop Am.wav").to_str().unwrap());
+    assert_eq!(r[0]["path"].as_str().unwrap(), l.root.join("Loops").join("Arp Loop Am.wav").to_str().unwrap());
     assert_eq!(r[1]["usable"], true);
     assert!(r[2]["error"].is_string());
     library::refresh_volumes(&l.db.lock().unwrap(), &[]).unwrap();
