@@ -27,7 +27,7 @@ function Understanding({ i, onAnswer }: { i: Interpretation; onAnswer: (s: strin
         <div className="flex flex-wrap gap-1">{i.clarification.options.slice(0, 8).map((o) => <button key={o} className={btnGhost + ' !px-2 !py-0.5 !text-xs'} onClick={() => onAnswer(o)}>{o}</button>)}</div>
       )}
       {i.approval.required && (
-        <p className="flex items-center gap-1 text-amber-200"><ShieldAlert size={12} />{i.approval.destructive_operations.length ? `${u.destructive}: ${i.approval.destructive_operations.map((d) => `${d.kind} (${d.subject})`).join(', ')}` : u.approval}</p>
+        <p className="flex items-center gap-1 text-amber-200"><ShieldAlert size={12} />{i.approval.destructive_operations.length ? `${u.destructive} ${i.approval.destructive_operations.map((d) => { const tr = i.targets.find((x) => x.element === d.subject)?.track_name; return `${u.removes[d.kind] ?? d.kind} (${tr ?? u.elements[d.subject] ?? d.subject})` }).join(', ')}.` : u.approval}</p>
       )}
       {i.issues.filter((x) => x.severity !== 'info').map((x, k) => <p key={k} className={x.severity === 'error' ? 'text-rose-300' : 'text-amber-200'}>{x.message}{x.suggestion ? ` ${x.suggestion}` : ''}</p>)}
       <details>
